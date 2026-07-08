@@ -32,6 +32,15 @@
 | per_page | query | string | 아니오 | — | 페이지당 항목 수 |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/product-notice-templates?search=%EC%98%88%EC%8B%9C%EA%B0%92&active_only=1&per_page=%EC%98%88%EC%8B%9C%EA%B0%92&page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -50,6 +59,63 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
 | updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시 목록을 불러왔습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 고시템플릿",
+                    "en": "API Doc Sample Notice Template"
+                },
+                "localized_name": "API 문서 샘플 고시템플릿",
+                "category": null,
+                "fields": [
+                    {
+                        "label": "품명",
+                        "value": "샘플"
+                    }
+                ],
+                "fields_count": 1,
+                "is_active": true,
+                "sort_order": 0,
+                "icon": "file-alt",
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 1,
+            "from": 1,
+            "to": 1,
+            "has_more_pages": false
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -82,9 +148,35 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-notice-template.create_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/product-notice-templates HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "category": "예시값",
+    "fields": [
+        "예시값"
+    ],
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -111,9 +203,38 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/product-notice-templates/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| template_id | integer | `1` | template 식별자 (연관 리소스 참조) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시가 삭제되었습니다.",
+    "data": {
+        "template_id": 1
+    }
+}
+```
 
 **에러 응답**
 
@@ -140,9 +261,72 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/product-notice-templates/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 고시템플릿","en":"API Doc Sample Notice Templ…` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 고시템플릿` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| category | null | `null` | 품목 카테고리 |
+| fields | array | `[{"label":"품명","value":"샘플"}]` | 필드 정의 JSON |
+| fields_count | integer | `1` | fields 개수 (집계) |
+| is_active | boolean | `true` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `file-alt` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시 목록을 불러왔습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 고시템플릿",
+            "en": "API Doc Sample Notice Template"
+        },
+        "localized_name": "API 문서 샘플 고시템플릿",
+        "category": null,
+        "fields": [
+            {
+                "label": "품명",
+                "value": "샘플"
+            }
+        ],
+        "fields_count": 1,
+        "is_active": true,
+        "sort_order": 0,
+        "icon": "file-alt",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -176,9 +360,35 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-notice-template.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/product-notice-templates/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "category": "예시값",
+    "fields": [
+        "예시값"
+    ],
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -206,9 +416,72 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/product-notice-templates/1/copy HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `2` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 고시템플릿 (복사)","en":"API Doc Sample Notice …` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 고시템플릿 (복사)` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| category | null | `null` | 품목 카테고리 |
+| fields | array | `[{"label":"품명","value":"샘플"}]` | 필드 정의 JSON |
+| fields_count | integer | `1` | fields 개수 (집계) |
+| is_active | boolean | `true` | active 여부 |
+| sort_order | integer | `1` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `file-alt` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 15:00:27` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:27` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시가 복사되었습니다.",
+    "data": {
+        "id": 2,
+        "name": {
+            "ko": "API 문서 샘플 고시템플릿 (복사)",
+            "en": "API Doc Sample Notice Template (Copy)"
+        },
+        "localized_name": "API 문서 샘플 고시템플릿 (복사)",
+        "category": null,
+        "fields": [
+            {
+                "label": "품명",
+                "value": "샘플"
+            }
+        ],
+        "fields_count": 1,
+        "is_active": true,
+        "sort_order": 1,
+        "icon": "file-alt",
+        "created_at": "2026-07-08 15:00:27",
+        "updated_at": "2026-07-08 15:00:27",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -235,9 +508,72 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/product-notice-templates/1/toggle-active HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 고시템플릿","en":"API Doc Sample Notice Templ…` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 고시템플릿` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| category | null | `null` | 품목 카테고리 |
+| fields | array | `[{"label":"품명","value":"샘플"}]` | 필드 정의 JSON |
+| fields_count | integer | `1` | fields 개수 (집계) |
+| is_active | boolean | `false` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `file-alt` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:27` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시가 비활성화되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 고시템플릿",
+            "en": "API Doc Sample Notice Template"
+        },
+        "localized_name": "API 문서 샘플 고시템플릿",
+        "category": null,
+        "fields": [
+            {
+                "label": "품명",
+                "value": "샘플"
+            }
+        ],
+        "fields_count": 1,
+        "is_active": false,
+        "sort_order": 0,
+        "icon": "file-alt",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:27",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

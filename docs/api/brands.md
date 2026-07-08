@@ -34,6 +34,15 @@
 | sort_order | query | string | 아니오 | `asc`, `desc` | 정렬 방향 (asc 오름차순 / desc 내림차순) |
 | locale | query | string | 아니오 | `ko`, `en`, `fr`, `ja` | 로케일 코드 (표시 언어/지역) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/brands?is_active=1&search=%EC%98%88%EC%8B%9C%EA%B0%92&sort=name_asc&sort_by=name&sort_order=asc&locale=ko HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
@@ -56,6 +65,53 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | updater | array | `[]` | 수정자 정보 객체 (id/name — updater 관계 파생, 로드 시에만 포함) |
 | products_count | integer | `0` | products 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "브랜드 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 1,
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 브랜드",
+                    "en": "API Doc Sample Brand"
+                },
+                "localized_name": "API 문서 샘플 브랜드",
+                "slug": "apidoc-sample-brand",
+                "url": "apidoc-sample-brand",
+                "website": null,
+                "sort_order": 0,
+                "is_active": true,
+                "icon": "tag",
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "creator": [],
+                "updater": [],
+                "products_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -88,9 +144,33 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.brand.create_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/brands HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "slug": "example-key",
+    "website": "예시값",
+    "sort_order": 1,
+    "is_active": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -117,9 +197,40 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | brand | path | string | 예 | — | 대상 brand의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/brands/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| brand_id | integer | `1` | brand 식별자 (연관 리소스 참조) |
+| products_count | integer | `0` | products 개수 (집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "브랜드가 삭제되었습니다.",
+    "data": {
+        "brand_id": 1,
+        "products_count": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -153,9 +264,33 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.brand.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/brands/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "slug": "example-key",
+    "website": "예시값",
+    "sort_order": 1,
+    "is_active": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -183,9 +318,69 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/brands/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 브랜드","en":"API Doc Sample Brand"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 브랜드` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| slug | string | `apidoc-sample-brand` | URL 친화 식별자 (slug) |
+| url | string | `apidoc-sample-brand` | SortableMenuItem 표시용 URL (slug 값을 그대로 노출) |
+| website | null | `null` | 브랜드 웹사이트 URL |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| is_active | boolean | `true` | active 여부 |
+| icon | string | `tag` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| products_count | integer | `0` | products 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "브랜드 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 브랜드",
+            "en": "API Doc Sample Brand"
+        },
+        "localized_name": "API 문서 샘플 브랜드",
+        "slug": "apidoc-sample-brand",
+        "url": "apidoc-sample-brand",
+        "website": null,
+        "sort_order": 0,
+        "is_active": true,
+        "icon": "tag",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "products_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -212,9 +407,69 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/brands/1/toggle-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 브랜드","en":"API Doc Sample Brand"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 브랜드` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| slug | string | `apidoc-sample-brand` | URL 친화 식별자 (slug) |
+| url | string | `apidoc-sample-brand` | SortableMenuItem 표시용 URL (slug 값을 그대로 노출) |
+| website | null | `null` | 브랜드 웹사이트 URL |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| is_active | boolean | `false` | active 여부 |
+| icon | string | `tag` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:16` | 최종 수정 일시 |
+| products_count | integer | `0` | products 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "sirsoft-ecommerce::messages.brands.status_changed",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 브랜드",
+            "en": "API Doc Sample Brand"
+        },
+        "localized_name": "API 문서 샘플 브랜드",
+        "slug": "apidoc-sample-brand",
+        "url": "apidoc-sample-brand",
+        "website": null,
+        "sort_order": 0,
+        "is_active": false,
+        "icon": "tag",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:16",
+        "products_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

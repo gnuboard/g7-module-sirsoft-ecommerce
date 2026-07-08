@@ -27,11 +27,45 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/wishlist HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 <!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "찜 목록을 불러왔습니다.",
+    "data": {
+        "data": [],
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 0,
+            "from": null,
+            "to": null,
+            "has_more_pages": false
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -58,9 +92,43 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.wishlist.toggle_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/wishlist/toggle HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "product_id": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| added | boolean | `true` | 토글 후 찜 상태 (true 이면 찜 목록에 추가됨 / false 이면 제거됨) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 찜 목록에 추가되었습니다.",
+    "data": {
+        "added": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -86,9 +154,22 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/wishlist/{id} HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

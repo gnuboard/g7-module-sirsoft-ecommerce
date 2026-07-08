@@ -27,6 +27,15 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/claim-reasons HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
@@ -49,6 +58,79 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | creator | array | `[]` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
 | updater | array | `[]` | 최종 수정자 정보 객체 (id/name — updater 관계 로드 시) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 8,
+                "id": 1,
+                "type": "refund",
+                "code": "order_mistake",
+                "name": {
+                    "ko": "주문 실수",
+                    "en": "Order Mistake"
+                },
+                "localized_name": "주문 실수",
+                "fault_type": "customer",
+                "fault_type_label": "고객 귀책",
+                "is_user_selectable": true,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:43:32",
+                "updated_at": "2026-07-08 10:43:32",
+                "creator": [],
+                "updater": [],
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            {
+                "number": 7,
+                "id": 8,
+                "type": "refund",
+                "code": "apidoc_sample",
+                "name": {
+                    "ko": "API 문서 샘플 사유",
+                    "en": "API Doc Sample Reason"
+                },
+                "localized_name": "API 문서 샘플 사유",
+                "fault_type": "customer",
+                "fault_type_label": "고객 귀책",
+                "is_user_selectable": true,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "creator": [],
+                "updater": [],
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            "... (총 8건 중 2건 표시)"
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -80,9 +162,35 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | is_active | body | boolean | 아니오 | — | 활성 여부 (true 활성 / false 비활성) |
 | sort_order | body | integer | 아니오 | min 0 | 표시 정렬 순서 값 (작을수록 우선) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/claim-reasons HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "type": "예시값",
+    "code": "예시값",
+    "name": [
+        "예시 이름"
+    ],
+    "fault_type": "예시값",
+    "is_user_selectable": true,
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -107,6 +215,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/claim-reasons/active HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
@@ -129,6 +246,79 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | creator | array | `[]` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
 | updater | array | `[]` | 최종 수정자 정보 객체 (id/name — updater 관계 로드 시) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 8,
+                "id": 1,
+                "type": "refund",
+                "code": "order_mistake",
+                "name": {
+                    "ko": "주문 실수",
+                    "en": "Order Mistake"
+                },
+                "localized_name": "주문 실수",
+                "fault_type": "customer",
+                "fault_type_label": "고객 귀책",
+                "is_user_selectable": true,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:43:32",
+                "updated_at": "2026-07-08 10:43:32",
+                "creator": [],
+                "updater": [],
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            {
+                "number": 7,
+                "id": 8,
+                "type": "refund",
+                "code": "apidoc_sample",
+                "name": {
+                    "ko": "API 문서 샘플 사유",
+                    "en": "API Doc Sample Reason"
+                },
+                "localized_name": "API 문서 샘플 사유",
+                "fault_type": "customer",
+                "fault_type_label": "고객 귀책",
+                "is_user_selectable": true,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "creator": [],
+                "updater": [],
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            "... (총 8건 중 2건 표시)"
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -154,9 +344,38 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/claim-reasons/8 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| reason_id | integer | `8` | reason 식별자 (연관 리소스 참조) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유가 삭제되었습니다.",
+    "data": {
+        "reason_id": 8
+    }
+}
+```
 
 **에러 응답**
 
@@ -183,9 +402,69 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/claim-reasons/8 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `8` | 기본 키 (내부 식별자) |
+| type | string | `refund` | 사유 유형 (refund, exchange, return 등) |
+| code | string | `apidoc_sample` | 고유 코드 (order_mistake 등) |
+| name | object | `{"ko":"API 문서 샘플 사유","en":"API Doc Sample Reason"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 사유` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| fault_type | string | `customer` | 귀책 구분 (customer, seller, carrier) |
+| fault_type_label | string | `고객 귀책` | `fault_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| is_user_selectable | boolean | `true` | user selectable 여부 |
+| is_active | boolean | `true` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유 정보를 조회했습니다.",
+    "data": {
+        "id": 8,
+        "type": "refund",
+        "code": "apidoc_sample",
+        "name": {
+            "ko": "API 문서 샘플 사유",
+            "en": "API Doc Sample Reason"
+        },
+        "localized_name": "API 문서 샘플 사유",
+        "fault_type": "customer",
+        "fault_type_label": "고객 귀책",
+        "is_user_selectable": true,
+        "is_active": true,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -219,9 +498,35 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | is_active | body | boolean | 아니오 | — | 활성 여부 (true 활성 / false 비활성) |
 | sort_order | body | integer | 아니오 | min 0 | 표시 정렬 순서 값 (작을수록 우선) |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/claim-reasons/8 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "type": "예시값",
+    "code": "예시값",
+    "name": [
+        "예시 이름"
+    ],
+    "fault_type": "예시값",
+    "is_user_selectable": true,
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -249,9 +554,69 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/claim-reasons/8/toggle-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `8` | 기본 키 (내부 식별자) |
+| type | string | `refund` | 사유 유형 (refund, exchange, return 등) |
+| code | string | `apidoc_sample` | 고유 코드 (order_mistake 등) |
+| name | object | `{"ko":"API 문서 샘플 사유","en":"API Doc Sample Reason"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 사유` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| fault_type | string | `customer` | 귀책 구분 (customer, seller, carrier) |
+| fault_type_label | string | `고객 귀책` | `fault_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| is_user_selectable | boolean | `true` | user selectable 여부 |
+| is_active | boolean | `false` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:18` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유 상태가 변경되었습니다.",
+    "data": {
+        "id": 8,
+        "type": "refund",
+        "code": "apidoc_sample",
+        "name": {
+            "ko": "API 문서 샘플 사유",
+            "en": "API Doc Sample Reason"
+        },
+        "localized_name": "API 문서 샘플 사유",
+        "fault_type": "customer",
+        "fault_type_label": "고객 귀책",
+        "is_user_selectable": true,
+        "is_active": false,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:18",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -276,6 +641,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/claim-reasons HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
@@ -298,6 +672,79 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | creator | array | `[]` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
 | updater | array | `[]` | 최종 수정자 정보 객체 (id/name — updater 관계 로드 시) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 7,
+                "id": 1,
+                "type": "refund",
+                "code": "order_mistake",
+                "name": {
+                    "ko": "주문 실수",
+                    "en": "Order Mistake"
+                },
+                "localized_name": "주문 실수",
+                "fault_type": "customer",
+                "fault_type_label": "고객 귀책",
+                "is_user_selectable": true,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:43:32",
+                "updated_at": "2026-07-08 10:43:32",
+                "creator": [],
+                "updater": [],
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            {
+                "number": 6,
+                "id": 8,
+                "type": "refund",
+                "code": "apidoc_sample",
+                "name": {
+                    "ko": "API 문서 샘플 사유",
+                    "en": "API Doc Sample Reason"
+                },
+                "localized_name": "API 문서 샘플 사유",
+                "fault_type": "customer",
+                "fault_type_label": "고객 귀책",
+                "is_user_selectable": true,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "creator": [],
+                "updater": [],
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            "... (총 7건 중 2건 표시)"
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

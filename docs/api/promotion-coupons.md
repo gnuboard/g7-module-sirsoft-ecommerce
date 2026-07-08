@@ -49,6 +49,15 @@
 | issue_end_date | query | date | 아니오 | — | 발급기간 범위 종료 (시작일 이후) |
 | created_by | query | uuid | 아니오 | — | 등록자(생성한 관리자) UUID 필터 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons?page=1&per_page=1&sort_by=created_at&sort_order=asc&search_field=all&search_keyword=%EC%98%88%EC%8B%9C%EA%B0%92&target_type=all&discount_type=all&issue_status=all&issue_method=all&issue_condition=all&min_benefit_amount=1&max_benefit_amount=1&min_order_amount=1&created_start_date=2026-01-01&created_end_date=2026-01-01&valid_start_date=2026-01-01&valid_end_date=2026-01-01&issue_start_date=2026-01-01&issue_end_date=2026-01-01&created_by=9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -106,6 +115,131 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | issues_count | integer | `0` | issues 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "쿠폰 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 쿠폰",
+                    "en": "API Doc Sample Coupon"
+                },
+                "localized_name": "API 문서 샘플 쿠폰",
+                "description": null,
+                "localized_description": null,
+                "target_type": "order_amount",
+                "target_type_label": "주문금액",
+                "target_type_badge_color": "blue",
+                "discount_type": "fixed",
+                "discount_type_label": "정액할인",
+                "discount_value": 1000,
+                "discount_max_amount": null,
+                "min_order_amount": 0,
+                "benefit_formatted": "1,000원 할인",
+                "multi_currency_discount_value": {
+                    "KRW": {
+                        "price": 1000,
+                        "formatted": "1,000원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 0.85,
+                        "formatted": "$0.85",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 115,
+                        "formatted": "¥115",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 5.8,
+                        "formatted": "元5.80",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 0.78,
+                        "formatted": "€0.78",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "multi_currency_min_order_amount": null,
+                "multi_currency_discount_max_amount": null,
+                "issue_method": "download",
+                "issue_method_label": "다운로드",
+                "issue_method_badge_color": "teal",
+                "issue_condition": "manual",
+                "issue_condition_label": "수동발급",
+                "issue_condition_badge_color": "orange",
+                "issue_status": "issuing",
+                "issue_status_label": "발급중",
+                "issue_status_badge_color": "blue",
+                "total_quantity": null,
+                "issued_count": 0,
+                "per_user_limit": 1,
+                "issue_count_formatted": "0/무제한",
+                "valid_type": "period",
+                "valid_days": null,
+                "valid_from": null,
+                "valid_to": null,
+                "valid_period_formatted": "-",
+                "issue_from": null,
+                "issue_to": null,
+                "issue_period_formatted": "상시발급",
+                "is_combinable": false,
+                "target_scope": "all",
+                "target_scope_label": "전체상품",
+                "is_issuable": true,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "created_by": null,
+                "created_by_name": "-",
+                "created_by_email": null,
+                "creator": null,
+                "issues_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 1,
+            "from": 1,
+            "to": 1,
+            "has_more_pages": false
+        }
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -154,9 +288,56 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.create_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/promotion-coupons HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "description": [
+        "예시 내용입니다."
+    ],
+    "target_type": "product_amount",
+    "discount_type": "fixed",
+    "discount_value": 1,
+    "discount_max_amount": 1,
+    "min_order_amount": 1,
+    "issue_method": "direct",
+    "issue_condition": "manual",
+    "issue_status": "issuing",
+    "total_quantity": 1,
+    "per_user_limit": 1,
+    "valid_type": "period",
+    "valid_days": 1,
+    "valid_from": "2026-01-01",
+    "valid_to": "2026-01-01",
+    "issue_from": "2026-01-01",
+    "issue_to": "2026-01-01",
+    "is_combinable": true,
+    "target_scope": "all",
+    "products": [
+        "예시값"
+    ],
+    "categories": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -184,9 +365,30 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | ids | body | array | 예 | min 1 | 대상 리소스 식별자 배열 (대량 작업 대상) |
 | issue_status | body | string | 예 | `issuing`, `stopped` | 일괄 적용할 발급상태: issuing(발급중), stopped(발급중단) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/promotion-coupons/bulk-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "issue_status": "issuing"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -213,9 +415,38 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| coupon_id | integer | `1` | coupon 식별자 (연관 리소스 참조) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "쿠폰이 삭제되었습니다.",
+    "data": {
+        "coupon_id": 1
+    }
+}
+```
 
 **에러 응답**
 
@@ -242,9 +473,186 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 쿠폰","en":"API Doc Sample Coupon"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 쿠폰` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
+| localized_description | null | `null` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| target_type | string | `order_amount` | 적용대상: product_amount(상품금액), order_amount(주문금액), shipping_fee(배송비) |
+| target_type_label | string | `주문금액` | `target_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| target_type_badge_color | string | `blue` | `target_type` 배지 색상 (상품금액=teal, 주문금액=blue, 배송비=orange) |
+| discount_type | string | `fixed` | 혜택유형: fixed(정액), rate(정률) |
+| discount_type_label | string | `정액할인` | `discount_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| discount_value | integer | `1000` | 혜택값 (정액: 금액, 정률: %) |
+| discount_max_amount | null | `null` | 최대 할인액 (정률 시) |
+| min_order_amount | integer | `0` | 최소 주문금액 |
+| benefit_formatted | string | `1,000원 할인` | `benefit` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| multi_currency_discount_value | object | `{"KRW":{"price":1000,"formatted":"1,000원","is_default":tr…` | 정액 할인 금액의 통화별 환산 맵 (정률은 통화 무관이라 null) |
+| multi_currency_min_order_amount | null | `null` | 최소 주문금액의 통화별 환산 맵 (0이면 null) |
+| multi_currency_discount_max_amount | null | `null` | 최대 할인액의 통화별 환산 맵 (미설정 시 null) |
+| issue_method | string | `download` | 발급방법: direct(직접발급), download(다운로드), auto(자동발급) |
+| issue_method_label | string | `다운로드` | `issue_method` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| issue_method_badge_color | string | `teal` | `issue_method` 배지 색상 (직접발급=gray, 다운로드=teal, 자동발급=blue) |
+| issue_condition | string | `manual` | 발급조건: manual(수동), signup(회원가입), first_purchase(첫구매), birthday(생일) |
+| issue_condition_label | string | `수동발급` | `issue_condition` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| issue_condition_badge_color | string | `orange` | `issue_condition` 배지 색상 (수동=orange, 회원가입=blue, 첫구매=teal, 생일=pink) |
+| issue_status | string | `issuing` | 발급상태: issuing(발급중), stopped(발급중단) |
+| issue_status_label | string | `발급중` | `issue_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| issue_status_badge_color | string | `blue` | `issue_status` 배지 색상 (발급중=blue, 발급중단=orange) |
+| total_quantity | null | `null` | 총 발급 수량 (NULL=무제한) |
+| issued_count | integer | `0` | issued 개수 (집계) |
+| per_user_limit | integer | `1` | 회원당 발급 제한 |
+| issue_count_formatted | string | `0/무제한` | `issue_count` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| valid_type | string | `period` | 유효기간 유형: period(기간지정), days_from_issue(발급일로부터) |
+| valid_days | null | `null` | 발급일로부터 N일 (valid_type=days_from_issue) |
+| valid_from | null | `null` | 유효기간 시작 |
+| valid_to | null | `null` | 유효기간 종료 |
+| valid_period_formatted | string | `-` | `valid_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| issue_from | null | `null` | 발급기간 시작 |
+| issue_to | null | `null` | 발급기간 종료 |
+| issue_period_formatted | string | `상시발급` | `issue_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| is_combinable | boolean | `false` | combinable 여부 |
+| target_scope | string | `all` | 적용 범위: all(전체), products(특정상품), categories(특정카테고리) |
+| target_scope_label | string | `전체상품` | `target_scope` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| is_issuable | boolean | `true` | issuable 여부 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| created_by | null | `null` | 쿠폰 등록자(관리자) 식별자 (users 참조, 삭제 시 null) |
+| created_by_name | string | `-` | 등록자 이름 (creator 미로드/미설정 시 `-`) |
+| created_by_email | null | `null` | 등록자 이메일 (creator 관계 파생) |
+| creator | null | `null` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
+| included_products | array | `[]` | 적용 대상 포함 상품 목록 (target_scope=products 시 이 상품에만 적용) |
+| excluded_products | array | `[]` | 적용 제외 상품 목록 (해당 상품은 쿠폰 적용에서 제외) |
+| included_categories | array | `[]` | 적용 대상 포함 카테고리 목록 (target_scope=categories 시 이 카테고리에만 적용) |
+| excluded_categories | array | `[]` | 적용 제외 카테고리 목록 (해당 카테고리는 쿠폰 적용에서 제외) |
+| issues_count | integer | `0` | issues 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "쿠폰 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 쿠폰",
+            "en": "API Doc Sample Coupon"
+        },
+        "localized_name": "API 문서 샘플 쿠폰",
+        "description": null,
+        "localized_description": null,
+        "target_type": "order_amount",
+        "target_type_label": "주문금액",
+        "target_type_badge_color": "blue",
+        "discount_type": "fixed",
+        "discount_type_label": "정액할인",
+        "discount_value": 1000,
+        "discount_max_amount": null,
+        "min_order_amount": 0,
+        "benefit_formatted": "1,000원 할인",
+        "multi_currency_discount_value": {
+            "KRW": {
+                "price": 1000,
+                "formatted": "1,000원",
+                "is_default": true,
+                "editable": true
+            },
+            "USD": {
+                "price": 0.85,
+                "formatted": "$0.85",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 0.85
+            },
+            "JPY": {
+                "price": 115,
+                "formatted": "¥115",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 115
+            },
+            "CNY": {
+                "price": 5.8,
+                "formatted": "元5.80",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 5.8
+            },
+            "EUR": {
+                "price": 0.78,
+                "formatted": "€0.78",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 0.78
+            }
+        },
+        "multi_currency_min_order_amount": null,
+        "multi_currency_discount_max_amount": null,
+        "issue_method": "download",
+        "issue_method_label": "다운로드",
+        "issue_method_badge_color": "teal",
+        "issue_condition": "manual",
+        "issue_condition_label": "수동발급",
+        "issue_condition_badge_color": "orange",
+        "issue_status": "issuing",
+        "issue_status_label": "발급중",
+        "issue_status_badge_color": "blue",
+        "total_quantity": null,
+        "issued_count": 0,
+        "per_user_limit": 1,
+        "issue_count_formatted": "0/무제한",
+        "valid_type": "period",
+        "valid_days": null,
+        "valid_from": null,
+        "valid_to": null,
+        "valid_period_formatted": "-",
+        "issue_from": null,
+        "issue_to": null,
+        "issue_period_formatted": "상시발급",
+        "is_combinable": false,
+        "target_scope": "all",
+        "target_scope_label": "전체상품",
+        "is_issuable": true,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "created_by": null,
+        "created_by_name": "-",
+        "created_by_email": null,
+        "creator": null,
+        "included_products": [],
+        "excluded_products": [],
+        "included_categories": [],
+        "excluded_categories": [],
+        "issues_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -295,9 +703,56 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "description": [
+        "예시 내용입니다."
+    ],
+    "target_type": "product_amount",
+    "discount_type": "fixed",
+    "discount_value": 1,
+    "discount_max_amount": 1,
+    "min_order_amount": 1,
+    "issue_method": "direct",
+    "issue_condition": "manual",
+    "issue_status": "issuing",
+    "total_quantity": 1,
+    "per_user_limit": 1,
+    "valid_type": "period",
+    "valid_days": 1,
+    "valid_from": "2026-01-01",
+    "valid_to": "2026-01-01",
+    "issue_from": "2026-01-01",
+    "issue_to": "2026-01-01",
+    "is_combinable": true,
+    "target_scope": "all",
+    "products": [
+        "예시값"
+    ],
+    "categories": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -326,9 +781,29 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 | user_uuids | body | array | 예 | min 1 | 쿠폰을 직접 발급할 대상 회원 UUID 배열 (내부 회원 ID 로 해석 후 발급) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1/issue-direct HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "user_uuids": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -361,9 +836,45 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.issues_list_validation_rules`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1/issues?user_id=9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d&status=available&per_page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
+
+<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "쿠폰 발급 내역을 조회했습니다.",
+    "data": {
+        "data": [],
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 0,
+            "from": null,
+            "to": null,
+            "has_more_pages": false
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -392,9 +903,22 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 | issueId | path | string | 예 | — | 대상 issue의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1/issues/{issueId} HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

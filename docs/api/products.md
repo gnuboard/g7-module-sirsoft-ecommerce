@@ -52,6 +52,15 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.list_validation_rules`, `sirsoft-ecommerce.product.list_validation_messages`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products?search_field=all&search_keyword=%EC%98%88%EC%8B%9C%EA%B0%92&category_id=1&no_category=1&date_type=%EC%98%88%EC%8B%9C%EA%B0%92&start_date=2026-01-01&end_date=2026-01-01&sales_status=%EC%98%88%EC%8B%9C%EA%B0%92&display_status=%EC%98%88%EC%8B%9C%EA%B0%92&brand_id=1&no_brand=1&tax_status=%EC%98%88%EC%8B%9C%EA%B0%92&price_type=%EC%98%88%EC%8B%9C%EA%B0%92&min_price=1&max_price=1&min_stock=1&max_stock=1&shipping_policy_id=1&sort_by=created_at&sort_order=asc&per_page=1&page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -99,6 +108,412 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
 | is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 3,
+                "id": 3,
+                "name": {
+                    "ko": "nisi et corrupti",
+                    "en": "suscipit esse id"
+                },
+                "name_localized": "nisi et corrupti",
+                "product_code": "PROD-YNAZ-3669",
+                "sku": "SKU-EOQY-1167",
+                "thumbnail_url": null,
+                "list_price": 22605,
+                "list_price_formatted": "22,605원",
+                "selling_price": 20118,
+                "selling_price_formatted": "20,118원",
+                "discount_rate": 11,
+                "multi_currency_list_price": {
+                    "KRW": {
+                        "price": 22605,
+                        "formatted": "22,605원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 19.21,
+                        "formatted": "$19.21",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 2599,
+                        "formatted": "¥2,599",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 131.11,
+                        "formatted": "元131.11",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 17.63,
+                        "formatted": "€17.63",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "multi_currency_selling_price": {
+                    "KRW": {
+                        "price": 20118,
+                        "formatted": "20,118원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 17.1,
+                        "formatted": "$17.10",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 2313,
+                        "formatted": "¥2,313",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 116.68,
+                        "formatted": "元116.68",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 15.69,
+                        "formatted": "€15.69",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "stock_quantity": 164,
+                "safe_stock_quantity": 8,
+                "is_below_safe_stock": false,
+                "option_stock_sum": 24,
+                "sales_status": "on_sale",
+                "sales_status_label": "판매중",
+                "sales_status_variant": "success",
+                "display_status": "visible",
+                "display_status_label": "전시",
+                "display_status_variant": "success",
+                "categories": [],
+                "primary_category": null,
+                "categories_with_path": [],
+                "brand_name": null,
+                "shipping_policy_id": null,
+                "shipping_policy_name": null,
+                "min_purchase_qty": 1,
+                "max_purchase_qty": 0,
+                "has_options": false,
+                "options_count": 1,
+                "options": [
+                    {
+                        "id": 1,
+                        "option_code": "OPT-IXWA-1855",
+                        "option_values": [
+                            {
+                                "key": {
+                                    "ko": "색상",
+                                    "en": "Color"
+                                },
+                                "value": {
+                                    "ko": "흰색",
+                                    "en": "Blue"
+                                }
+                            },
+                            {
+                                "key": {
+                                    "ko": "사이즈",
+                                    "en": "Size"
+                                },
+                                "value": {
+                                    "ko": "M",
+                                    "en": "M"
+                                }
+                            }
+                        ],
+                        "option_values_localized": {
+                            "색상": "흰색",
+                            "사이즈": "M"
+                        },
+                        "option_name": {
+                            "ko": "흰색/M",
+                            "en": "Blue/M"
+                        },
+                        "option_name_localized": "흰색/M",
+                        "price_adjustment": 1000,
+                        "price_adjustment_formatted": "+1,000원",
+                        "price_adjustment_type": "increase",
+                        "list_price": 23605,
+                        "list_price_formatted": "23,605원",
+                        "selling_price": 21118,
+                        "selling_price_formatted": "21,118원",
+                        "final_price": 21118,
+                        "final_price_formatted": "21,118원",
+                        "multi_currency_list_price": {
+                            "KRW": {
+                                "price": 23605,
+                                "formatted": "23,605원",
+                                "is_default": true,
+                                "editable": true
+                            },
+                            "USD": {
+                                "price": 20.06,
+                                "formatted": "$20.06",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 0.85
+                            },
+                            "JPY": {
+                                "price": 2714,
+                                "formatted": "¥2,714",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 115
+                            },
+                            "CNY": {
+                                "price": 136.91,
+                                "formatted": "元136.91",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 5.8
+                            },
+                            "EUR": {
+                                "price": 18.41,
+                                "formatted": "€18.41",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 0.78
+                            }
+                        },
+                        "multi_currency_selling_price": {
+                            "KRW": {
+                                "price": 21118,
+                                "formatted": "21,118원",
+                                "is_default": true,
+                                "editable": true
+                            },
+                            "USD": {
+                                "price": 17.95,
+                                "formatted": "$17.95",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 0.85
+                            },
+                            "JPY": {
+                                "price": 2428,
+                                "formatted": "¥2,428",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 115
+                            },
+                            "CNY": {
+                                "price": 122.48,
+                                "formatted": "元122.48",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 5.8
+                            },
+                            "EUR": {
+                                "price": 16.47,
+                                "formatted": "€16.47",
+                                "is_default": false,
+                                "editable": false,
+                                "exchange_rate": 0.78
+                            }
+                        },
+                        "stock_quantity": 24,
+                        "safe_stock_quantity": 11,
+                        "is_below_safe_stock": false,
+                        "is_sold_out": false,
+                        "is_default": false,
+                        "is_active": true,
+                        "sku": "SKU-OPT-MMYU-1269",
+                        "sort_order": 75
+                    }
+                ],
+                "review_count": 0,
+                "rating_avg": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "is_owner": false,
+                "abilities": {
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            {
+                "number": 2,
+                "id": 2,
+                "name": {
+                    "ko": "repudiandae et et",
+                    "en": "velit alias distinctio"
+                },
+                "name_localized": "repudiandae et et",
+                "product_code": "PROD-XSMH-5438",
+                "sku": "SKU-XXSC-9588",
+                "thumbnail_url": null,
+                "list_price": 654947,
+                "list_price_formatted": "654,947원",
+                "selling_price": 465012,
+                "selling_price_formatted": "465,012원",
+                "discount_rate": 29,
+                "multi_currency_list_price": {
+                    "KRW": {
+                        "price": 654947,
+                        "formatted": "654,947원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 556.7,
+                        "formatted": "$556.70",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 75318,
+                        "formatted": "¥75,318",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 3798.69,
+                        "formatted": "元3,798.69",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 510.86,
+                        "formatted": "€510.86",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "multi_currency_selling_price": {
+                    "KRW": {
+                        "price": 465012,
+                        "formatted": "465,012원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 395.26,
+                        "formatted": "$395.26",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 53476,
+                        "formatted": "¥53,476",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 2697.07,
+                        "formatted": "元2,697.07",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 362.71,
+                        "formatted": "€362.71",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "stock_quantity": 161,
+                "safe_stock_quantity": 49,
+                "is_below_safe_stock": false,
+                "option_stock_sum": 0,
+                "sales_status": "on_sale",
+                "sales_status_label": "판매중",
+                "sales_status_variant": "success",
+                "display_status": "visible",
+                "display_status_label": "전시",
+                "display_status_variant": "success",
+                "categories": [],
+                "primary_category": null,
+                "categories_with_path": [],
+                "brand_name": null,
+                "shipping_policy_id": null,
+                "shipping_policy_name": null,
+                "min_purchase_qty": 1,
+                "max_purchase_qty": 0,
+                "has_options": false,
+                "options_count": 0,
+                "options": [],
+                "review_count": 0,
+                "rating_avg": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "is_owner": false,
+                "abilities": {
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            "... (총 3건 중 2건 표시)"
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        },
+        "statistics": {
+            "total": 3,
+            "sales_status": {
+                "on_sale": 3
+            },
+            "display_status": {
+                "visible": 3
+            },
+            "low_stock_count": 0,
+            "out_of_stock_count": 0
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 3,
+            "from": 1,
+            "to": 3,
+            "has_more_pages": false
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -166,9 +581,92 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.store_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/products HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "product_code": "예시값",
+    "sales_product_code": "예시값",
+    "sku": "예시값",
+    "category_ids": [
+        "예시값"
+    ],
+    "primary_category_id": 1,
+    "brand_id": 1,
+    "list_price": 1,
+    "selling_price": 1,
+    "stock_quantity": 1,
+    "safe_stock_quantity": 1,
+    "sales_status": "예시값",
+    "display_status": "예시값",
+    "tax_status": "예시값",
+    "tax_rate": 1,
+    "shipping_policy_id": 1,
+    "common_info_id": 1,
+    "description": [
+        "예시 내용입니다."
+    ],
+    "description_mode": "text",
+    "thumbnail_hash": "예시값",
+    "image_temp_key": "예시값",
+    "images": [
+        "예시값"
+    ],
+    "meta_title": [
+        "예시 제목"
+    ],
+    "meta_description": [
+        "예시 내용입니다."
+    ],
+    "meta_keywords": [
+        "예시값"
+    ],
+    "seo_sync_title": true,
+    "seo_sync_description": true,
+    "use_main_image_for_og": true,
+    "has_options": true,
+    "option_groups": [
+        "예시값"
+    ],
+    "options": [
+        "예시값"
+    ],
+    "additional_options": [
+        "예시값"
+    ],
+    "notice_items": [
+        "예시값"
+    ],
+    "label_assignments": [
+        "예시값"
+    ],
+    "min_purchase_qty": 1,
+    "max_purchase_qty": 1,
+    "purchase_restriction": "none",
+    "allowed_roles": [
+        "예시값"
+    ],
+    "barcode": "예시값",
+    "hs_code": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -200,9 +698,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.bulk_price_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/products/bulk-price HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "method": "increase",
+    "value": 1,
+    "unit": "won"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -233,9 +754,31 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.bulk_status_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/products/bulk-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "field": "sales_status",
+    "value": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -266,9 +809,31 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.bulk_stock_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/products/bulk-stock HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "method": "increase",
+    "value": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -301,9 +866,41 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.bulk_update_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/products/bulk-update HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "bulk_changes": [
+        "예시값"
+    ],
+    "items": [
+        "예시값"
+    ],
+    "option_bulk_changes": [
+        "예시값"
+    ],
+    "option_items": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -330,9 +927,143 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | code | path | string | 예 | — | 대상 리소스의 코드 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products/by-code/APIDOCSAMPLE01 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 상품","en":"API Doc Sample Product"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| name_localized | string | `API 문서 샘플 상품` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| product_code | string | `APIDOCSAMPLE01` | 상품코드 |
+| sku | string | `SKU-DKOK-1319` | SKU |
+| categories | array | `[]` | 소속 카테고리 목록 (각 항목: id·현지화 이름·대표 여부. categories 관계 eager load 시에만 채워짐) |
+| category_ids | array | `[]` | category 식별자 배열 (연관 리소스 참조) |
+| primary_category_id | null | `null` | primary category 식별자 (연관 리소스 참조) |
+| brand_id | null | `null` | brand 식별자 (연관 리소스 참조) |
+| list_price | integer | `703155` | 정가 (기본통화 기준) |
+| selling_price | integer | `597682` | 판매가 (기본통화 기준) |
+| discount_rate | integer | `15` | 할인율(%) (정가 대비 판매가 할인 비율, (1 - 판매가/정가) × 100) |
+| stock_quantity | integer | `509` | 재고 수량 (옵션 있으면 옵션 합계) |
+| safe_stock_quantity | integer | `38` | 안전재고 수량 |
+| is_below_safe_stock | boolean | `false` | below safe stock 여부 |
+| is_stock_consistent | boolean | `true` | stock consistent 여부 |
+| sales_status | string | `on_sale` | 판매상태: on_sale(판매중), suspended(판매중지), sold_out(품절), coming_soon(출시예정) |
+| sales_status_label | string | `판매중` | `sales_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| display_status | string | `visible` | 전시상태: visible(전시), hidden(숨김) |
+| display_status_label | string | `전시` | `display_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| tax_status | string | `taxable` | 과세여부: taxable(과세), tax_free(면세) |
+| tax_status_label | string | `과세` | `tax_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| tax_rate | string | `10.00` | 세율 (%) |
+| shipping_policy_id | null | `null` | shipping policy 식별자 (연관 리소스 참조) |
+| common_info_id | null | `null` | common info 식별자 (연관 리소스 참조) |
+| description | object | `{"ko":"Tempore et non fugit eos et aperiam dolore. Aut es…` | 설명 (다국어 필드는 로케일별 값 객체) |
+| description_localized | string | `Tempore et non fugit eos et aperiam d…` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description_mode | string | `text` | 설명 모드: text(텍스트), html(HTML) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| purchase_restriction | string | `none` | 구매 제한: none(없음), restricted(제한) |
+| allowed_roles | null | `null` | 구매 허용 역할 ID 배열 |
+| barcode | null | `null` | 바코드 |
+| hs_code | null | `null` | HS 코드 (관세 분류) |
+| images | array | `[]` | 상품 이미지 목록 (각 항목: hash·url·alt_text·is_thumbnail·sort_order 등, images 관계 로드 시) |
+| thumbnail_hash | null | `null` | 대표 이미지 해시 (썸네일로 지정된 이미지의 hash) |
+| thumbnail_url | null | `null` | thumbnail URL |
+| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
+| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| meta_keywords | null | `null` | SEO 키워드 (배열) |
+| seo_sync_title | boolean | `true` | SEO 제목 동기화 여부 (1: 상품명으로 자동 채움, 0: 직접 입력 보존) |
+| seo_sync_description | boolean | `true` | SEO 설명 동기화 여부 (1: 상품 설명으로 자동 채움, 0: 직접 입력 보존) |
+| has_options | boolean | `false` | options 여부 |
+| option_groups | array | `[]` | 옵션 그룹 정의: [{name: "색상", values: ["빨강", "파랑"]}] |
+| options | array | `[]` | 옵션(SKU) 목록 (수정 폼 바인딩용, 각 옵션의 id·코드·옵션값·가격·재고 등) |
+| additional_options | array | `[]` | 추가옵션 그룹 목록 (수정 폼 바인딩용, 그룹명·선택지·추가금 등) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "name_localized": "API 문서 샘플 상품",
+        "product_code": "APIDOCSAMPLE01",
+        "sku": "SKU-DKOK-1319",
+        "categories": [],
+        "category_ids": [],
+        "primary_category_id": null,
+        "brand_id": null,
+        "list_price": 703155,
+        "selling_price": 597682,
+        "discount_rate": 15,
+        "stock_quantity": 509,
+        "safe_stock_quantity": 38,
+        "is_below_safe_stock": false,
+        "is_stock_consistent": true,
+        "sales_status": "on_sale",
+        "sales_status_label": "판매중",
+        "display_status": "visible",
+        "display_status_label": "전시",
+        "tax_status": "taxable",
+        "tax_status_label": "과세",
+        "tax_rate": "10.00",
+        "shipping_policy_id": null,
+        "common_info_id": null,
+        "description": {
+            "ko": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+            "en": "Soluta et ut repellendus rem. Id ea quibusdam in. Doloribus saepe rem praesentium et quis et molestiae.\n\nDolor voluptas aut qui unde sed quia. Corrupti qui enim laborum maxime possimus quis. Odit ducimus doloremque qui officiis fugit rerum. Magni ea possimus quia commodi optio saepe. Recusandae itaque in voluptatum et.\n\nRerum enim velit est inventore. Ipsa laboriosam provident ullam."
+        },
+        "description_localized": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+        "description_mode": "text",
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": null,
+        "barcode": null,
+        "hs_code": null,
+        "images": [],
+        "thumbnail_hash": null,
+        "thumbnail_url": null,
+        "meta_title": null,
+        "meta_description": null,
+        "meta_keywords": null,
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "has_options": false,
+        "option_groups": [],
+        "options": [],
+        "additional_options": [],
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -401,9 +1132,92 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/products/by-code/APIDOCSAMPLE01 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "product_code": "예시값",
+    "sales_product_code": "예시값",
+    "sku": "예시값",
+    "category_ids": [
+        "예시값"
+    ],
+    "primary_category_id": 1,
+    "brand_id": 1,
+    "list_price": 1,
+    "selling_price": 1,
+    "stock_quantity": 1,
+    "safe_stock_quantity": 1,
+    "sales_status": "예시값",
+    "display_status": "예시값",
+    "tax_status": "예시값",
+    "tax_rate": 1,
+    "shipping_policy_id": 1,
+    "common_info_id": 1,
+    "description": [
+        "예시 내용입니다."
+    ],
+    "description_mode": "text",
+    "thumbnail_hash": "예시값",
+    "image_temp_key": "예시값",
+    "images": [
+        "예시값"
+    ],
+    "meta_title": [
+        "예시 제목"
+    ],
+    "meta_description": [
+        "예시 내용입니다."
+    ],
+    "meta_keywords": [
+        "예시값"
+    ],
+    "seo_sync_title": true,
+    "seo_sync_description": true,
+    "use_main_image_for_og": true,
+    "has_options": true,
+    "option_groups": [
+        "예시값"
+    ],
+    "options": [
+        "예시값"
+    ],
+    "additional_options": [
+        "예시값"
+    ],
+    "notice_items": [
+        "예시값"
+    ],
+    "label_assignments": [
+        "예시값"
+    ],
+    "min_purchase_qty": 1,
+    "max_purchase_qty": 1,
+    "purchase_restriction": "none",
+    "allowed_roles": [
+        "예시값"
+    ],
+    "barcode": "예시값",
+    "hs_code": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -429,9 +1243,22 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/products/generate-code HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: side-effectful-write — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -462,9 +1289,42 @@ _요청 파라미터 없음._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_upload_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/products/images HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: multipart/form-data; boundary=----G7ExampleBoundary
+
+------G7ExampleBoundary
+Content-Disposition: form-data; name="file"; filename="example.pdf"
+Content-Type: application/octet-stream
+
+(바이너리 파일 내용)
+------G7ExampleBoundary
+Content-Disposition: form-data; name="temp_key"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="collection"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text"
+
+예시값
+------G7ExampleBoundary--
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -493,9 +1353,29 @@ _요청 파라미터 없음._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_reorder_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/products/images/reorder HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "order": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -522,9 +1402,22 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/products/images/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -551,9 +1444,147 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | identifier | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 상품","en":"API Doc Sample Product"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| name_localized | string | `API 문서 샘플 상품` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| product_code | string | `APIDOCSAMPLE01` | 상품코드 |
+| sku | string | `SKU-DKOK-1319` | SKU |
+| categories | array | `[]` | 소속 카테고리 목록 (각 항목: id·현지화 이름·대표 여부. categories 관계 eager load 시에만 채워짐) |
+| category_ids | array | `[]` | category 식별자 배열 (연관 리소스 참조) |
+| primary_category_id | null | `null` | primary category 식별자 (연관 리소스 참조) |
+| brand_id | null | `null` | brand 식별자 (연관 리소스 참조) |
+| list_price | integer | `703155` | 정가 (기본통화 기준) |
+| selling_price | integer | `597682` | 판매가 (기본통화 기준) |
+| discount_rate | integer | `15` | 할인율(%) (정가 대비 판매가 할인 비율, (1 - 판매가/정가) × 100) |
+| stock_quantity | integer | `509` | 재고 수량 (옵션 있으면 옵션 합계) |
+| safe_stock_quantity | integer | `38` | 안전재고 수량 |
+| is_below_safe_stock | boolean | `false` | below safe stock 여부 |
+| is_stock_consistent | boolean | `true` | stock consistent 여부 |
+| sales_status | string | `on_sale` | 판매상태: on_sale(판매중), suspended(판매중지), sold_out(품절), coming_soon(출시예정) |
+| sales_status_label | string | `판매중` | `sales_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| display_status | string | `visible` | 전시상태: visible(전시), hidden(숨김) |
+| display_status_label | string | `전시` | `display_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| tax_status | string | `taxable` | 과세여부: taxable(과세), tax_free(면세) |
+| tax_status_label | string | `과세` | `tax_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| tax_rate | string | `10.00` | 세율 (%) |
+| shipping_policy_id | null | `null` | shipping policy 식별자 (연관 리소스 참조) |
+| common_info_id | null | `null` | common info 식별자 (연관 리소스 참조) |
+| description | object | `{"ko":"Tempore et non fugit eos et aperiam dolore. Aut es…` | 설명 (다국어 필드는 로케일별 값 객체) |
+| description_localized | string | `Tempore et non fugit eos et aperiam d…` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description_mode | string | `text` | 설명 모드: text(텍스트), html(HTML) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| purchase_restriction | string | `none` | 구매 제한: none(없음), restricted(제한) |
+| allowed_roles | null | `null` | 구매 허용 역할 ID 배열 |
+| barcode | null | `null` | 바코드 |
+| hs_code | null | `null` | HS 코드 (관세 분류) |
+| label_assignments | array | `[]` | 라벨 할당 목록 (각 항목: label_id + 노출 시작/종료일) |
+| notice_items | null | `null` | 상품정보제공고시 항목 목록 (각 항목: 항목명·내용 다국어) |
+| images | array | `[]` | 상품 이미지 목록 (각 항목: hash·url·alt_text·is_thumbnail·sort_order 등, images 관계 로드 시) |
+| thumbnail_hash | null | `null` | 대표 이미지 해시 (썸네일로 지정된 이미지의 hash) |
+| thumbnail_url | null | `null` | thumbnail URL |
+| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
+| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| meta_keywords | null | `null` | SEO 키워드 (배열) |
+| seo_sync_title | boolean | `true` | SEO 제목 동기화 여부 (1: 상품명으로 자동 채움, 0: 직접 입력 보존) |
+| seo_sync_description | boolean | `true` | SEO 설명 동기화 여부 (1: 상품 설명으로 자동 채움, 0: 직접 입력 보존) |
+| has_options | boolean | `false` | options 여부 |
+| option_groups | array | `[]` | 옵션 그룹 정의: [{name: "색상", values: ["빨강", "파랑"]}] |
+| options | array | `[]` | 옵션(SKU) 목록 (수정 폼 바인딩용, 각 옵션의 id·코드·옵션값·가격·재고 등) |
+| additional_options | array | `[]` | 추가옵션 그룹 목록 (수정 폼 바인딩용, 그룹명·선택지·추가금 등) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "name_localized": "API 문서 샘플 상품",
+        "product_code": "APIDOCSAMPLE01",
+        "sku": "SKU-DKOK-1319",
+        "categories": [],
+        "category_ids": [],
+        "primary_category_id": null,
+        "brand_id": null,
+        "list_price": 703155,
+        "selling_price": 597682,
+        "discount_rate": 15,
+        "stock_quantity": 509,
+        "safe_stock_quantity": 38,
+        "is_below_safe_stock": false,
+        "is_stock_consistent": true,
+        "sales_status": "on_sale",
+        "sales_status_label": "판매중",
+        "display_status": "visible",
+        "display_status_label": "전시",
+        "tax_status": "taxable",
+        "tax_status_label": "과세",
+        "tax_rate": "10.00",
+        "shipping_policy_id": null,
+        "common_info_id": null,
+        "description": {
+            "ko": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+            "en": "Soluta et ut repellendus rem. Id ea quibusdam in. Doloribus saepe rem praesentium et quis et molestiae.\n\nDolor voluptas aut qui unde sed quia. Corrupti qui enim laborum maxime possimus quis. Odit ducimus doloremque qui officiis fugit rerum. Magni ea possimus quia commodi optio saepe. Recusandae itaque in voluptatum et.\n\nRerum enim velit est inventore. Ipsa laboriosam provident ullam."
+        },
+        "description_localized": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+        "description_mode": "text",
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": null,
+        "barcode": null,
+        "hs_code": null,
+        "label_assignments": [],
+        "notice_items": null,
+        "images": [],
+        "thumbnail_hash": null,
+        "thumbnail_url": null,
+        "meta_title": null,
+        "meta_description": null,
+        "meta_keywords": null,
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "has_options": false,
+        "option_groups": [],
+        "options": [],
+        "additional_options": [],
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -586,9 +1617,42 @@ _요청 파라미터 없음._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_upload_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/products/1/images HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: multipart/form-data; boundary=----G7ExampleBoundary
+
+------G7ExampleBoundary
+Content-Disposition: form-data; name="file"; filename="example.pdf"
+Content-Type: application/octet-stream
+
+(바이너리 파일 내용)
+------G7ExampleBoundary
+Content-Disposition: form-data; name="temp_key"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="collection"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text"
+
+예시값
+------G7ExampleBoundary--
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -617,9 +1681,22 @@ _요청 파라미터 없음._
 | productId | path | string | 예 | — | 대상 product의 식별자 |
 | imageId | path | string | 예 | — | 대상 image의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/products/1/images/{imageId}/thumbnail HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -646,9 +1723,38 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/products/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 삭제 성공 여부 (상품이 정상 삭제되면 true) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -717,9 +1823,92 @@ _요청 파라미터 없음._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/products/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "product_code": "예시값",
+    "sales_product_code": "예시값",
+    "sku": "예시값",
+    "category_ids": [
+        "예시값"
+    ],
+    "primary_category_id": 1,
+    "brand_id": 1,
+    "list_price": 1,
+    "selling_price": 1,
+    "stock_quantity": 1,
+    "safe_stock_quantity": 1,
+    "sales_status": "예시값",
+    "display_status": "예시값",
+    "tax_status": "예시값",
+    "tax_rate": 1,
+    "shipping_policy_id": 1,
+    "common_info_id": 1,
+    "description": [
+        "예시 내용입니다."
+    ],
+    "description_mode": "text",
+    "thumbnail_hash": "예시값",
+    "image_temp_key": "예시값",
+    "images": [
+        "예시값"
+    ],
+    "meta_title": [
+        "예시 제목"
+    ],
+    "meta_description": [
+        "예시 내용입니다."
+    ],
+    "meta_keywords": [
+        "예시값"
+    ],
+    "seo_sync_title": true,
+    "seo_sync_description": true,
+    "use_main_image_for_og": true,
+    "has_options": true,
+    "option_groups": [
+        "예시값"
+    ],
+    "options": [
+        "예시값"
+    ],
+    "additional_options": [
+        "예시값"
+    ],
+    "notice_items": [
+        "예시값"
+    ],
+    "label_assignments": [
+        "예시값"
+    ],
+    "min_purchase_qty": 1,
+    "max_purchase_qty": 1,
+    "purchase_restriction": "none",
+    "allowed_roles": [
+        "예시값"
+    ],
+    "barcode": "예시값",
+    "hs_code": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -747,6 +1936,15 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products/1/can-delete HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -756,6 +1954,30 @@ _단건 응답: `data` 객체의 필드._
 | canDelete | boolean | `false` | 삭제 가능 여부 (true 삭제 가능 / false 주문 이력 등으로 삭제 불가) |
 | reason | string | `이 상품은 5건의 주문 이력이 있어 삭제할 수 없습니다.` | 삭제 불가 사유 (canDelete=false 일 때 안내 문구) |
 | relatedData | object | `{"orders":5,"images":4,"options":3,"additionalOptions":0,…` | 연관 데이터 건수 (orders/images/options 등 상품에 연결된 하위 데이터 수) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "삭제 가능 여부를 확인했습니다.",
+    "data": {
+        "canDelete": true,
+        "reason": null,
+        "relatedData": {
+            "orders": 0,
+            "images": 0,
+            "options": 0,
+            "additionalOptions": 0,
+            "labelAssignments": 0
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -781,6 +2003,15 @@ _단건 응답: `data` 객체의 필드._
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products/1/copy HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -827,6 +2058,64 @@ _단건 응답: `data` 객체의 필드._
 | thumbnail_url | string | `/api/modules/sirsoft-ecommerce/produc…` | thumbnail URL |
 | categories | array | `[{"id":114,"name":{"ko":"스포츠","en":"Sports"},"name_locali…` | 소속 카테고리 목록 (breadcrumb 포함 — 복사 폼의 카테고리 표시용) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "product_code": "WLA9NKCCGO7026T5",
+        "sales_product_code": null,
+        "sku": "SKU-DKOK-1319",
+        "brand_id": null,
+        "category_ids": [],
+        "primary_category_id": null,
+        "list_price": "703155.00",
+        "selling_price": "597682.00",
+        "stock_quantity": 509,
+        "safe_stock_quantity": 38,
+        "tax_status": "taxable",
+        "sales_status": "on_sale",
+        "display_status": "visible",
+        "options": [],
+        "additional_options": [],
+        "images": [],
+        "thumbnail_hash": null,
+        "description": {
+            "ko": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+            "en": "Soluta et ut repellendus rem. Id ea quibusdam in. Doloribus saepe rem praesentium et quis et molestiae.\n\nDolor voluptas aut qui unde sed quia. Corrupti qui enim laborum maxime possimus quis. Odit ducimus doloremque qui officiis fugit rerum. Magni ea possimus quia commodi optio saepe. Recusandae itaque in voluptatum et.\n\nRerum enim velit est inventore. Ipsa laboriosam provident ullam."
+        },
+        "description_mode": "text",
+        "notice_items": null,
+        "shipping_policy_id": null,
+        "shipping_policy": null,
+        "common_info_id": null,
+        "label_assignments": [],
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": [],
+        "meta_title": null,
+        "meta_description": null,
+        "seo_tags": [],
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "barcode": null,
+        "hs_code": null,
+        "thumbnail_url": null
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -851,6 +2140,15 @@ _단건 응답: `data` 객체의 필드._
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products/1/form HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -898,6 +2196,66 @@ _단건 응답: `data` 객체의 필드._
 | barcode | null | `null` | 바코드 |
 | hs_code | null | `null` | HS 코드 (관세 분류) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "product_code": "APIDOCSAMPLE01",
+        "sales_product_code": null,
+        "sku": "SKU-DKOK-1319",
+        "brand_id": null,
+        "category_ids": [],
+        "primary_category_id": null,
+        "created_at": "2026-07-08 01:44:49",
+        "updated_at": "2026-07-08 01:44:49",
+        "list_price": "703155.00",
+        "selling_price": "597682.00",
+        "stock_quantity": 509,
+        "safe_stock_quantity": 38,
+        "tax_status": "taxable",
+        "sales_status": "on_sale",
+        "display_status": "visible",
+        "options": [],
+        "additional_options": [],
+        "images": [],
+        "thumbnail_hash": null,
+        "description": {
+            "ko": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+            "en": "Soluta et ut repellendus rem. Id ea quibusdam in. Doloribus saepe rem praesentium et quis et molestiae.\n\nDolor voluptas aut qui unde sed quia. Corrupti qui enim laborum maxime possimus quis. Odit ducimus doloremque qui officiis fugit rerum. Magni ea possimus quia commodi optio saepe. Recusandae itaque in voluptatum et.\n\nRerum enim velit est inventore. Ipsa laboriosam provident ullam."
+        },
+        "description_mode": "text",
+        "notice_items": null,
+        "shipping_policy_id": null,
+        "shipping_policy": null,
+        "common_info_id": null,
+        "label_assignments": [],
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": [],
+        "meta_title": null,
+        "meta_description": null,
+        "seo_tags": [],
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "barcode": null,
+        "hs_code": null
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -922,6 +2280,15 @@ _단건 응답: `data` 객체의 필드._
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/products/1/logs HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -949,6 +2316,57 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | created_at | string | `2026-06-14 08:28:44` | 생성 일시 |
 | is_owner | boolean | `true` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_read":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 처리 이력을 조회했습니다.",
+    "data": {
+        "data": [],
+        "links": {
+            "first": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/products/1/logs?page=1",
+            "last": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/products/1/logs?page=1",
+            "prev": null,
+            "next": null
+        },
+        "meta": {
+            "current_page": 1,
+            "from": null,
+            "last_page": 1,
+            "links": [
+                {
+                    "url": null,
+                    "label": "pagination.previous",
+                    "page": null,
+                    "active": false
+                },
+                {
+                    "url": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/products/1/logs?page=1",
+                    "label": "1",
+                    "page": 1,
+                    "active": true
+                },
+                {
+                    "url": null,
+                    "label": "pagination.next",
+                    "page": null,
+                    "active": false
+                }
+            ],
+            "path": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/products/1/logs",
+            "per_page": 25,
+            "to": null,
+            "total": 0
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -983,6 +2401,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.public_list_validation_rules`, `sirsoft-ecommerce.product.public_list_validation_messages`).
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products?category_id=1&category_slug=example-key&brand_id=1&search=%EC%98%88%EC%8B%9C%EA%B0%92&sort=latest&min_price=1&max_price=1&per_page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
 
 **응답 필드** (`data` 내부)
 
@@ -1029,6 +2456,270 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 3,
+                "id": 3,
+                "name": {
+                    "ko": "nisi et corrupti",
+                    "en": "suscipit esse id"
+                },
+                "name_localized": "nisi et corrupti",
+                "product_code": "PROD-YNAZ-3669",
+                "sku": "SKU-EOQY-1167",
+                "thumbnail_url": null,
+                "list_price": 22605,
+                "list_price_formatted": "22,605원",
+                "selling_price": 20118,
+                "selling_price_formatted": "20,118원",
+                "discount_rate": 11,
+                "multi_currency_list_price": {
+                    "KRW": {
+                        "price": 22605,
+                        "formatted": "22,605원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 19.21,
+                        "formatted": "$19.21",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 2599,
+                        "formatted": "¥2,599",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 131.11,
+                        "formatted": "元131.11",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 17.63,
+                        "formatted": "€17.63",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "multi_currency_selling_price": {
+                    "KRW": {
+                        "price": 20118,
+                        "formatted": "20,118원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 17.1,
+                        "formatted": "$17.10",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 2313,
+                        "formatted": "¥2,313",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 116.68,
+                        "formatted": "元116.68",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 15.69,
+                        "formatted": "€15.69",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "stock_quantity": 164,
+                "safe_stock_quantity": 8,
+                "is_below_safe_stock": false,
+                "sales_status": "on_sale",
+                "sales_status_label": "판매중",
+                "sales_status_variant": "success",
+                "display_status": "visible",
+                "display_status_label": "전시",
+                "display_status_variant": "success",
+                "categories": [],
+                "primary_category": null,
+                "categories_with_path": [],
+                "brand_name": null,
+                "shipping_policy_id": null,
+                "min_purchase_qty": 1,
+                "max_purchase_qty": 0,
+                "has_options": false,
+                "labels": [],
+                "review_count": 0,
+                "rating_avg": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "is_owner": false,
+                "abilities": {
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            {
+                "number": 2,
+                "id": 2,
+                "name": {
+                    "ko": "repudiandae et et",
+                    "en": "velit alias distinctio"
+                },
+                "name_localized": "repudiandae et et",
+                "product_code": "PROD-XSMH-5438",
+                "sku": "SKU-XXSC-9588",
+                "thumbnail_url": null,
+                "list_price": 654947,
+                "list_price_formatted": "654,947원",
+                "selling_price": 465012,
+                "selling_price_formatted": "465,012원",
+                "discount_rate": 29,
+                "multi_currency_list_price": {
+                    "KRW": {
+                        "price": 654947,
+                        "formatted": "654,947원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 556.7,
+                        "formatted": "$556.70",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 75318,
+                        "formatted": "¥75,318",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 3798.69,
+                        "formatted": "元3,798.69",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 510.86,
+                        "formatted": "€510.86",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "multi_currency_selling_price": {
+                    "KRW": {
+                        "price": 465012,
+                        "formatted": "465,012원",
+                        "is_default": true,
+                        "editable": true
+                    },
+                    "USD": {
+                        "price": 395.26,
+                        "formatted": "$395.26",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.85
+                    },
+                    "JPY": {
+                        "price": 53476,
+                        "formatted": "¥53,476",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 115
+                    },
+                    "CNY": {
+                        "price": 2697.07,
+                        "formatted": "元2,697.07",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 5.8
+                    },
+                    "EUR": {
+                        "price": 362.71,
+                        "formatted": "€362.71",
+                        "is_default": false,
+                        "editable": false,
+                        "exchange_rate": 0.78
+                    }
+                },
+                "stock_quantity": 161,
+                "safe_stock_quantity": 49,
+                "is_below_safe_stock": false,
+                "sales_status": "on_sale",
+                "sales_status_label": "판매중",
+                "sales_status_variant": "success",
+                "display_status": "visible",
+                "display_status_label": "전시",
+                "display_status_variant": "success",
+                "categories": [],
+                "primary_category": null,
+                "categories_with_path": [],
+                "brand_name": null,
+                "shipping_policy_id": null,
+                "min_purchase_qty": 1,
+                "max_purchase_qty": 0,
+                "has_options": false,
+                "labels": [],
+                "review_count": 0,
+                "rating_avg": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "is_owner": false,
+                "abilities": {
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            "... (총 3건 중 2건 표시)"
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 3,
+            "from": 1,
+            "to": 3,
+            "has_more_pages": false
+        }
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -1054,6 +2745,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | limit | query | integer | 아니오 | min 1, max 50 | 반환할 최대 항목 수 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.public_new_validation_rules`).
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/new?limit=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
 
 **응답 필드** (`data` 내부)
 
@@ -1096,6 +2796,363 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": [
+        {
+            "id": 3,
+            "name": {
+                "ko": "nisi et corrupti",
+                "en": "suscipit esse id"
+            },
+            "name_localized": "nisi et corrupti",
+            "product_code": "PROD-YNAZ-3669",
+            "sku": "SKU-EOQY-1167",
+            "thumbnail_url": null,
+            "list_price": 22605,
+            "list_price_formatted": "22,605원",
+            "selling_price": 20118,
+            "selling_price_formatted": "20,118원",
+            "discount_rate": 11,
+            "multi_currency_list_price": {
+                "KRW": {
+                    "price": 22605,
+                    "formatted": "22,605원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 19.21,
+                    "formatted": "$19.21",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 2599,
+                    "formatted": "¥2,599",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 131.11,
+                    "formatted": "元131.11",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 17.63,
+                    "formatted": "€17.63",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "multi_currency_selling_price": {
+                "KRW": {
+                    "price": 20118,
+                    "formatted": "20,118원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 17.1,
+                    "formatted": "$17.10",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 2313,
+                    "formatted": "¥2,313",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 116.68,
+                    "formatted": "元116.68",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 15.69,
+                    "formatted": "€15.69",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "stock_quantity": 164,
+            "safe_stock_quantity": 8,
+            "is_below_safe_stock": false,
+            "sales_status": "on_sale",
+            "sales_status_label": "판매중",
+            "sales_status_variant": "success",
+            "display_status": "visible",
+            "display_status_label": "전시",
+            "display_status_variant": "success",
+            "categories": [],
+            "primary_category": null,
+            "categories_with_path": [],
+            "shipping_policy_id": null,
+            "min_purchase_qty": 1,
+            "max_purchase_qty": 0,
+            "has_options": false,
+            "labels": [],
+            "review_count": 0,
+            "rating_avg": 0,
+            "created_at": "2026-07-08 10:44:49",
+            "updated_at": "2026-07-08 10:44:49",
+            "is_owner": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            }
+        },
+        {
+            "id": 2,
+            "name": {
+                "ko": "repudiandae et et",
+                "en": "velit alias distinctio"
+            },
+            "name_localized": "repudiandae et et",
+            "product_code": "PROD-XSMH-5438",
+            "sku": "SKU-XXSC-9588",
+            "thumbnail_url": null,
+            "list_price": 654947,
+            "list_price_formatted": "654,947원",
+            "selling_price": 465012,
+            "selling_price_formatted": "465,012원",
+            "discount_rate": 29,
+            "multi_currency_list_price": {
+                "KRW": {
+                    "price": 654947,
+                    "formatted": "654,947원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 556.7,
+                    "formatted": "$556.70",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 75318,
+                    "formatted": "¥75,318",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 3798.69,
+                    "formatted": "元3,798.69",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 510.86,
+                    "formatted": "€510.86",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "multi_currency_selling_price": {
+                "KRW": {
+                    "price": 465012,
+                    "formatted": "465,012원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 395.26,
+                    "formatted": "$395.26",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 53476,
+                    "formatted": "¥53,476",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 2697.07,
+                    "formatted": "元2,697.07",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 362.71,
+                    "formatted": "€362.71",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "stock_quantity": 161,
+            "safe_stock_quantity": 49,
+            "is_below_safe_stock": false,
+            "sales_status": "on_sale",
+            "sales_status_label": "판매중",
+            "sales_status_variant": "success",
+            "display_status": "visible",
+            "display_status_label": "전시",
+            "display_status_variant": "success",
+            "categories": [],
+            "primary_category": null,
+            "categories_with_path": [],
+            "shipping_policy_id": null,
+            "min_purchase_qty": 1,
+            "max_purchase_qty": 0,
+            "has_options": false,
+            "labels": [],
+            "review_count": 0,
+            "rating_avg": 0,
+            "created_at": "2026-07-08 10:44:49",
+            "updated_at": "2026-07-08 10:44:49",
+            "is_owner": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            }
+        },
+        {
+            "id": 1,
+            "name": {
+                "ko": "API 문서 샘플 상품",
+                "en": "API Doc Sample Product"
+            },
+            "name_localized": "API 문서 샘플 상품",
+            "product_code": "APIDOCSAMPLE01",
+            "sku": "SKU-DKOK-1319",
+            "thumbnail_url": null,
+            "list_price": 703155,
+            "list_price_formatted": "703,155원",
+            "selling_price": 597682,
+            "selling_price_formatted": "597,682원",
+            "discount_rate": 15,
+            "multi_currency_list_price": {
+                "KRW": {
+                    "price": 703155,
+                    "formatted": "703,155원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 597.68,
+                    "formatted": "$597.68",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 80862,
+                    "formatted": "¥80,862",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 4078.3,
+                    "formatted": "元4,078.30",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 548.46,
+                    "formatted": "€548.46",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "multi_currency_selling_price": {
+                "KRW": {
+                    "price": 597682,
+                    "formatted": "597,682원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 508.03,
+                    "formatted": "$508.03",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 68733,
+                    "formatted": "¥68,733",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 3466.56,
+                    "formatted": "元3,466.56",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 466.19,
+                    "formatted": "€466.19",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "stock_quantity": 509,
+            "safe_stock_quantity": 38,
+            "is_below_safe_stock": false,
+            "sales_status": "on_sale",
+            "sales_status_label": "판매중",
+            "sales_status_variant": "success",
+            "display_status": "visible",
+            "display_status_label": "전시",
+            "display_status_variant": "success",
+            "categories": [],
+            "primary_category": null,
+            "categories_with_path": [],
+            "shipping_policy_id": null,
+            "min_purchase_qty": 1,
+            "max_purchase_qty": 0,
+            "has_options": false,
+            "labels": [],
+            "review_count": 1,
+            "rating_avg": 5,
+            "created_at": "2026-07-08 10:44:49",
+            "updated_at": "2026-07-08 10:44:49",
+            "is_owner": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            }
+        }
+    ]
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -1121,6 +3178,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | limit | query | integer | 아니오 | min 1, max 50 | 반환할 최대 항목 수 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.public_popular_validation_rules`).
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/popular?limit=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
 
 **응답 필드** (`data` 내부)
 
@@ -1163,6 +3229,363 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": [
+        {
+            "id": 2,
+            "name": {
+                "ko": "repudiandae et et",
+                "en": "velit alias distinctio"
+            },
+            "name_localized": "repudiandae et et",
+            "product_code": "PROD-XSMH-5438",
+            "sku": "SKU-XXSC-9588",
+            "thumbnail_url": null,
+            "list_price": 654947,
+            "list_price_formatted": "654,947원",
+            "selling_price": 465012,
+            "selling_price_formatted": "465,012원",
+            "discount_rate": 29,
+            "multi_currency_list_price": {
+                "KRW": {
+                    "price": 654947,
+                    "formatted": "654,947원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 556.7,
+                    "formatted": "$556.70",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 75318,
+                    "formatted": "¥75,318",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 3798.69,
+                    "formatted": "元3,798.69",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 510.86,
+                    "formatted": "€510.86",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "multi_currency_selling_price": {
+                "KRW": {
+                    "price": 465012,
+                    "formatted": "465,012원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 395.26,
+                    "formatted": "$395.26",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 53476,
+                    "formatted": "¥53,476",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 2697.07,
+                    "formatted": "元2,697.07",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 362.71,
+                    "formatted": "€362.71",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "stock_quantity": 161,
+            "safe_stock_quantity": 49,
+            "is_below_safe_stock": false,
+            "sales_status": "on_sale",
+            "sales_status_label": "판매중",
+            "sales_status_variant": "success",
+            "display_status": "visible",
+            "display_status_label": "전시",
+            "display_status_variant": "success",
+            "categories": [],
+            "primary_category": null,
+            "categories_with_path": [],
+            "shipping_policy_id": null,
+            "min_purchase_qty": 1,
+            "max_purchase_qty": 0,
+            "has_options": false,
+            "labels": [],
+            "review_count": 0,
+            "rating_avg": 0,
+            "created_at": "2026-07-08 10:44:49",
+            "updated_at": "2026-07-08 10:44:49",
+            "is_owner": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            }
+        },
+        {
+            "id": 1,
+            "name": {
+                "ko": "API 문서 샘플 상품",
+                "en": "API Doc Sample Product"
+            },
+            "name_localized": "API 문서 샘플 상품",
+            "product_code": "APIDOCSAMPLE01",
+            "sku": "SKU-DKOK-1319",
+            "thumbnail_url": null,
+            "list_price": 703155,
+            "list_price_formatted": "703,155원",
+            "selling_price": 597682,
+            "selling_price_formatted": "597,682원",
+            "discount_rate": 15,
+            "multi_currency_list_price": {
+                "KRW": {
+                    "price": 703155,
+                    "formatted": "703,155원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 597.68,
+                    "formatted": "$597.68",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 80862,
+                    "formatted": "¥80,862",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 4078.3,
+                    "formatted": "元4,078.30",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 548.46,
+                    "formatted": "€548.46",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "multi_currency_selling_price": {
+                "KRW": {
+                    "price": 597682,
+                    "formatted": "597,682원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 508.03,
+                    "formatted": "$508.03",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 68733,
+                    "formatted": "¥68,733",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 3466.56,
+                    "formatted": "元3,466.56",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 466.19,
+                    "formatted": "€466.19",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "stock_quantity": 509,
+            "safe_stock_quantity": 38,
+            "is_below_safe_stock": false,
+            "sales_status": "on_sale",
+            "sales_status_label": "판매중",
+            "sales_status_variant": "success",
+            "display_status": "visible",
+            "display_status_label": "전시",
+            "display_status_variant": "success",
+            "categories": [],
+            "primary_category": null,
+            "categories_with_path": [],
+            "shipping_policy_id": null,
+            "min_purchase_qty": 1,
+            "max_purchase_qty": 0,
+            "has_options": false,
+            "labels": [],
+            "review_count": 1,
+            "rating_avg": 5,
+            "created_at": "2026-07-08 10:44:49",
+            "updated_at": "2026-07-08 10:44:49",
+            "is_owner": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            }
+        },
+        {
+            "id": 3,
+            "name": {
+                "ko": "nisi et corrupti",
+                "en": "suscipit esse id"
+            },
+            "name_localized": "nisi et corrupti",
+            "product_code": "PROD-YNAZ-3669",
+            "sku": "SKU-EOQY-1167",
+            "thumbnail_url": null,
+            "list_price": 22605,
+            "list_price_formatted": "22,605원",
+            "selling_price": 20118,
+            "selling_price_formatted": "20,118원",
+            "discount_rate": 11,
+            "multi_currency_list_price": {
+                "KRW": {
+                    "price": 22605,
+                    "formatted": "22,605원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 19.21,
+                    "formatted": "$19.21",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 2599,
+                    "formatted": "¥2,599",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 131.11,
+                    "formatted": "元131.11",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 17.63,
+                    "formatted": "€17.63",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "multi_currency_selling_price": {
+                "KRW": {
+                    "price": 20118,
+                    "formatted": "20,118원",
+                    "is_default": true,
+                    "editable": true
+                },
+                "USD": {
+                    "price": 17.1,
+                    "formatted": "$17.10",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.85
+                },
+                "JPY": {
+                    "price": 2313,
+                    "formatted": "¥2,313",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 115
+                },
+                "CNY": {
+                    "price": 116.68,
+                    "formatted": "元116.68",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 5.8
+                },
+                "EUR": {
+                    "price": 15.69,
+                    "formatted": "€15.69",
+                    "is_default": false,
+                    "editable": false,
+                    "exchange_rate": 0.78
+                }
+            },
+            "stock_quantity": 164,
+            "safe_stock_quantity": 8,
+            "is_below_safe_stock": false,
+            "sales_status": "on_sale",
+            "sales_status_label": "판매중",
+            "sales_status_variant": "success",
+            "display_status": "visible",
+            "display_status_label": "전시",
+            "display_status_variant": "success",
+            "categories": [],
+            "primary_category": null,
+            "categories_with_path": [],
+            "shipping_policy_id": null,
+            "min_purchase_qty": 1,
+            "max_purchase_qty": 0,
+            "has_options": false,
+            "labels": [],
+            "review_count": 0,
+            "rating_avg": 0,
+            "created_at": "2026-07-08 10:44:49",
+            "updated_at": "2026-07-08 10:44:49",
+            "is_owner": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            }
+        }
+    ]
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -1189,11 +3612,34 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.public_recent_validation_rules`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/recent?ids=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 
 
 <!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": []
+}
+```
 
 **에러 응답**
 
@@ -1219,9 +3665,200 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 상품","en":"API Doc Sample Product"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| name_localized | string | `API 문서 샘플 상품` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| product_code | string | `APIDOCSAMPLE01` | 상품코드 |
+| sku | string | `SKU-DKOK-1319` | SKU |
+| categories | array | `[]` | 소속 카테고리 목록 (각 항목: id·현지화 이름·대표 여부. categories 관계 eager load 시에만 채워짐) |
+| category_name | null | `null` | 대표 카테고리명 (is_primary 카테고리의 현지화 이름) |
+| list_price | integer | `703155` | 정가 (기본통화 기준) |
+| list_price_formatted | string | `703,155원` | `list_price` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| selling_price | integer | `597682` | 판매가 (기본통화 기준) |
+| selling_price_formatted | string | `597,682원` | `selling_price` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| discount_rate | integer | `15` | 할인율(%) (정가 대비 판매가 할인 비율, (1 - 판매가/정가) × 100) |
+| multi_currency_list_price | object | `{"KRW":{"price":703155,"formatted":"703,155원","is_default…` | 통화별 정가 맵 (통화코드 → {price, formatted, is_default, editable}, 설정된 모든 통화의 환산 정가) |
+| multi_currency_selling_price | object | `{"KRW":{"price":597682,"formatted":"597,682원","is_default…` | 통화별 판매가 맵 (통화코드 → {price, formatted, is_default, editable}, 설정된 모든 통화의 환산 판매가) |
+| stock_quantity | integer | `509` | 재고 수량 (옵션 있으면 옵션 합계) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| sales_status | string | `on_sale` | 판매상태: on_sale(판매중), suspended(판매중지), sold_out(품절), coming_soon(출시예정) |
+| sales_status_label | string | `판매중` | `sales_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| brand_name | null | `null` | 브랜드명 (연관 브랜드의 현지화 이름) |
+| labels | array | `[]` | 노출 중인 상품 라벨 목록 (각 항목: 라벨명·색상, 활성 라벨을 sort_order 순으로 정렬) |
+| additional_options | array | `[]` | 추가옵션 그룹 목록 (각 그룹: 그룹명·필수 여부·선택지 목록, 활성 옵션을 sort_order 순으로 정렬) |
+| shipping_policy_id | null | `null` | shipping policy 식별자 (연관 리소스 참조) |
+| is_shippable_to_selected_country | boolean | `true` | shippable to selected country 여부 |
+| selected_shipping_country | string | `KR` | 배송비 계산에 적용된 배송 국가 코드 (ResolveShippingCountry 해석 결과) |
+| free_shipping | boolean | `false` | 무료배송 여부 (적용 배송정책의 청구방식이 무료(FREE)인 경우 true) |
+| shipping_fee_formatted | string | `` | `shipping_fee` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| shipping_policy | null | `null` | 적용 배송정책 요약 객체 (정책명·청구방식·기본배송비·무료배송 기준액 등, 상품 정책 없으면 기본 정책으로 폴백) |
+| short_description | null | `null` | 짧은 설명 (상품 목록/카드용 요약 설명, 다국어 필드는 로케일별 값 객체) |
+| short_description_localized | null | `null` | `short description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description | object | `{"ko":"Tempore et non fugit eos et aperiam dolore. Aut es…` | 설명 (다국어 필드는 로케일별 값 객체) |
+| description_localized | string | `Tempore et non fugit eos et aperiam d…` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description_mode | string | `text` | 설명 모드: text(텍스트), html(HTML) |
+| images | array | `[]` | 상품 이미지 목록 (각 항목: hash·url·alt_text·is_thumbnail·sort_order 등, images 관계 로드 시) |
+| thumbnail_url | null | `null` | thumbnail URL |
+| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
+| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| meta_keywords | null | `null` | SEO 키워드 (배열) |
+| has_options | boolean | `false` | options 여부 |
+| option_groups | array | `[]` | 옵션 그룹 정의: [{name: "색상", values: ["빨강", "파랑"]}] |
+| options | array | `[]` | 활성 옵션(SKU) 목록 (각 옵션의 코드·옵션값·가격·재고 등, ProductOptionResource) |
+| notice | null | `null` | 상품정보제공고시 (템플릿명 + 항목별 라벨/내용 목록, notice 관계 로드 시) |
+| common_info | null | `null` | 공통정보 (name·content·content_mode, commonInfo 관계 로드 시 — 여러 상품이 공유하는 공통 안내문) |
+| is_wishlisted | boolean | `false` | wishlisted 여부 |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "name_localized": "API 문서 샘플 상품",
+        "product_code": "APIDOCSAMPLE01",
+        "sku": "SKU-DKOK-1319",
+        "categories": [],
+        "category_name": null,
+        "list_price": 703155,
+        "list_price_formatted": "703,155원",
+        "selling_price": 597682,
+        "selling_price_formatted": "597,682원",
+        "discount_rate": 15,
+        "multi_currency_list_price": {
+            "KRW": {
+                "price": 703155,
+                "formatted": "703,155원",
+                "is_default": true,
+                "editable": true
+            },
+            "USD": {
+                "price": 597.68,
+                "formatted": "$597.68",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 0.85
+            },
+            "JPY": {
+                "price": 80862,
+                "formatted": "¥80,862",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 115
+            },
+            "CNY": {
+                "price": 4078.3,
+                "formatted": "元4,078.30",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 5.8
+            },
+            "EUR": {
+                "price": 548.46,
+                "formatted": "€548.46",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 0.78
+            }
+        },
+        "multi_currency_selling_price": {
+            "KRW": {
+                "price": 597682,
+                "formatted": "597,682원",
+                "is_default": true,
+                "editable": true
+            },
+            "USD": {
+                "price": 508.03,
+                "formatted": "$508.03",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 0.85
+            },
+            "JPY": {
+                "price": 68733,
+                "formatted": "¥68,733",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 115
+            },
+            "CNY": {
+                "price": 3466.56,
+                "formatted": "元3,466.56",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 5.8
+            },
+            "EUR": {
+                "price": 466.19,
+                "formatted": "€466.19",
+                "is_default": false,
+                "editable": false,
+                "exchange_rate": 0.78
+            }
+        },
+        "stock_quantity": 509,
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "sales_status": "on_sale",
+        "sales_status_label": "판매중",
+        "brand_name": null,
+        "labels": [],
+        "additional_options": [],
+        "shipping_policy_id": null,
+        "is_shippable_to_selected_country": true,
+        "selected_shipping_country": "KR",
+        "free_shipping": false,
+        "shipping_fee_formatted": "",
+        "shipping_policy": null,
+        "short_description": null,
+        "short_description_localized": null,
+        "description": {
+            "ko": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+            "en": "Soluta et ut repellendus rem. Id ea quibusdam in. Doloribus saepe rem praesentium et quis et molestiae.\n\nDolor voluptas aut qui unde sed quia. Corrupti qui enim laborum maxime possimus quis. Odit ducimus doloremque qui officiis fugit rerum. Magni ea possimus quia commodi optio saepe. Recusandae itaque in voluptatum et.\n\nRerum enim velit est inventore. Ipsa laboriosam provident ullam."
+        },
+        "description_localized": "Tempore et non fugit eos et aperiam dolore. Aut esse fugiat adipisci iure itaque nisi. Earum ab dignissimos ipsa harum dolor sunt voluptatem.\n\nEst voluptatibus in sed distinctio. Delectus occaecati et earum est rerum ex. Beatae ex aut autem impedit facere totam. Et tempore minus veniam doloribus maiores eveniet dolorem ut. Culpa sed inventore ipsam.\n\nFuga praesentium distinctio quia ducimus harum assumenda. Ipsa dolorum odio reiciendis quis id. Tempore facere molestiae et reprehenderit reiciendis dicta quos. Quae labore deserunt fuga quam beatae. Praesentium aut fuga ratione aliquid.",
+        "description_mode": "text",
+        "images": [],
+        "thumbnail_url": null,
+        "meta_title": null,
+        "meta_description": null,
+        "meta_keywords": null,
+        "has_options": false,
+        "option_groups": [],
+        "options": [],
+        "notice": null,
+        "common_info": null,
+        "is_wishlisted": false
+    }
+}
+```
 
 **에러 응답**
 
@@ -1247,9 +3884,72 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | productId | path | string | 예 | — | 대상 product의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/1/downloadable-coupons HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_목록 응답: `data.data[]` 배열 항목의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| coupon_id | integer | `1` | coupon 식별자 (연관 리소스 참조) |
+| localized_name | string | `API 문서 샘플 쿠폰` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| benefit_formatted | string | `1,000원 할인` | `benefit` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| multi_currency_benefit_formatted | object | `{"KRW":"1,000원 할인","USD":"$0.85 할인","JPY":"¥115 할인","CNY"…` | `multi_currency_benefit` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| target_type | string | `order_amount` | 적용대상(할인 기준): product_amount(상품금액), order_amount(주문금액), shipping_fee(배송비) |
+| target_type_short_label | string | `주문` | `target_type_short` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| valid_period_formatted | string | `-` | `valid_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| min_order_amount | string | `0.00` | 쿠폰 적용 최소 주문금액 (0=제한 없음) |
+| min_order_amount_formatted | string | `0원` | `min_order_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| multi_currency_min_order_amount | null | `null` | 최소 주문금액의 통화별 환산 맵 (0이면 null) |
+| total_quantity | null | `null` | 총 발급 수량 (null=무제한) |
+| remaining_quantity | null | `null` | 잔여 발급 가능 수량 (total_quantity − issued_count, 무제한이면 null) |
+| is_downloaded | boolean | `false` | downloaded 여부 |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "다운로드 가능한 쿠폰 목록을 불러왔습니다.",
+    "data": {
+        "data": [
+            {
+                "coupon_id": 1,
+                "localized_name": "API 문서 샘플 쿠폰",
+                "benefit_formatted": "1,000원 할인",
+                "multi_currency_benefit_formatted": {
+                    "KRW": "1,000원 할인",
+                    "USD": "$0.85 할인",
+                    "JPY": "¥115 할인",
+                    "CNY": "元5.80 할인",
+                    "EUR": "€0.78 할인"
+                },
+                "target_type": "order_amount",
+                "target_type_short_label": "주문",
+                "valid_period_formatted": "-",
+                "min_order_amount": "0.00",
+                "min_order_amount_formatted": "0원",
+                "multi_currency_min_order_amount": null,
+                "total_quantity": null,
+                "remaining_quantity": null,
+                "is_downloaded": false
+            }
+        ]
+    }
+}
+```
 
 **에러 응답**
 
@@ -1275,9 +3975,58 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | productId | path | string | 예 | — | 대상 product의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/1/inquiries HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| items | array | `[]` | 상품문의 항목 배열 (각 항목: id·작성자·작성일·답변 여부·게시판 연동 시 제목/내용/비밀글 여부/답변/첨부) |
+| meta | object | `{"board_settings":{"secret_mode":"disabled","categories":…` | 문의 목록 메타 (board_settings 게시판 설정, inquiry_available 문의 게시판 연동 여부, current_page/per_page/total/last_page 페이지네이션, abilities 답변·삭제 권한) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "문의 목록을 조회했습니다.",
+    "data": {
+        "items": [],
+        "meta": {
+            "board_settings": {
+                "secret_mode": "{MASKED}",
+                "categories": [],
+                "use_file_upload": false,
+                "max_file_count": 5,
+                "max_file_size": 10485760,
+                "allowed_extensions": [],
+                "min_title_length": 2,
+                "max_title_length": 200,
+                "min_content_length": 10,
+                "max_content_length": 10000
+            },
+            "inquiry_available": false,
+            "total": 0,
+            "current_page": 1,
+            "per_page": 25,
+            "last_page": 1
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -1310,9 +4059,31 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.inquiry.store_validation_rules`, `sirsoft-ecommerce.inquiry.store_validation_messages`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/products/1/inquiries HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "title": "예시 제목",
+    "category": "예시값",
+    "content": "예시 내용입니다.",
+    "is_secret": true,
+    "temp_key": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -1347,9 +4118,138 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.review.public_list_validation_rules`, `sirsoft-ecommerce.review.public_list_validation_messages`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/products/1/reviews?sort=created_at_desc&photo_only=0&page=1&per_page=1&rating=1&option_filters=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| reviews | object | `{"data":[{"id":1,"product_id":1,"order_option_id":1,"user…` | 리뷰 목록 (data 배열 + 페이지네이션 메타, 공개 상태 리뷰만 정렬/필터 적용해 반환) |
+| rating_stats | object | `{"5":{"count":1,"percent":100},"4":{"count":0,"percent":0…` | 별점 분포 통계 (별점(1~5)별 count·percent 맵 + avg 평균 별점, 공개 리뷰 기준) |
+| option_filters | array | `[]` | 옵션 조건 필터 후보 (구매 옵션 키·값별 리뷰 건수 집계, 옵션별 리뷰 필터 UI용) |
+| total_count | integer | `1` | total 개수 (집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "리뷰 목록을 조회했습니다.",
+    "data": {
+        "reviews": {
+            "data": [
+                {
+                    "id": 1,
+                    "product_id": 1,
+                    "order_option_id": 1,
+                    "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+                    "user": {
+                        "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+                        "name": "API 문서 샘플 사용자",
+                        "email": "apidoc-sample-user@example.com"
+                    },
+                    "option_snapshot": null,
+                    "option_snapshot_label": "",
+                    "rating": 5,
+                    "content": "Alias quas iusto dolorem eum eveniet ad omnis. Id neque consequatur fuga ut. Enim cum mollitia nisi. Adipisci sunt tenetur et tempora tempora eius rerum.",
+                    "content_mode": "text",
+                    "status": "visible",
+                    "status_label": "전시중",
+                    "status_badge_color": "blue",
+                    "images": [],
+                    "image_count": 0,
+                    "has_reply": false,
+                    "has_reply_label": "미답변",
+                    "has_reply_badge_color": "gray",
+                    "reply_content": null,
+                    "reply_content_mode": "text",
+                    "replied_at": null,
+                    "reply_updated_at": null,
+                    "created_at": "2026-07-08 10:44:49",
+                    "updated_at": "2026-07-08 10:44:49",
+                    "abilities": {
+                        "can_update": true,
+                        "can_delete": true
+                    }
+                }
+            ],
+            "links": {
+                "first": "https://api.example.com/api/modules/sirsoft-ecommerce/products/1/reviews?page=1",
+                "last": "https://api.example.com/api/modules/sirsoft-ecommerce/products/1/reviews?page=1",
+                "prev": null,
+                "next": null
+            },
+            "meta": {
+                "current_page": 1,
+                "from": 1,
+                "last_page": 1,
+                "links": [
+                    {
+                        "url": null,
+                        "label": "pagination.previous",
+                        "page": null,
+                        "active": false
+                    },
+                    {
+                        "url": "https://api.example.com/api/modules/sirsoft-ecommerce/products/1/reviews?page=1",
+                        "label": "1",
+                        "page": 1,
+                        "active": true
+                    },
+                    {
+                        "url": null,
+                        "label": "pagination.next",
+                        "page": null,
+                        "active": false
+                    }
+                ],
+                "path": "https://api.example.com/api/modules/sirsoft-ecommerce/products/1/reviews",
+                "per_page": 25,
+                "to": 1,
+                "total": 1
+            }
+        },
+        "rating_stats": {
+            "5": {
+                "count": 1,
+                "percent": 100
+            },
+            "4": {
+                "count": 0,
+                "percent": 0
+            },
+            "3": {
+                "count": 0,
+                "percent": 0
+            },
+            "2": {
+                "count": 0,
+                "percent": 0
+            },
+            "1": {
+                "count": 0,
+                "percent": 0
+            },
+            "avg": 5
+        },
+        "option_filters": [],
+        "total_count": 1
+    }
+}
+```
 
 **에러 응답**
 

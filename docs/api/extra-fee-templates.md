@@ -35,6 +35,15 @@
 | per_page | query | integer | 아니오 | min 10, max 100 | 페이지당 항목 수 |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/extra-fee-templates?search=%EC%98%88%EC%8B%9C%EA%B0%92&region=%EC%98%88%EC%8B%9C%EA%B0%92&is_active=%2C%20&sort_by=id&sort_order=asc&per_page=1&page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -54,6 +63,62 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
 | updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "추가배송비 템플릿 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 1,
+                "id": 1,
+                "zipcode": "00000",
+                "fee": 3000,
+                "fee_formatted": "3,000원",
+                "region": null,
+                "description": null,
+                "is_active": true,
+                "created_by": null,
+                "updated_by": null,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        },
+        "statistics": {
+            "total": 1,
+            "active": 1,
+            "inactive": 0,
+            "by_region": []
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 1,
+            "from": 1,
+            "to": 1,
+            "has_more_pages": false
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -84,9 +149,31 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | description | body | string | 아니오 | max 1000 | 설명 |
 | is_active | body | boolean | 아니오 | — | 활성 여부 (true 활성 / false 비활성) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/extra-fee-templates HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "zipcode": "06234",
+    "fee": 1,
+    "region": "예시값",
+    "description": "예시 내용입니다.",
+    "is_active": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -111,6 +198,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/active-settings HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
@@ -118,6 +214,26 @@ _요청 파라미터 없음._
 | zipcode | string | `00000` | 추가배송비 적용 우편번호 (배송정책 설정용 축약 필드) |
 | fee | integer | `3000` | 해당 우편번호의 추가 배송비 (float 변환값) |
 | region | string | `` | 지역명 (없으면 빈 문자열) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "활성 추가배송비 템플릿 설정을 조회했습니다.",
+    "data": [
+        {
+            "zipcode": "00000",
+            "fee": 3000,
+            "region": ""
+        }
+    ]
+}
+```
 
 **에러 응답**
 
@@ -143,9 +259,22 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | ids | query | array | 예 | min 1 | 대상 리소스 식별자 배열 (대량 작업 대상) |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/bulk?ids=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -172,9 +301,29 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | items | body | array | 예 | min 1, max 1000 | 처리 대상 항목 배열 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/bulk HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "items": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -202,9 +351,30 @@ _요청 파라미터 없음._
 | ids | body | array | 예 | min 1 | 대상 리소스 식별자 배열 (대량 작업 대상) |
 | is_active | body | boolean | 예 | — | 활성 여부 (true 활성 / false 비활성) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/bulk-toggle-active HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "is_active": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -231,9 +401,34 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+
+<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "추가배송비 템플릿이 삭제되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
@@ -260,9 +455,64 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| zipcode | string | `00000` | 우편번호 (단일 또는 범위) |
+| fee | integer | `3000` | 추가 배송비 |
+| fee_formatted | string | `3,000원` | `fee` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| region | null | `null` | 지역명 (예: 제주도, 울릉도) |
+| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
+| is_active | boolean | `true` | active 여부 |
+| created_by | null | `null` | 생성자 ID |
+| updated_by | null | `null` | 최종 수정한 사용자 정보 (uuid/name — updated_by 관계 파생, 없으면 null) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "추가배송비 템플릿 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "zipcode": "00000",
+        "fee": 3000,
+        "fee_formatted": "3,000원",
+        "region": null,
+        "description": null,
+        "is_active": true,
+        "created_by": null,
+        "updated_by": null,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -294,9 +544,31 @@ _요청 파라미터 없음._
 | description | body | string | 아니오 | max 1000 | 설명 |
 | is_active | body | boolean | 아니오 | — | 활성 여부 (true 활성 / false 비활성) |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "zipcode": "06234",
+    "fee": 1,
+    "region": "예시값",
+    "description": "예시 내용입니다.",
+    "is_active": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -324,9 +596,64 @@ _요청 파라미터 없음._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1/toggle-active HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| zipcode | string | `00000` | 우편번호 (단일 또는 범위) |
+| fee | integer | `3000` | 추가 배송비 |
+| fee_formatted | string | `3,000원` | `fee` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| region | null | `null` | 지역명 (예: 제주도, 울릉도) |
+| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
+| is_active | boolean | `false` | active 여부 |
+| created_by | null | `null` | 생성자 ID |
+| updated_by | string | `a234c2b1-cde8-437f-b28b-23323be2b98d` | 최종 수정한 사용자 정보 (uuid/name — updated_by 관계 파생, 없으면 null) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:20` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "추가배송비 템플릿 사용여부가 변경되었습니다.",
+    "data": {
+        "id": 1,
+        "zipcode": "00000",
+        "fee": 3000,
+        "fee_formatted": "3,000원",
+        "region": null,
+        "description": null,
+        "is_active": false,
+        "created_by": null,
+        "updated_by": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:20",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

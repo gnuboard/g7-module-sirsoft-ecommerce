@@ -27,9 +27,22 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/checkout HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -56,9 +69,22 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 | city | query | string | 아니오 | max 100 | 도시명 (배송비 미리보기 산출용 배송 주소) |
 | address | query | string | 아니오 | max 255 | 기본 주소 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/checkout?country_code=KR&zipcode=06234&region=%EC%98%88%EC%8B%9C%EA%B0%92&city=%EC%98%88%EC%8B%9C%EA%B0%92&address=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%ED%85%8C%ED%97%A4%EB%9E%80%EB%A1%9C%201 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: http-404 — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -88,9 +114,36 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.checkout.validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/checkout HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "item_ids": [
+        "예시값"
+    ],
+    "direct_items": [
+        "예시값"
+    ],
+    "coupon_issue_ids": [
+        "예시값"
+    ],
+    "use_points": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -123,9 +176,35 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.checkout.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/checkout HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "item_coupons": [
+        "예시값"
+    ],
+    "order_coupon_issue_id": 1,
+    "shipping_coupon_issue_id": 1,
+    "use_points": 1,
+    "zipcode": "06234",
+    "country_code": "KR",
+    "payment_method": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -148,9 +227,22 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/checkout/extend HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

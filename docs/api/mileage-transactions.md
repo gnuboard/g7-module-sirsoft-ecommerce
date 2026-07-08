@@ -37,6 +37,15 @@
 | start_date | query | date | 아니오 | — | 조회 기간 시작일 (이 날짜 이후 데이터) |
 | end_date | query | date | 아니오 | — | 조회 기간 종료일 (이 날짜 이전 데이터) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/mileage-transactions?page=1&per_page=1&sort=created_at_desc&search_field=member&search_keyword=%EC%98%88%EC%8B%9C%EA%B0%92&type=earn&currency=%EC%98%88%EC%8B%9C%EA%B0%92&start_date=2026-01-01&end_date=2026-01-01 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -83,6 +92,82 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | expiry_state | string | `active` | 적립건 소멸 상태 (active=미소멸, partial_expired=일부 소멸, fully_expired=전액 소멸 — 적립계만 의미) |
 | abilities | object | `{"can_manage":true,"can_edit":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "마일리지 내역을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 1,
+                "id": 1,
+                "user_id": 6,
+                "currency": "KRW",
+                "type": "admin_earn",
+                "type_label": "관리자 지급",
+                "admin_badge_group": "amber",
+                "user_display_category": "adjust",
+                "amount": 1000,
+                "amount_formatted": "1,000원",
+                "remaining_amount": 0,
+                "remaining_amount_formatted": "0원",
+                "balance_after": 1000,
+                "order_id": null,
+                "order_option_id": null,
+                "order_cancel_id": null,
+                "source_transaction_id": null,
+                "granted_by": null,
+                "granted_by_name": null,
+                "granted_by_uuid": null,
+                "user_name": "API 문서 샘플 사용자",
+                "user_uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+                "order_number": null,
+                "description": null,
+                "memo": null,
+                "expires_at": null,
+                "expires_at_formatted": null,
+                "expires_at_date": null,
+                "expired_at": null,
+                "expired_at_formatted": null,
+                "created_at": "2026-07-08T01:44:49+00:00",
+                "created_at_formatted": "2026-07-08 10:44:49",
+                "created_at_date": "2026-07-08",
+                "is_earning": true,
+                "can_edit_expiry": false,
+                "expired_amount": 0,
+                "expired_amount_formatted": "0원",
+                "expiry_state": "active",
+                "abilities": {
+                    "can_manage": true,
+                    "can_edit": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_manage": true
+        },
+        "currencies": [
+            "KRW"
+        ],
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 1,
+            "from": 1,
+            "to": 1,
+            "has_more_pages": false
+        }
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -115,9 +200,34 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | expires_at | body | date | 아니오 | — | 만료일 직접 지정 (지급 시 `use_default_expiry`=false 인 경우 적용) |
 | use_default_expiry | body | boolean | 아니오 | — | 지급 시 정책 기본 만료일 적용 여부 (기본 true, false 면 `expires_at` 사용) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/mileage-transactions HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "user_id": "9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d",
+    "action": "earn",
+    "amount": 1,
+    "currency": "예시값",
+    "memo": "예시값",
+    "description": "예시 내용입니다.",
+    "expires_at": "2026-01-01",
+    "use_default_expiry": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -146,9 +256,31 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | lot_ids | body | array | 예 | min 1 | lot 식별자 배열 |
 | days | body | integer | 예 | min 1, max 3650 | 각 lot 만료일을 연장할 일수 (최대 3650일) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/mileage-transactions/extend-expiry HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "user_id": "9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d",
+    "lot_ids": [
+        "예시값"
+    ],
+    "days": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -177,9 +309,28 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | memo | body | string | 아니오 | max 1000 | 관리자 메모 보정값 (요청에 포함된 경우만 갱신, 빈 값으로 비우기 허용) |
 | expires_at | body | date | 아니오 | — | expires 일시 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/mileage-transactions/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "memo": "예시값",
+    "expires_at": "2026-01-01"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -207,9 +358,40 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/mileage-transactions/1/linked HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_목록 응답: `data.data[]` 배열 항목의 필드._
+
+<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "연결 거래를 조회했습니다.",
+    "data": {
+        "data": [],
+        "abilities": {
+            "can_manage": true
+        },
+        "currencies": []
+    }
+}
+```
 
 **에러 응답**
 

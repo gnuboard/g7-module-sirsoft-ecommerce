@@ -27,6 +27,15 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/shipping-country HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -34,6 +43,22 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | preferred_shipping_country | null | `null` | 회원이 저장한 선호 배송국가 코드 (2자리 대문자, 미설정 시 `null`) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "배송국가를 조회했습니다.",
+    "data": {
+        "preferred_shipping_country": null
+    }
+}
+```
 
 **에러 응답**
 
@@ -58,9 +83,43 @@ _단건 응답: `data` 객체의 필드._
 | --- | --- | --- | --- | --- | --- |
 | shipping_country | body | string | 예 | — | 저장할 선호 배송국가 2자리 코드 (활성 배송가능 국가만 허용, 대문자로 정규화되어 저장) |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/user/shipping-country HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "shipping_country": "KR"
+}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| preferred_shipping_country | string | `KR` | 변경 후 저장된 회원 선호 배송국가 코드 (2자리 대문자 ISO 국가코드) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "배송국가가 변경되었습니다.",
+    "data": {
+        "preferred_shipping_country": "KR"
+    }
+}
+```
 
 **에러 응답**
 

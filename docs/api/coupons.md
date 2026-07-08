@@ -32,6 +32,15 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.user_list_validation_rules`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/coupons?status=available&per_page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -39,6 +48,33 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | coupons | object | `{"data":[{"id":8611,"coupon_id":156,"user_id":"a1e0a91a-f…` | 회원이 발급받은 쿠폰(발급 내역) 페이지네이션 객체 (`data[]` 발급 건 + `pagination` — CouponIssueCollection 직렬화, 쿠폰 정의가 아닌 회원별 발급 건) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "쿠폰 목록을 조회했습니다.",
+    "data": {
+        "coupons": {
+            "data": [],
+            "pagination": {
+                "current_page": 1,
+                "last_page": 1,
+                "per_page": 25,
+                "total": 0,
+                "from": null,
+                "to": null,
+                "has_more_pages": false
+            }
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -66,6 +102,15 @@ _단건 응답: `data` 객체의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.user_available_validation_rules`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/coupons/available?product_ids=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -73,6 +118,22 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | coupons | array | `[{"id":4702,"coupon_id":106,"user_id":1,"coupon_code":nul…` | 현재 장바구니 상품에 적용 가능한 보유 쿠폰(발급 건) 배열 (상품/카테고리 범위·최소 주문금액·유효기간을 만족해 주문에 곧바로 선택 가능한 후보만) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "사용 가능한 쿠폰 목록을 조회했습니다.",
+    "data": {
+        "coupons": []
+    }
+}
+```
 
 **에러 응답**
 
@@ -99,6 +160,15 @@ _단건 응답: `data` 객체의 필드._
 | per_page | query | integer | 아니오 | min 1, max 50 | 페이지당 항목 수 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.user_downloadable_validation_rules`).
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/coupons/downloadable?per_page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -146,6 +216,98 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | included_categories | array | `[]` | 적용 대상 포함 카테고리 목록 (target_scope=categories 시 이 카테고리에만 적용) |
 | excluded_categories | array | `[]` | 적용 제외 카테고리 목록 (해당 카테고리는 쿠폰 적용에서 제외) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "다운로드 가능한 쿠폰 목록을 불러왔습니다.",
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 쿠폰",
+                    "en": "API Doc Sample Coupon"
+                },
+                "description": null,
+                "target_type": "order_amount",
+                "discount_type": "fixed",
+                "discount_value": "1000.00",
+                "discount_max_amount": null,
+                "min_order_amount": "0.00",
+                "issue_method": "download",
+                "issue_condition": "manual",
+                "issue_status": "issuing",
+                "total_quantity": null,
+                "issued_count": 0,
+                "per_user_limit": 1,
+                "valid_type": "period",
+                "valid_days": null,
+                "valid_from": null,
+                "valid_to": null,
+                "issue_from": null,
+                "issue_to": null,
+                "is_combinable": false,
+                "target_scope": "all",
+                "created_by": null,
+                "created_at": "2026-07-08T01:44:49.000000Z",
+                "updated_at": "2026-07-08T01:44:49.000000Z",
+                "deleted_at": null,
+                "is_downloaded": false,
+                "user_issued_count": 0,
+                "coupon_id": 1,
+                "localized_name": "API 문서 샘플 쿠폰",
+                "target_type_short_label": "주문",
+                "valid_period_formatted": "-",
+                "min_order_amount_formatted": "0원",
+                "remaining_quantity": null,
+                "benefit_formatted": "1,000원 할인",
+                "included_products": [],
+                "excluded_products": [],
+                "included_categories": [],
+                "excluded_categories": []
+            }
+        ],
+        "first_page_url": "https://api.example.com/api/modules/sirsoft-ecommerce/user/coupons/downloadable?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "https://api.example.com/api/modules/sirsoft-ecommerce/user/coupons/downloadable?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "https://api.example.com/api/modules/sirsoft-ecommerce/user/coupons/downloadable?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "https://api.example.com/api/modules/sirsoft-ecommerce/user/coupons/downloadable",
+        "per_page": 25,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 1
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -171,9 +333,27 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | couponId | path | string | 예 | — | 대상 coupon의 식별자 |
 | coupon_id | body | integer | 예 | — | coupon 식별자 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/coupons/{couponId}/download HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "coupon_id": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

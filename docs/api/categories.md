@@ -34,6 +34,15 @@
 | flat | query | boolean | 아니오 | — | true 면 깊이 들여쓰기를 포함한 평면 리스트로 반환 (TagInput 등에 사용) |
 | max_depth | query | integer | 아니오 | min 1, max 10 | 조회할 최대 계층 깊이 제한 (1~10) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/categories?parent_id=%EC%98%88%EC%8B%9C%EA%B0%92&is_active=1&search=%EC%98%88%EC%8B%9C%EA%B0%92&hierarchical=1&flat=1&max_depth=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
@@ -60,6 +69,57 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | products_count | integer | `22` | products 개수 (집계) |
 | children_count | integer | `0` | children 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 카테고리",
+                    "en": "API Doc Sample Category"
+                },
+                "description": null,
+                "localized_name": "API 문서 샘플 카테고리",
+                "parent_id": null,
+                "path": "0",
+                "depth": 0,
+                "sort_order": 0,
+                "is_active": true,
+                "slug": "apidoc-sample-category",
+                "url": "apidoc-sample-category",
+                "icon": "folder",
+                "meta_title": null,
+                "meta_description": null,
+                "created_at": "2026-07-08 01:44:49",
+                "updated_at": "2026-07-08 01:44:49",
+                "images": [],
+                "products_count": 0,
+                "children_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -95,9 +155,38 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category.create_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/categories HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "description": [
+        "예시 내용입니다."
+    ],
+    "parent_id": "예시값",
+    "slug": "example-key",
+    "is_active": true,
+    "meta_title": "예시 제목",
+    "meta_description": "예시 내용입니다.",
+    "temp_key": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -129,9 +218,42 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category-image.filter_upload_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/categories/images HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: multipart/form-data; boundary=----G7ExampleBoundary
+
+------G7ExampleBoundary
+Content-Disposition: form-data; name="file"; filename="example.pdf"
+Content-Type: application/octet-stream
+
+(바이너리 파일 내용)
+------G7ExampleBoundary
+Content-Disposition: form-data; name="temp_key"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="collection"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text"
+
+예시값
+------G7ExampleBoundary--
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -160,9 +282,29 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category-image.filter_reorder_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/categories/images/reorder HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "order": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -189,9 +331,22 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/categories/images/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -221,9 +376,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category.reorder_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/categories/order HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "parent_menus": [
+        "예시값"
+    ],
+    "child_menus": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -247,6 +425,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 **요청 파라미터**
 
 _요청 파라미터 없음._
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/categories/tree HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -276,6 +463,59 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | products_count | integer | `22` | products 개수 (집계) |
 | children_count | integer | `2` | children 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 카테고리",
+                    "en": "API Doc Sample Category"
+                },
+                "description": null,
+                "localized_name": "API 문서 샘플 카테고리",
+                "parent_id": null,
+                "path": "0",
+                "depth": 0,
+                "sort_order": 0,
+                "is_active": true,
+                "slug": "apidoc-sample-category",
+                "url": "apidoc-sample-category",
+                "icon": "folder",
+                "meta_title": null,
+                "meta_description": null,
+                "created_at": "2026-07-08 01:44:49",
+                "updated_at": "2026-07-08 01:44:49",
+                "parent": null,
+                "children": [],
+                "images": [],
+                "products_count": 0,
+                "children_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -307,9 +547,42 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category-image.filter_upload_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/categories/{categoryId}/images HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: multipart/form-data; boundary=----G7ExampleBoundary
+
+------G7ExampleBoundary
+Content-Disposition: form-data; name="file"; filename="example.pdf"
+Content-Type: application/octet-stream
+
+(바이너리 파일 내용)
+------G7ExampleBoundary
+Content-Disposition: form-data; name="temp_key"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="collection"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text"
+
+예시값
+------G7ExampleBoundary--
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -337,9 +610,38 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | category | path | string | 예 | — | 분류 필터 (해당 분류의 항목만 조회) |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/categories/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| category_id | integer | `1` | category 식별자 (연관 리소스 참조) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리가 삭제되었습니다.",
+    "data": {
+        "category_id": 1
+    }
+}
+```
 
 **에러 응답**
 
@@ -376,9 +678,38 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/categories/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "description": [
+        "예시 내용입니다."
+    ],
+    "parent_id": "예시값",
+    "slug": "example-key",
+    "is_active": true,
+    "meta_title": "예시 제목",
+    "meta_description": "예시 내용입니다.",
+    "temp_key": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -406,9 +737,87 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/categories/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 카테고리","en":"API Doc Sample Category"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 카테고리` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
+| path | string | `0` | Materialized Path: 1/5/23 |
+| depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| is_active | boolean | `true` | active 여부 |
+| slug | string | `apidoc-sample-category` | URL 친화 식별자 (slug) |
+| url | string | `apidoc-sample-category` | SortableMenuItem 표시용 URL (slug 값을 그대로 사용) |
+| icon | string | `folder` | 아이콘 식별자 (아이콘 클래스/이름) |
+| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
+| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| created_at | string | `2026-07-08 01:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 01:44:49` | 최종 수정 일시 |
+| parent | null | `null` | 상위 항목 객체 (parent 관계 파생) |
+| children | array | `[]` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
+| images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
+| products_count | integer | `0` | products 개수 (집계) |
+| children_count | integer | `0` | children 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 카테고리",
+            "en": "API Doc Sample Category"
+        },
+        "description": null,
+        "localized_name": "API 문서 샘플 카테고리",
+        "parent_id": null,
+        "path": "0",
+        "depth": 0,
+        "sort_order": 0,
+        "is_active": true,
+        "slug": "apidoc-sample-category",
+        "url": "apidoc-sample-category",
+        "icon": "folder",
+        "meta_title": null,
+        "meta_description": null,
+        "created_at": "2026-07-08 01:44:49",
+        "updated_at": "2026-07-08 01:44:49",
+        "parent": null,
+        "children": [],
+        "images": [],
+        "products_count": 0,
+        "children_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -435,9 +844,83 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/categories/1/toggle-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 카테고리","en":"API Doc Sample Category"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 카테고리` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
+| path | string | `0` | Materialized Path: 1/5/23 |
+| depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| is_active | boolean | `false` | active 여부 |
+| slug | string | `apidoc-sample-category` | URL 친화 식별자 (slug) |
+| url | string | `apidoc-sample-category` | SortableMenuItem 표시용 URL (slug 값을 그대로 사용) |
+| icon | string | `folder` | 아이콘 식별자 (아이콘 클래스/이름) |
+| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
+| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| created_at | string | `2026-07-08 01:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 06:00:17` | 최종 수정 일시 |
+| images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
+| products_count | integer | `0` | products 개수 (집계) |
+| children_count | integer | `0` | children 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "sirsoft-ecommerce::messages.categories.status_changed",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 카테고리",
+            "en": "API Doc Sample Category"
+        },
+        "description": null,
+        "localized_name": "API 문서 샘플 카테고리",
+        "parent_id": null,
+        "path": "0",
+        "depth": 0,
+        "sort_order": 0,
+        "is_active": false,
+        "slug": "apidoc-sample-category",
+        "url": "apidoc-sample-category",
+        "icon": "folder",
+        "meta_title": null,
+        "meta_description": null,
+        "created_at": "2026-07-08 01:44:49",
+        "updated_at": "2026-07-08 06:00:17",
+        "images": [],
+        "products_count": 0,
+        "children_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -462,6 +945,14 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/categories HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
 **응답 필드** (`data` 내부)
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
@@ -474,6 +965,34 @@ _요청 파라미터 없음._
 | parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
 | products_count | integer | `22` | products 개수 (집계) |
 | children | array | `[{"id":88,"name":{"ko":"남성","en":"Men"},"name_localized":…` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 목록을 조회했습니다.",
+    "data": [
+        {
+            "id": 1,
+            "name": {
+                "ko": "API 문서 샘플 카테고리",
+                "en": "API Doc Sample Category"
+            },
+            "name_localized": "API 문서 샘플 카테고리",
+            "slug": "apidoc-sample-category",
+            "depth": 0,
+            "parent_id": null,
+            "products_count": 0,
+            "children": []
+        }
+    ]
+}
+```
 
 **에러 응답**
 
@@ -496,9 +1015,68 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 | --- | --- | --- | --- | --- | --- |
 | slug | path | string | 예 | — | 대상 리소스의 slug (URL 친화 식별자) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/categories/apidoc-sample-category HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 카테고리","en":"API Doc Sample Category"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| name_localized | string | `API 문서 샘플 카테고리` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
+| description_localized | null | `null` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| slug | string | `apidoc-sample-category` | URL 친화 식별자 (slug) |
+| depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
+| parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
+| products_count | integer | `0` | products 개수 (집계) |
+| breadcrumb | array | `[{"id":1,"name":"API 문서 샘플 카테고리","slug":"apidoc-sample-ca…` | 최상위부터 현재 카테고리까지의 상위 경로 배열 (각 항목에 id·현지화 name·slug — 스토어프론트 breadcrumb 표시용) |
+| images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
+| children | array | `[]` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "sirsoft-ecommerce::messages.categories.fetch_success",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 카테고리",
+            "en": "API Doc Sample Category"
+        },
+        "name_localized": "API 문서 샘플 카테고리",
+        "description": null,
+        "description_localized": null,
+        "slug": "apidoc-sample-category",
+        "depth": 0,
+        "parent_id": null,
+        "products_count": 0,
+        "breadcrumb": [
+            {
+                "id": 1,
+                "name": "API 문서 샘플 카테고리",
+                "slug": "apidoc-sample-category"
+            }
+        ],
+        "images": [],
+        "children": []
+    }
+}
+```
 
 **에러 응답**
 

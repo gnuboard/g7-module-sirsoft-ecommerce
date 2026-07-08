@@ -27,6 +27,15 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/dashboard/overview HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -40,6 +49,28 @@ _단건 응답: `data` 객체의 필드._
 | shipping | integer | `0` | 오늘 배송중 상태 주문상품 수량 |
 | cancellations | integer | `0` | 오늘 취소 상태 주문상품 수량 (전체취소 기준, 부분취소 포함) |
 | returns | integer | `0` | 오늘 반품 상태 주문상품 수량 (환불 도메인 미반영으로 현재 항상 0) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "대시보드 데이터를 조회했습니다.",
+    "data": {
+        "pending_payment": 0,
+        "payment_complete": 0,
+        "preparing": 0,
+        "shipping_ready": 0,
+        "shipping": 0,
+        "cancellations": 0,
+        "returns": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -65,6 +96,15 @@ _단건 응답: `data` 객체의 필드._
 | --- | --- | --- | --- | --- | --- |
 | limit | query | integer | 아니오 | min 1, max 50 | 반환할 최대 항목 수 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/dashboard/pending-inquiries?limit=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -74,6 +114,33 @@ _단건 응답: `data` 객체의 필드._
 | items | array | `[{"id":1,"product_id":320,"inquirable_id":79762,"product_…` | 미답변 상품문의 목록 (최신순, PendingInquiryResource — 문의 id/상품/작성자/게시판 글 id 등) |
 | total | integer | `1` | 전체 개수 (집계) |
 | board_slug | null | `null` | 문의가 저장된 연동 게시판의 slug (관리자 문의 상세 링크용, 미연동 시 null) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "대시보드 데이터를 조회했습니다.",
+    "data": {
+        "items": [
+            {
+                "id": 1,
+                "product_id": 1,
+                "inquirable_id": 59404,
+                "product_name": "iste et inventore",
+                "author_name": "API 문서 샘플 사용자",
+                "created_at": "2026-07-08 10:44:49"
+            }
+        ],
+        "total": 1,
+        "board_slug": null
+    }
+}
+```
 
 **에러 응답**
 
@@ -100,6 +167,15 @@ _단건 응답: `data` 객체의 필드._
 | --- | --- | --- | --- | --- | --- |
 | limit | query | integer | 아니오 | min 1, max 50 | 반환할 최대 항목 수 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/dashboard/recent-reviews?limit=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
@@ -110,6 +186,29 @@ _단건 응답: `data` 객체의 필드._
 | rating | integer | `5` | 리뷰 평점 (별점 정수) |
 | author_name | string | `API 문서 샘플 사용자` | 리뷰 작성자 이름 (user 관계 파생) |
 | created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "대시보드 데이터를 조회했습니다.",
+    "data": [
+        {
+            "id": 1,
+            "product_id": 1,
+            "product_name": "API 문서 샘플 상품",
+            "rating": 5,
+            "author_name": "API 문서 샘플 사용자",
+            "created_at": "2026-07-08 10:44:49"
+        }
+    ]
+}
+```
 
 **에러 응답**
 
@@ -134,6 +233,15 @@ _단건 응답: `data` 객체의 필드._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/dashboard/sales-graph HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -147,6 +255,64 @@ _단건 응답: `data` 객체의 필드._
 | sales_change | null | `null` | 직전 동일 기간 대비 순매출 증감율(%) (직전 합계 0 이면 null) |
 | updated_at | null | `null` | 최종 수정 일시 |
 | updated_at_display | string | `` | 집계 마지막 갱신 시각의 사용자 타임존 HH:mm 캡션 (갱신 이력 없으면 빈 문자열) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "대시보드 데이터를 조회했습니다.",
+    "data": {
+        "days": [
+            {
+                "date": "2026-07-02",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            },
+            {
+                "date": "2026-07-03",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            },
+            {
+                "date": "2026-07-04",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            },
+            {
+                "date": "2026-07-05",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            },
+            {
+                "date": "2026-07-06",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            },
+            {
+                "date": "2026-07-07",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            },
+            {
+                "date": "2026-07-08",
+                "sales_quantity": 0,
+                "sales_amount": 0
+            }
+        ],
+        "total_quantity": 0,
+        "total_sales": 0,
+        "quantity_change": null,
+        "sales_change": null,
+        "updated_at": null,
+        "updated_at_display": ""
+    }
+}
+```
 
 **에러 응답**
 

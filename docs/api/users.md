@@ -30,9 +30,27 @@
 | user | path | string | 예 | — | 대상 user의 식별자 |
 | currency | body | string | 예 | — | 회원에게 지정할 결제 통화 코드 (등록 통화: is_default 또는 exchange_rate>0 인 통화만 허용) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/users/a234c2b1-cde8-437f-b28b-23323be2b98d/currency HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "currency": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -61,9 +79,43 @@
 | user | path | string | 예 | — | 대상 user의 식별자 |
 | shipping_country | body | string | 예 | — | 회원에게 지정할 배송국가 2자리 코드 (활성 배송가능 국가만 허용, 대문자로 정규화) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/users/a234c2b1-cde8-437f-b28b-23323be2b98d/shipping-country HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "shipping_country": "KR"
+}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| preferred_shipping_country | string | `KR` | 변경 후 저장된 회원 선호 배송국가 코드 (2자리 대문자 ISO 국가코드) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "배송국가가 변경되었습니다.",
+    "data": {
+        "preferred_shipping_country": "KR"
+    }
+}
+```
 
 **에러 응답**
 

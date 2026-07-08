@@ -31,9 +31,22 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.delete_items_validation_rules`).
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/cart?ids=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -60,6 +73,15 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.get_validation_rules`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/cart?selected_ids=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -72,6 +94,81 @@ _단건 응답: `data` 객체의 필드._
 | calculation | object | `{"items":[{"product_id":201,"product_option_id":1086,"pro…` | 선택 아이템 기준 금액 계산 결과 (상품 소계·할인·배송비 등 — OrderCalculationResult 파생) |
 | has_unshippable_items | boolean | `false` | unshippable items 여부 |
 | selected_shipping_country | string | `KR` | 배송비 계산에 적용된 배송 국가 코드 (ResolveShippingCountry 해석 결과) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "장바구니 목록을 조회했습니다.",
+    "data": {
+        "items": [],
+        "item_ids": [],
+        "item_count": 0,
+        "calculation": {
+            "items": [],
+            "summary": {
+                "subtotal": 0,
+                "subtotal_formatted": "0원",
+                "product_coupon_discount": 0,
+                "product_coupon_discount_formatted": "0원",
+                "code_discount": 0,
+                "code_discount_formatted": "0원",
+                "order_coupon_discount": 0,
+                "order_coupon_discount_formatted": "0원",
+                "total_coupon_discount": 0,
+                "total_coupon_discount_formatted": "0원",
+                "total_discount": 0,
+                "discount_formatted": "0원",
+                "base_shipping_total": 0,
+                "extra_shipping_total": 0,
+                "total_shipping": 0,
+                "total_shipping_fee": 0,
+                "shipping_fee_formatted": "0원",
+                "shipping_discount": 0,
+                "shipping_discount_formatted": "0원",
+                "taxable_amount": 0,
+                "tax_free_amount": 0,
+                "points_earning": 0,
+                "total_mileage": 0,
+                "mileage_formatted": "0P",
+                "points_used": 0,
+                "points_used_formatted": "0원",
+                "payment_amount": 0,
+                "payment_amount_formatted": "0원",
+                "final_amount": 0,
+                "final_amount_formatted": "0원",
+                "coupon_discount": 0,
+                "coupon_discount_formatted": "0원",
+                "order_discount": 0,
+                "order_discount_formatted": "0원"
+            },
+            "promotions": {
+                "coupon_issue_ids": [],
+                "item_coupons": [],
+                "discount_code": null,
+                "product_promotions": {
+                    "coupons": [],
+                    "discount_codes": [],
+                    "events": []
+                },
+                "order_promotions": {
+                    "coupons": [],
+                    "discount_codes": [],
+                    "events": []
+                }
+            },
+            "validation_errors": []
+        },
+        "has_unshippable_items": false,
+        "selected_shipping_country": "KR"
+    }
+}
+```
 
 **에러 응답**
 
@@ -99,9 +196,30 @@ _단건 응답: `data` 객체의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.bulk_add_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/cart HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "product_id": 1,
+    "items": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -124,9 +242,38 @@ _단건 응답: `data` 객체의 필드._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/cart/all HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted_count | integer | `0` | deleted 개수 (집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "장바구니가 비워졌습니다. 0개 상품이 삭제되었습니다.",
+    "data": {
+        "deleted_count": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -151,6 +298,15 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.get_validation_rules`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/cart/count?selected_ids=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -158,6 +314,22 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | count | integer | `1` | 장바구니에 담긴 아이템 개수 (`selected_ids` 지정 시 해당 항목만 집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "장바구니 수량을 조회했습니다.",
+    "data": {
+        "count": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -180,9 +352,38 @@ _단건 응답: `data` 객체의 필드._
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/cart/key HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| cart_key | string | `ck_QBQT80EINHHXLO8HYHntMpmUZrPujPka` | 비회원 장바구니 식별 키 (`ck_` + 32자 영숫자. 이후 요청의 `X-Cart-Key` 헤더에 실어 자신의 장바구니를 식별) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "장바구니 키가 발급되었습니다.",
+    "data": {
+        "cart_key": "ck_QBQT80EINHHXLO8HYHntMpmUZrPujPka"
+    }
+}
+```
 
 **에러 응답**
 
@@ -203,9 +404,22 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/cart/merge HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -230,9 +444,109 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.get_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/cart/query HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "selected_ids": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| items | array | `[]` | 장바구니 라인 아이템 목록 (상품·옵션·수량 등 — CartItemResource 파생) |
+| item_ids | array | `[]` | item 식별자 배열 (연관 리소스 참조) |
+| item_count | integer | `0` | item 개수 (집계) |
+| calculation | object | `{"items":[],"summary":{"subtotal":0,"subtotal_formatted":…` | 선택 아이템 기준 금액 계산 결과 (상품 소계·할인·배송비 등 — OrderCalculationResult 파생) |
+| has_unshippable_items | boolean | `false` | unshippable items 여부 |
+| selected_shipping_country | string | `KR` | 배송비 계산에 적용된 배송 국가 코드 (ResolveShippingCountry 해석 결과) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "장바구니 목록을 조회했습니다.",
+    "data": {
+        "items": [],
+        "item_ids": [],
+        "item_count": 0,
+        "calculation": {
+            "items": [],
+            "summary": {
+                "subtotal": 0,
+                "subtotal_formatted": "0원",
+                "product_coupon_discount": 0,
+                "product_coupon_discount_formatted": "0원",
+                "code_discount": 0,
+                "code_discount_formatted": "0원",
+                "order_coupon_discount": 0,
+                "order_coupon_discount_formatted": "0원",
+                "total_coupon_discount": 0,
+                "total_coupon_discount_formatted": "0원",
+                "total_discount": 0,
+                "discount_formatted": "0원",
+                "base_shipping_total": 0,
+                "extra_shipping_total": 0,
+                "total_shipping": 0,
+                "total_shipping_fee": 0,
+                "shipping_fee_formatted": "0원",
+                "shipping_discount": 0,
+                "shipping_discount_formatted": "0원",
+                "taxable_amount": 0,
+                "tax_free_amount": 0,
+                "points_earning": 0,
+                "total_mileage": 0,
+                "mileage_formatted": "0P",
+                "points_used": 0,
+                "points_used_formatted": "0원",
+                "payment_amount": 0,
+                "payment_amount_formatted": "0원",
+                "final_amount": 0,
+                "final_amount_formatted": "0원",
+                "coupon_discount": 0,
+                "coupon_discount_formatted": "0원",
+                "order_discount": 0,
+                "order_discount_formatted": "0원"
+            },
+            "promotions": {
+                "coupon_issue_ids": [],
+                "item_coupons": [],
+                "discount_code": null,
+                "product_promotions": {
+                    "coupons": [],
+                    "discount_codes": [],
+                    "events": []
+                },
+                "order_promotions": {
+                    "coupons": [],
+                    "discount_codes": [],
+                    "events": []
+                }
+            },
+            "validation_errors": []
+        },
+        "has_unshippable_items": false,
+        "selected_shipping_country": "KR"
+    }
+}
+```
 
 **에러 응답**
 
@@ -257,9 +571,22 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/cart/{id} HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -289,9 +616,31 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.change_option_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/cart/{id}/option HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "product_option_id": 1,
+    "quantity": 1,
+    "additional_option_selections": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -320,9 +669,27 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.update_quantity_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/cart/{id}/quantity HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "quantity": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

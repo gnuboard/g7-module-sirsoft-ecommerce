@@ -31,9 +31,28 @@
 | orderer_phone | body | string | 예 | max 20 | 주문자 전화번호 (본인 확인 키 ②) |
 | guest_lookup_password | body | string | 예 | max 255 | 비회원 주문 조회 비밀번호 (본인 확인 키 ③) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/guest/orders/verify HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Content-Type: application/json
+
+{
+    "order_number": "예시값",
+    "orderer_phone": "010-1234-5678",
+    "guest_lookup_password": "Password123!"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -62,9 +81,31 @@
 | items | body | array | 아니오 | min 1 | 처리 대상 항목 배열 (전달 시 부분취소, 미전달 시 전체취소) |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (PG 우선 / 포인트 우선, 미전달 시 pg_first) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/cancel HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Content-Type: application/json
+
+{
+    "reason": "예시값",
+    "reason_detail": "예시값",
+    "items": [
+        "예시값"
+    ],
+    "refund_priority": "pg_first"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -92,9 +133,29 @@
 | items | body | array | 예 | min 1 | 처리 대상 항목 배열 |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (PG 우선 / 포인트 우선, 미전달 시 pg_first) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/estimate-refund HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Content-Type: application/json
+
+{
+    "items": [
+        "예시값"
+    ],
+    "refund_priority": "pg_first"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -121,9 +182,21 @@
 | orderNumber | path | string | 예 | — | 대상 order number의 식별자 |
 | optionId | path | string | 예 | — | 대상 option의 식별자 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/options/{optionId}/confirm HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -161,9 +234,38 @@
 | intl_postal_code | body | string | 아니오 | max 20 | 우편번호 (국제 주소) |
 | delivery_memo | body | string | 아니오 | max 255 | 배송 메모 (배송 시 요청사항) |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/shipping-address HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Content-Type: application/json
+
+{
+    "recipient_name": "예시 이름",
+    "recipient_phone": "010-1234-5678",
+    "recipient_tel": "예시값",
+    "country_code": "KR",
+    "zipcode": "06234",
+    "address": "서울특별시 강남구 테헤란로 1",
+    "address_detail": "서울특별시 강남구 테헤란로 1",
+    "address_line_1": "서울특별시 강남구 테헤란로 1",
+    "address_line_2": "서울특별시 강남구 테헤란로 1",
+    "intl_city": "예시값",
+    "intl_state": "예시값",
+    "intl_postal_code": "06234",
+    "delivery_memo": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

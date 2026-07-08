@@ -33,6 +33,15 @@
 | sort | query | string | 아니오 | `name_asc`, `name_desc`, `created_asc`, `created_desc` | 정렬 기준 (필드명, `-` 접두 시 내림차순) |
 | locale | query | string | 아니오 | `ko`, `en`, `fr`, `ja` | 로케일 코드 (표시 언어/지역) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/product-labels?is_active=1&active_only=1&search=%EC%98%88%EC%8B%9C%EA%B0%92&sort=name_asc&locale=ko HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
@@ -48,6 +57,46 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
 | assignments_count | integer | `0` | assignments 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "라벨 목록을 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 라벨",
+                    "en": "API Doc Sample Label"
+                },
+                "color": null,
+                "is_active": true,
+                "sort_order": 0,
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "assignments_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -77,9 +126,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | is_active | body | boolean | 아니오 | — | 활성 여부 (true 활성 / false 비활성) |
 | sort_order | body | integer | 아니오 | min 0 | 표시 정렬 순서 값 (작을수록 우선) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/product-labels HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "color": "#4F46E5",
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -106,9 +178,40 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/product-labels/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| label_id | integer | `1` | label 식별자 (연관 리소스 참조) |
+| products_count | integer | `0` | products 개수 (집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "라벨이 삭제되었습니다.",
+    "data": {
+        "label_id": 1,
+        "products_count": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -135,9 +238,61 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/product-labels/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 라벨","en":"API Doc Sample Label"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| color | null | `null` | 색상 코드 (예: #FF5733) |
+| is_active | boolean | `true` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| assignments_count | integer | `0` | assignments 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "라벨 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 라벨",
+            "en": "API Doc Sample Label"
+        },
+        "color": null,
+        "is_active": true,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "assignments_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -168,9 +323,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | is_active | body | boolean | 아니오 | — | 활성 여부 (true 활성 / false 비활성) |
 | sort_order | body | integer | 아니오 | min 0 | 표시 정렬 순서 값 (작을수록 우선) |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/product-labels/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "color": "#4F46E5",
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -198,9 +376,61 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/product-labels/1/toggle-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 라벨","en":"API Doc Sample Label"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| color | null | `null` | 색상 코드 (예: #FF5733) |
+| is_active | boolean | `false` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:27` | 최종 수정 일시 |
+| assignments_count | integer | `0` | assignments 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "라벨 상태가 변경되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 라벨",
+            "en": "API Doc Sample Label"
+        },
+        "color": null,
+        "is_active": false,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:27",
+        "assignments_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

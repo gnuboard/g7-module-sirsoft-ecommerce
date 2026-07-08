@@ -27,6 +27,15 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/product-common-infos HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -48,6 +57,61 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | products_count | integer | `81` | products 개수 (집계) |
 | language_count | integer | `2` | language 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "공통정보 목록을 불러왔습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": {
+                    "ko": "API 문서 샘플 공통정보",
+                    "en": "API Doc Sample Common Info"
+                },
+                "localized_name": "API 문서 샘플 공통정보",
+                "content": [],
+                "localized_content": "",
+                "content_mode": "text",
+                "is_default": false,
+                "is_active": true,
+                "sort_order": 0,
+                "icon": "info-circle",
+                "created_at": "2026-07-08 10:44:49",
+                "updated_at": "2026-07-08 10:44:49",
+                "products_count": 0,
+                "language_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 1,
+            "from": 1,
+            "to": 1,
+            "has_more_pages": false
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -80,9 +144,36 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-common-info.create_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/product-common-infos HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "content": [
+        "예시 내용입니다."
+    ],
+    "content_mode": "text",
+    "is_default": true,
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -109,9 +200,40 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/product-common-infos/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| common_info_id | integer | `1` | common info 식별자 (연관 리소스 참조) |
+| products_count | integer | `0` | products 개수 (집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "공통정보가 삭제되었습니다.",
+    "data": {
+        "common_info_id": 1,
+        "products_count": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -138,9 +260,73 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/product-common-infos/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 공통정보","en":"API Doc Sample Common Info"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 공통정보` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| content | array | `[]` | 본문 내용 |
+| localized_content | string | `` | `content` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| content_mode | string | `text` | 내용 모드 (text: 텍스트, html: HTML) |
+| is_default | boolean | `false` | default 여부 |
+| is_active | boolean | `true` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `info-circle` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| products_count | integer | `0` | products 개수 (집계) |
+| language_count | integer | `0` | language 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "공통정보 목록을 불러왔습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 공통정보",
+            "en": "API Doc Sample Common Info"
+        },
+        "localized_name": "API 문서 샘플 공통정보",
+        "content": [],
+        "localized_content": "",
+        "content_mode": "text",
+        "is_default": false,
+        "is_active": true,
+        "sort_order": 0,
+        "icon": "info-circle",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "products_count": 0,
+        "language_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -175,9 +361,36 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-common-info.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/product-common-infos/1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "name": [
+        "예시 이름"
+    ],
+    "content": [
+        "예시 내용입니다."
+    ],
+    "content_mode": "text",
+    "is_default": true,
+    "is_active": true,
+    "sort_order": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -205,9 +418,73 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/product-common-infos/1/toggle-active HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 공통정보","en":"API Doc Sample Common Info"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 공통정보` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| content | array | `[]` | 본문 내용 |
+| localized_content | string | `` | `content` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| content_mode | string | `text` | 내용 모드 (text: 텍스트, html: HTML) |
+| is_default | boolean | `false` | default 여부 |
+| is_active | boolean | `false` | active 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `info-circle` | 아이콘 식별자 (아이콘 클래스/이름) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:26` | 최종 수정 일시 |
+| products_count | integer | `0` | products 개수 (집계) |
+| language_count | integer | `0` | language 개수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "공통정보가 비활성화되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 공통정보",
+            "en": "API Doc Sample Common Info"
+        },
+        "localized_name": "API 문서 샘플 공통정보",
+        "content": [],
+        "localized_content": "",
+        "content_mode": "text",
+        "is_default": false,
+        "is_active": false,
+        "sort_order": 0,
+        "icon": "info-circle",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:26",
+        "products_count": 0,
+        "language_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

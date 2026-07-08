@@ -54,6 +54,15 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.order.list_validation_rules`, `sirsoft-ecommerce.order.list_validation_messages`).
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/orders?search_field=all&search_keyword=%EC%98%88%EC%8B%9C%EA%B0%92&date_type=%EC%98%88%EC%8B%9C%EA%B0%92&start_date=2026-01-01&end_date=2026-01-01&order_status=%EC%98%88%EC%8B%9C%EA%B0%92&option_status=%EC%98%88%EC%8B%9C%EA%B0%92&shipping_type=%EC%98%88%EC%8B%9C%EA%B0%92&payment_method=%EC%98%88%EC%8B%9C%EA%B0%92&category_id=1&min_amount=1&max_amount=1&country_codes=KR&order_device=%EC%98%88%EC%8B%9C%EA%B0%92&min_shipping_amount=1&max_shipping_amount=1&shipping_policy_id=1&user_id=1&orderer_uuid=9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d&member_type=member&sort_by=ordered_at&sort_order=asc&per_page=1&page=1 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
@@ -98,6 +107,160 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_read":true,"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "number": 2,
+                "id": 5,
+                "order_number": "ORD-20260708-000002",
+                "order_status": "pending_payment",
+                "order_status_label": "결제대기",
+                "order_status_variant": "warning",
+                "base_currency": "KRW",
+                "payment_currency": "KRW",
+                "is_cross_currency": false,
+                "is_partially_cancelled": false,
+                "total_amount": 163969,
+                "total_amount_formatted": "163,969원",
+                "total_shipping_amount": 2500,
+                "total_shipping_amount_formatted": "2,500원",
+                "total_paid_amount": 0,
+                "total_paid_amount_formatted": "0원",
+                "total_unpaid_amount": 163969,
+                "total_unpaid_amount_formatted": "163,969원",
+                "total_cancelled_amount": 0,
+                "total_refunded_amount": 0,
+                "total_points_used_amount": 0,
+                "total_points_used_amount_formatted": "0원",
+                "total_earned_points_amount": 1640,
+                "total_earned_points_amount_formatted": "1,640원",
+                "ordered_at": "2026-07-08T01:44:49+00:00",
+                "ordered_at_formatted": "2026-07-08 10:44:49",
+                "order_device": "pc",
+                "order_device_label": "PC",
+                "is_first_order": true,
+                "user": {
+                    "uuid": "a234c3ea-a4f9-496d-a5e7-b44f0d53fc2f",
+                    "name": "선지영"
+                },
+                "first_option": {
+                    "product_name": "assumenda doloremque ipsam",
+                    "product_option_name": "ea",
+                    "product_code": null,
+                    "quantity": 2,
+                    "thumbnail_url": null,
+                    "additional_options_summary": null
+                },
+                "options_count": 1,
+                "address": null,
+                "payment": null,
+                "shipping": {
+                    "shipping_type": null,
+                    "shipping_type_label": null,
+                    "shipping_method_label": null,
+                    "carrier_name": null,
+                    "tracking_number": null
+                },
+                "is_owner": false,
+                "abilities": {
+                    "can_read": true,
+                    "can_update": true
+                }
+            },
+            {
+                "number": 1,
+                "id": 4,
+                "order_number": "APIDOC-20260708-000001",
+                "order_status": "pending_payment",
+                "order_status_label": "결제대기",
+                "order_status_variant": "warning",
+                "base_currency": "KRW",
+                "payment_currency": "KRW",
+                "is_cross_currency": false,
+                "is_partially_cancelled": false,
+                "total_amount": 327327,
+                "total_amount_formatted": "327,327원",
+                "total_shipping_amount": 3000,
+                "total_shipping_amount_formatted": "3,000원",
+                "total_paid_amount": 0,
+                "total_paid_amount_formatted": "0원",
+                "total_unpaid_amount": 327327,
+                "total_unpaid_amount_formatted": "327,327원",
+                "total_cancelled_amount": 0,
+                "total_refunded_amount": 0,
+                "total_points_used_amount": 0,
+                "total_points_used_amount_formatted": "0원",
+                "total_earned_points_amount": 3273,
+                "total_earned_points_amount_formatted": "3,273원",
+                "ordered_at": "2026-07-08T01:44:49+00:00",
+                "ordered_at_formatted": "2026-07-08 10:44:49",
+                "order_device": "pc",
+                "order_device_label": "PC",
+                "is_first_order": false,
+                "user": {
+                    "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+                    "name": "API 문서 샘플 사용자"
+                },
+                "first_option": {
+                    "product_name": "",
+                    "product_option_name": "",
+                    "product_code": null,
+                    "quantity": null,
+                    "thumbnail_url": null,
+                    "additional_options_summary": null
+                },
+                "options_count": 0,
+                "address": null,
+                "payment": null,
+                "shipping": {
+                    "shipping_type": null,
+                    "shipping_type_label": null,
+                    "shipping_method_label": null,
+                    "carrier_name": null,
+                    "tracking_number": null
+                },
+                "is_owner": true,
+                "abilities": {
+                    "can_read": true,
+                    "can_update": true
+                }
+            }
+        ],
+        "abilities": {
+            "can_update": true
+        },
+        "statistics": {
+            "total": 2,
+            "status_counts": {
+                "pending_payment": 2
+            },
+            "today_count": 2,
+            "today_revenue": "0.00",
+            "monthly_revenue": "0.00"
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 2,
+            "from": 1,
+            "to": 2,
+            "has_more_pages": false
+        }
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -126,9 +289,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | carrier_id | body | integer | 아니오 | — | carrier 식별자 |
 | tracking_number | body | string | 아니오 | max 50 | 송장(운송장)번호 (배송 관련 상태로 전환 시 carrier_id 와 함께 필수) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/bulk HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "order_status": "예시값",
+    "carrier_id": 1,
+    "tracking_number": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -155,9 +341,22 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | order | path | string | 예 | — | 정렬 방향 (asc 오름차순 / desc 내림차순) |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/orders/4 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-403 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -183,6 +382,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | order | path | string | 예 | — | 정렬 방향 (asc 오름차순 / desc 내림차순) |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/orders/4 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -297,6 +505,135 @@ _단건 응답: `data` 객체의 필드._
 | is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_read":true,"can_update":true,"can_cancel":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "id": 4,
+        "order_number": "APIDOC-20260708-000001",
+        "base_currency": "KRW",
+        "payment_currency": "KRW",
+        "is_cross_currency": false,
+        "order_status": "pending_payment",
+        "order_status_label": "결제대기",
+        "order_status_variant": "warning",
+        "is_partially_cancelled": false,
+        "order_device": "pc",
+        "order_device_label": "PC",
+        "is_first_order": false,
+        "subtotal_amount": 324327,
+        "subtotal_amount_formatted": "324,327원",
+        "total_discount_amount": 0,
+        "total_discount_amount_formatted": "0원",
+        "total_shipping_amount": 3000,
+        "total_shipping_amount_formatted": "3,000원",
+        "total_amount": 327327,
+        "total_amount_formatted": "327,327원",
+        "total_paid_amount": 0,
+        "total_paid_amount_formatted": "0원",
+        "total_due_amount": 327327,
+        "total_due_amount_formatted": "327,327원",
+        "depositor_name": null,
+        "total_cancelled_amount": 0,
+        "total_cancelled_amount_formatted": "0원",
+        "total_refunded_amount": 0,
+        "total_refunded_amount_formatted": "0원",
+        "total_refunded_points_amount": 0,
+        "total_refunded_points_amount_formatted": "0원",
+        "total_product_coupon_discount_amount": 0,
+        "total_product_coupon_discount_amount_formatted": "0원",
+        "total_order_coupon_discount_amount": 0,
+        "total_order_coupon_discount_amount_formatted": "0원",
+        "total_coupon_discount_amount": 0,
+        "total_coupon_discount_amount_formatted": "0원",
+        "total_code_discount_amount": 0,
+        "total_code_discount_amount_formatted": "0원",
+        "total_points_used_amount": 0,
+        "total_points_used_amount_formatted": "0원",
+        "total_deposit_used_amount": 0,
+        "total_deposit_used_amount_formatted": "0원",
+        "total_earned_points_amount": 3273,
+        "total_earned_points_amount_formatted": "3,273원",
+        "mc_subtotal_amount": [],
+        "mc_total_discount_amount": [],
+        "mc_total_shipping_amount": [],
+        "mc_total_amount": [],
+        "mc_total_product_coupon_discount_amount": [],
+        "mc_total_order_coupon_discount_amount": [],
+        "mc_total_coupon_discount_amount": [],
+        "mc_total_code_discount_amount": [],
+        "mc_total_points_used_amount": [],
+        "mc_total_deposit_used_amount": [],
+        "item_count": 4,
+        "total_quantity": 0,
+        "total_list_price": 0,
+        "total_list_price_formatted": "0원",
+        "ordered_at": "2026-07-08T01:44:49+00:00",
+        "ordered_at_formatted": "2026-07-08 10:44:49",
+        "paid_at": null,
+        "paid_at_formatted": null,
+        "confirmed_at": null,
+        "confirmed_at_formatted": null,
+        "cancelled_at": null,
+        "cancelled_at_formatted": null,
+        "delivered_at": null,
+        "total_tax_amount": 29757,
+        "total_tax_amount_formatted": "29,757원",
+        "total_vat_amount": 0,
+        "total_vat_amount_formatted": "0원",
+        "total_taxable_supply_amount": 29757,
+        "total_taxable_supply_amount_formatted": "29,757원",
+        "total_tax_free_amount": 0,
+        "total_tax_free_amount_formatted": "0원",
+        "user": {
+            "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+            "name": "API 문서 샘플 사용자",
+            "email": "apidoc-sample-user@example.com"
+        },
+        "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "user_login_id": null,
+        "orderer_name": null,
+        "orderer_phone": null,
+        "orderer_tel": null,
+        "orderer_email": null,
+        "recipient_name": null,
+        "recipient_phone": null,
+        "recipient_tel": null,
+        "recipient_zipcode": null,
+        "recipient_address": null,
+        "recipient_detail_address": null,
+        "delivery_memo": null,
+        "delivery_memo_label": null,
+        "options": [],
+        "shipping_address": null,
+        "billing_address": null,
+        "payment": null,
+        "payments": [],
+        "shippings": [],
+        "cancels": [],
+        "promotions_applied_snapshot": null,
+        "shipping_policy_applied_snapshot": null,
+        "admin_memo": null,
+        "customer_memo": null,
+        "created_at": "2026-07-08T01:44:49+00:00",
+        "updated_at": "2026-07-08T01:44:49+00:00",
+        "is_owner": true,
+        "abilities": {
+            "can_read": true,
+            "can_update": true,
+            "can_cancel": true
+        }
+    }
+}
+```
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
@@ -337,9 +674,41 @@ _단건 응답: `data` 객체의 필드._
 | delivery_memo | body | string | 아니오 | max 500 | 배송 메모 (배송 시 요청사항) |
 | recipient_country_code | body | string | 아니오 | — | 수령인 배송국가 코드 (ISO 3166-1 alpha-2 2자리) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/4 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "order_status": "예시값",
+    "admin_memo": "예시값",
+    "recipient_name": "예시 이름",
+    "recipient_phone": "010-1234-5678",
+    "recipient_tel": "예시값",
+    "recipient_zipcode": "06234",
+    "recipient_address": "서울특별시 강남구 테헤란로 1",
+    "recipient_detail_address": "서울특별시 강남구 테헤란로 1",
+    "address_line_1": "서울특별시 강남구 테헤란로 1",
+    "address_line_2": "서울특별시 강남구 테헤란로 1",
+    "intl_city": "예시값",
+    "intl_state": "예시값",
+    "intl_postal_code": "06234",
+    "delivery_memo": "예시값",
+    "recipient_country_code": "KR"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -373,9 +742,34 @@ _단건 응답: `data` 객체의 필드._
 | cancel_pg | body | boolean | 아니오 | — | PG 결제 취소 동반 여부 (미지정 시 기본 true — 실제 PG 취소 수행) |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (pg_first PG 우선 / points_first 포인트 우선, 기본 pg_first) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/orders/4/cancel HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "type": "예시값",
+    "reason": "예시값",
+    "reason_detail": "예시값",
+    "items": [
+        "예시값"
+    ],
+    "cancel_pg": true,
+    "refund_priority": "pg_first"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -406,9 +800,29 @@ _단건 응답: `data` 객체의 필드._
 | depositor_name | body | string | 아니오 | max 100 | depositor 이름 (식별자) |
 | mark_order_complete | body | boolean | 아니오 | — | 입금확인과 동시에 주문완료 처리 여부 (미지정 시 기본 false — 결제완료 전이만) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/4/confirm-deposit HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "amount": 1,
+    "depositor_name": "예시 이름",
+    "mark_order_complete": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -438,9 +852,30 @@ _단건 응답: `data` 객체의 필드._
 | items | body | array | 예 | min 1 | 처리 대상 항목 배열 |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (pg_first PG 우선 / points_first 포인트 우선, 기본 pg_first) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/orders/4/estimate-refund HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "items": [
+        "예시값"
+    ],
+    "refund_priority": "pg_first"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -470,11 +905,71 @@ _단건 응답: `data` 객체의 필드._
 | per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
 | sort_order | query | string | 아니오 | — | 정렬 방향 (asc 오름차순 / desc 내림차순) |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/admin/orders/4/logs?per_page=1&sort_order=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _목록 응답: `data.data[]` 배열 항목의 필드._
 
 <!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 처리 이력을 조회했습니다.",
+    "data": {
+        "data": [],
+        "links": {
+            "first": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/orders/4/logs?page=1",
+            "last": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/orders/4/logs?page=1",
+            "prev": null,
+            "next": null
+        },
+        "meta": {
+            "current_page": 1,
+            "from": null,
+            "last_page": 1,
+            "links": [
+                {
+                    "url": null,
+                    "label": "pagination.previous",
+                    "page": null,
+                    "active": false
+                },
+                {
+                    "url": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/orders/4/logs?page=1",
+                    "label": "1",
+                    "page": 1,
+                    "active": true
+                },
+                {
+                    "url": null,
+                    "label": "pagination.next",
+                    "page": null,
+                    "active": false
+                }
+            ],
+            "path": "https://api.example.com/api/modules/sirsoft-ecommerce/admin/orders/4/logs",
+            "per_page": 25,
+            "to": null,
+            "total": 0
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -506,9 +1001,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | carrier_id | body | integer | 아니오 | — | carrier 식별자 |
 | tracking_number | body | string | 아니오 | max 50 | 송장(운송장)번호 (배송 관련 상태로 전환 시 carrier_id 와 함께 필수) |
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/4/options/bulk-status HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "items": [
+        "예시값"
+    ],
+    "status": "예시값",
+    "carrier_id": 1,
+    "tracking_number": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -538,9 +1056,28 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | guest_lookup_password | body | string | 예 | min 8, max 255 | 재설정할 비회원 주문 조회 비밀번호 (8자 이상, 해시로 저장 · 회원가입 정책과 동일) |
 | guest_lookup_password_confirmation | body | string | 예 | — | 조회 비밀번호 확인 (guest_lookup_password 와 일치해야 함) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/orders/4/reset-guest-lookup-password HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "guest_lookup_password": "Password123!",
+    "guest_lookup_password_confirmation": "Password123!"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -570,9 +1107,28 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | email | body | email | 예 | max 255 | 이메일 주소 |
 | message | body | string | 예 | max 5000 | 관리자가 작성한 안내 메일 본문 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/orders/4/send-email HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "message": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-500 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -602,9 +1158,28 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | cancel_code | body | string | 아니오 | max 100 | PG사 취소 코드 (예: USER_CANCEL, order_payments 취소 이력에 기록) |
 | cancel_message | body | string | 아니오 | max 500 | PG사 취소 메시지 (order_payments 취소 이력에 기록) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/orders/APIDOC-20260708-000001/cancel-payment HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "cancel_code": "예시값",
+    "cancel_message": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -631,6 +1206,15 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 | per_page | query | integer | 아니오 | min 1, max 50 | 페이지당 항목 수 |
 | status | query | string | 아니오 | — | 상태 필터 (해당 상태의 항목만 조회) |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/orders?page=1&per_page=1&status=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
 
 **응답 필드** (`data` 내부)
 
@@ -661,6 +1245,68 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | items | array | `[{"product_name":"프리미엄 샤인머스캣 2kg #94","product_option_nam…` | 주문 품목 목록 (상품명·옵션명·썸네일·수량·단가/소계·추가옵션 요약) |
 | item_count | integer | `1` | item 개수 (집계) |
 | abilities | object | `{"can_view":true,"can_cancel":false}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "data": [
+            {
+                "id": 4,
+                "order_number": "APIDOC-20260708-000001",
+                "status": "pending_payment",
+                "status_label": "결제대기",
+                "status_variant": "warning",
+                "is_partially_cancelled": false,
+                "recipient_country_code": null,
+                "recipient_country_name": null,
+                "ordered_at": "2026-07-08T01:44:49+00:00",
+                "ordered_at_formatted": "2026-07-08 10:44:49",
+                "total_amount": 327327,
+                "total_amount_formatted": "327,327원",
+                "mc_total_amount": [],
+                "total_shipping_amount": 3000,
+                "total_shipping_amount_formatted": "3,000원",
+                "mc_total_shipping_amount": [],
+                "total_points_used_amount": 0,
+                "total_points_used_amount_formatted": "0원",
+                "total_earned_points_amount": 3273,
+                "total_earned_points_amount_formatted": "3,273원",
+                "items": [],
+                "item_count": 0,
+                "abilities": {
+                    "can_view": true,
+                    "can_cancel": true
+                }
+            }
+        ],
+        "statistics": {
+            "pending_payment": 1,
+            "payment_complete": 0,
+            "preparing": 0,
+            "shipping": 0,
+            "delivered": 0,
+            "confirmed": 0
+        },
+        "abilities": {
+            "can_create": true
+        },
+        "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 25,
+            "total": 1
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -694,9 +1340,33 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.order.create_validation_rules`).
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/orders HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+Content-Type: application/json
+
+{
+    "payment_method": "예시값",
+    "expected_total_amount": 1,
+    "shipping_memo": "예시값",
+    "depositor_name": "예시 이름",
+    "save_shipping_address": true,
+    "guest_lookup_password": "Password123!",
+    "guest_lookup_password_confirmation": "Password123!"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -722,9 +1392,256 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/orders/4 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `4` | 기본 키 (내부 식별자) |
+| order_number | string | `APIDOC-20260708-000001` | 주문번호 |
+| base_currency | string | `KRW` | 금액 표기 기준 통화 (모든 *_formatted 필드의 통화, 주문 시점 base_currency 고정) |
+| payment_currency | string | `KRW` | 결제 통화 (유저가 선택·결제한 통화, base_currency 와 다르면 병기 표시) |
+| is_cross_currency | boolean | `false` | cross currency 여부 |
+| order_status | string | `pending_payment` | 주문상태 (OrderStatusEnum) |
+| order_status_label | string | `결제대기` | `order_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| order_status_variant | string | `warning` | `order_status` 값의 표시 변형 키 (UI 배지 색상/스타일) |
+| is_partially_cancelled | boolean | `false` | partially cancelled 여부 |
+| order_device | string | `pc` | 주문 디바이스 (pc/mobile/app) |
+| order_device_label | string | `PC` | `order_device` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| is_first_order | boolean | `false` | first order 여부 |
+| subtotal_amount | integer | `324327` | 상품 합계 (할인 전, 상품가×수량 합계) |
+| subtotal_amount_formatted | string | `324,327원` | `subtotal_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_discount_amount | integer | `0` | 총 할인금액 (모든 할인 합계) |
+| total_discount_amount_formatted | string | `0원` | `total_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_shipping_amount | integer | `3000` | 총 배송비 |
+| total_shipping_amount_formatted | string | `3,000원` | `total_shipping_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_amount | integer | `327327` | 최종 주문금액 (subtotal - discount + shipping) |
+| total_amount_formatted | string | `327,327원` | `total_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_paid_amount | integer | `0` | 총 실제 결제금액 (PG 결제액) |
+| total_paid_amount_formatted | string | `0원` | `total_paid_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_due_amount | integer | `327327` | 총 결제예정금액 (무통장 등) |
+| total_due_amount_formatted | string | `327,327원` | `total_due_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| depositor_name | null | `null` | 무통장 입금자명 (입금확인 모달 기본값, payment 관계 로드 시에만 노출) |
+| total_cancelled_amount | integer | `0` | 총 취소금액 |
+| total_cancelled_amount_formatted | string | `0원` | `total_cancelled_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_refunded_amount | integer | `0` | 총 환불금액 |
+| total_refunded_amount_formatted | string | `0원` | `total_refunded_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_refunded_points_amount | integer | `0` | 총 환불 포인트 |
+| total_refunded_points_amount_formatted | string | `0원` | `total_refunded_points_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_product_coupon_discount_amount | integer | `0` | 상품 쿠폰 할인 합계 |
+| total_product_coupon_discount_amount_formatted | string | `0원` | `total_product_coupon_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_order_coupon_discount_amount | integer | `0` | 주문 쿠폰 할인 합계 |
+| total_order_coupon_discount_amount_formatted | string | `0원` | `total_order_coupon_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_coupon_discount_amount | integer | `0` | 총 쿠폰 할인금액 |
+| total_coupon_discount_amount_formatted | string | `0원` | `total_coupon_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_code_discount_amount | integer | `0` | 총 할인코드 할인금액 |
+| total_code_discount_amount_formatted | string | `0원` | `total_code_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_points_used_amount | integer | `0` | 총 포인트 사용액 |
+| total_points_used_amount_formatted | string | `0원` | `total_points_used_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_deposit_used_amount | integer | `0` | 총 예치금 사용액 |
+| total_deposit_used_amount_formatted | string | `0원` | `total_deposit_used_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_earned_points_amount | integer | `3273` | 총 적립 예정 포인트 |
+| total_earned_points_amount_formatted | string | `3,273원` | `total_earned_points_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| mc_subtotal_amount | array | `[]` | 상품합계 다중 통화 |
+| mc_total_discount_amount | array | `[]` | 총 할인 다중 통화 |
+| mc_total_shipping_amount | array | `[]` | 총 배송비 다중 통화 |
+| mc_total_amount | array | `[]` | 최종금액 다중 통화 (payment_amount) |
+| mc_total_product_coupon_discount_amount | array | `[]` | 상품 쿠폰 할인 다중 통화 |
+| mc_total_order_coupon_discount_amount | array | `[]` | 주문 쿠폰 할인 다중 통화 |
+| mc_total_coupon_discount_amount | array | `[]` | 쿠폰 할인 합계 다중 통화 |
+| mc_total_code_discount_amount | array | `[]` | 할인코드 할인 다중 통화 |
+| mc_total_points_used_amount | array | `[]` | 포인트 사용 다중 통화 |
+| mc_total_deposit_used_amount | array | `[]` | 예치금 사용 다중 통화 |
+| item_count | integer | `4` | item 개수 (집계) |
+| total_quantity | integer | `0` | 주문 옵션 수량 합계 (options 로드 시) |
+| total_list_price | integer | `0` | 정가 합계 (옵션 스냅샷 정가 × 수량 합계) |
+| total_list_price_formatted | string | `0원` | `total_list_price` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| ordered_at | string | `2026-07-08T01:44:49+00:00` | ordered 일시 |
+| ordered_at_formatted | string | `2026-07-08 10:44:49` | `ordered_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| paid_at | null | `null` | paid 일시 |
+| paid_at_formatted | null | `null` | `paid_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| confirmed_at | null | `null` | confirmed 일시 |
+| confirmed_at_formatted | null | `null` | `confirmed_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| cancelled_at | null | `null` | cancelled 일시 |
+| cancelled_at_formatted | null | `null` | `cancelled_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| delivered_at | null | `null` | delivered 일시 |
+| total_tax_amount | integer | `29757` | 총 과세금액 |
+| total_tax_amount_formatted | string | `29,757원` | `total_tax_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_vat_amount | integer | `0` | 총 부가세금액 |
+| total_vat_amount_formatted | string | `0원` | `total_vat_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_taxable_supply_amount | integer | `29757` | 과세 공급가액 (총 과세금액 − 부가세, 영수증 과세금액 표시 SSoT) |
+| total_taxable_supply_amount_formatted | string | `29,757원` | `total_taxable_supply_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_tax_free_amount | integer | `0` | 총 면세금액 |
+| total_tax_free_amount_formatted | string | `0원` | `total_tax_free_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| user | object | `{"uuid":"a234c2b1-cde8-437f-b28b-23323be2b98d","name":"AP…` | 대상 사용자 정보 객체 (uuid/name/email 등 — user 관계 파생) |
+| user_id | string | `a234c2b1-cde8-437f-b28b-23323be2b98d` | user 식별자 (연관 리소스 참조) |
+| user_login_id | null | `null` | 회원 로그인 아이디 (login_id, 비회원 주문이면 null) |
+| orderer_name | null | `null` | 주문자 이름 (배송지에서 플래튼) |
+| orderer_phone | null | `null` | 주문자 휴대전화 (배송지에서 플래튼) |
+| orderer_tel | null | `null` | 주문자 일반전화 (배송지에서 플래튼, 미입력 시 null) |
+| orderer_email | null | `null` | 주문자 이메일 (배송지에서 플래튼, 비회원 알림 수신 통로) |
+| recipient_name | null | `null` | 수령인 이름 (배송지에서 플래튼) |
+| recipient_phone | null | `null` | 수령인 휴대전화 (배송지에서 플래튼) |
+| recipient_tel | null | `null` | 수령인 일반전화 (배송지에서 플래튼, 미입력 시 null) |
+| recipient_zipcode | null | `null` | 수령인 우편번호 (배송지에서 플래튼) |
+| recipient_address | null | `null` | 수령인 기본 주소 (배송지에서 플래튼) |
+| recipient_detail_address | null | `null` | 수령인 상세 주소 (배송지에서 플래튼, 미입력 시 null) |
+| delivery_memo | null | `null` | 배송 메모 (배송지에서 플래튼, 미입력 시 null) |
+| delivery_memo_label | null | `null` | `delivery_memo` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| options | array | `[]` | 주문 옵션(품목) 목록 (OrderOptionResource — 상품·옵션·수량·옵션상태·금액) |
+| shipping_address | null | `null` | 배송지 상세 (OrderAddressResource — 주문자/수령인/국내·해외 주소) |
+| billing_address | null | `null` | 청구지 상세 (OrderAddressResource, 미분리 시 null) |
+| payment | null | `null` | 대표 결제 정보 (OrderPaymentResource — 결제수단·결제상태·금액) |
+| payments | array | `[]` | 결제 이력 목록 (OrderPaymentResource 배열 — 다회 결제/부분결제 포함) |
+| shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
+| cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
+| promotions_applied_snapshot | null | `null` | 적용된 프로모션 스냅샷 (재계산용) |
+| shipping_policy_applied_snapshot | null | `null` | 적용된 배송정책 스냅샷 (재계산용) |
+| admin_memo | null | `null` | 관리자 메모 (내부 관리용) |
+| customer_memo | null | `null` | 고객 메모 (주문 시 고객이 남긴 메모) |
+| created_at | string | `2026-07-08T01:44:49+00:00` | 생성 일시 |
+| updated_at | string | `2026-07-08T01:44:49+00:00` | 최종 수정 일시 |
+| is_owner | boolean | `true` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
+| abilities | object | `{"can_read":true,"can_update":true,"can_cancel":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "id": 4,
+        "order_number": "APIDOC-20260708-000001",
+        "base_currency": "KRW",
+        "payment_currency": "KRW",
+        "is_cross_currency": false,
+        "order_status": "pending_payment",
+        "order_status_label": "결제대기",
+        "order_status_variant": "warning",
+        "is_partially_cancelled": false,
+        "order_device": "pc",
+        "order_device_label": "PC",
+        "is_first_order": false,
+        "subtotal_amount": 324327,
+        "subtotal_amount_formatted": "324,327원",
+        "total_discount_amount": 0,
+        "total_discount_amount_formatted": "0원",
+        "total_shipping_amount": 3000,
+        "total_shipping_amount_formatted": "3,000원",
+        "total_amount": 327327,
+        "total_amount_formatted": "327,327원",
+        "total_paid_amount": 0,
+        "total_paid_amount_formatted": "0원",
+        "total_due_amount": 327327,
+        "total_due_amount_formatted": "327,327원",
+        "depositor_name": null,
+        "total_cancelled_amount": 0,
+        "total_cancelled_amount_formatted": "0원",
+        "total_refunded_amount": 0,
+        "total_refunded_amount_formatted": "0원",
+        "total_refunded_points_amount": 0,
+        "total_refunded_points_amount_formatted": "0원",
+        "total_product_coupon_discount_amount": 0,
+        "total_product_coupon_discount_amount_formatted": "0원",
+        "total_order_coupon_discount_amount": 0,
+        "total_order_coupon_discount_amount_formatted": "0원",
+        "total_coupon_discount_amount": 0,
+        "total_coupon_discount_amount_formatted": "0원",
+        "total_code_discount_amount": 0,
+        "total_code_discount_amount_formatted": "0원",
+        "total_points_used_amount": 0,
+        "total_points_used_amount_formatted": "0원",
+        "total_deposit_used_amount": 0,
+        "total_deposit_used_amount_formatted": "0원",
+        "total_earned_points_amount": 3273,
+        "total_earned_points_amount_formatted": "3,273원",
+        "mc_subtotal_amount": [],
+        "mc_total_discount_amount": [],
+        "mc_total_shipping_amount": [],
+        "mc_total_amount": [],
+        "mc_total_product_coupon_discount_amount": [],
+        "mc_total_order_coupon_discount_amount": [],
+        "mc_total_coupon_discount_amount": [],
+        "mc_total_code_discount_amount": [],
+        "mc_total_points_used_amount": [],
+        "mc_total_deposit_used_amount": [],
+        "item_count": 4,
+        "total_quantity": 0,
+        "total_list_price": 0,
+        "total_list_price_formatted": "0원",
+        "ordered_at": "2026-07-08T01:44:49+00:00",
+        "ordered_at_formatted": "2026-07-08 10:44:49",
+        "paid_at": null,
+        "paid_at_formatted": null,
+        "confirmed_at": null,
+        "confirmed_at_formatted": null,
+        "cancelled_at": null,
+        "cancelled_at_formatted": null,
+        "delivered_at": null,
+        "total_tax_amount": 29757,
+        "total_tax_amount_formatted": "29,757원",
+        "total_vat_amount": 0,
+        "total_vat_amount_formatted": "0원",
+        "total_taxable_supply_amount": 29757,
+        "total_taxable_supply_amount_formatted": "29,757원",
+        "total_tax_free_amount": 0,
+        "total_tax_free_amount_formatted": "0원",
+        "user": {
+            "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+            "name": "API 문서 샘플 사용자",
+            "email": "apidoc-sample-user@example.com"
+        },
+        "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "user_login_id": null,
+        "orderer_name": null,
+        "orderer_phone": null,
+        "orderer_tel": null,
+        "orderer_email": null,
+        "recipient_name": null,
+        "recipient_phone": null,
+        "recipient_tel": null,
+        "recipient_zipcode": null,
+        "recipient_address": null,
+        "recipient_detail_address": null,
+        "delivery_memo": null,
+        "delivery_memo_label": null,
+        "options": [],
+        "shipping_address": null,
+        "billing_address": null,
+        "payment": null,
+        "payments": [],
+        "shippings": [],
+        "cancels": [],
+        "promotions_applied_snapshot": null,
+        "shipping_policy_applied_snapshot": null,
+        "admin_memo": null,
+        "customer_memo": null,
+        "created_at": "2026-07-08T01:44:49+00:00",
+        "updated_at": "2026-07-08T01:44:49+00:00",
+        "is_owner": true,
+        "abilities": {
+            "can_read": true,
+            "can_update": true,
+            "can_cancel": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -754,9 +1671,32 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | items | body | array | 아니오 | min 1 | 처리 대상 항목 배열 |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (pg_first PG 우선 / points_first 포인트 우선, 기본 pg_first) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/orders/4/cancel HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "reason": "예시값",
+    "reason_detail": "예시값",
+    "items": [
+        "예시값"
+    ],
+    "refund_priority": "pg_first"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -786,9 +1726,30 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | items | body | array | 예 | min 1 | 처리 대상 항목 배열 |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (pg_first PG 우선 / points_first 포인트 우선, 기본 pg_first) |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/orders/4/estimate-refund HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "items": [
+        "예시값"
+    ],
+    "refund_priority": "pg_first"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -817,9 +1778,22 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 | optionId | path | string | 예 | — | 대상 option의 식별자 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/orders/4/options/{optionId}/confirm HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -846,9 +1820,42 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/orders/4/reorder HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| added_count | integer | `0` | added 개수 (집계) |
+| skipped | array | `[]` | 장바구니에 담지 못한 항목 목록 (품절·단종 등으로 재주문에서 건너뛴 옵션) |
+| cart_count | integer | `0` | cart 개수 (집계) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "과거 주문의 상품을 장바구니에 추가했습니다.",
+    "data": {
+        "added_count": 0,
+        "skipped": [],
+        "cart_count": 0
+    }
+}
+```
 
 **에러 응답**
 
@@ -889,9 +1896,159 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.order.shipping_address_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/user/orders/4/shipping-address HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "address_id": 1,
+    "recipient_name": "예시 이름",
+    "recipient_phone": "010-1234-5678",
+    "country_code": "KR",
+    "zipcode": "06234",
+    "address": "서울특별시 강남구 테헤란로 1",
+    "address_detail": "서울특별시 강남구 테헤란로 1",
+    "address_line_1": "서울특별시 강남구 테헤란로 1",
+    "address_line_2": "서울특별시 강남구 테헤란로 1",
+    "intl_city": "예시값",
+    "intl_state": "예시값",
+    "intl_postal_code": "06234",
+    "delivery_memo": "예시값"
+}
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| order | object | `{"id":4,"order_number":"APIDOC-20260708-000001","base_cur…` | 배송지 변경이 반영된 주문 상세 (OrderResource — 변경 후 최신 주문 전체) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "배송지가 변경되었습니다.",
+    "data": {
+        "order": {
+            "id": 4,
+            "order_number": "APIDOC-20260708-000001",
+            "base_currency": "KRW",
+            "payment_currency": "KRW",
+            "is_cross_currency": false,
+            "order_status": "pending_payment",
+            "order_status_label": "결제대기",
+            "order_status_variant": "warning",
+            "is_partially_cancelled": false,
+            "order_device": "pc",
+            "order_device_label": "PC",
+            "is_first_order": false,
+            "subtotal_amount": 324327,
+            "subtotal_amount_formatted": "324,327원",
+            "total_discount_amount": 0,
+            "total_discount_amount_formatted": "0원",
+            "total_shipping_amount": 3000,
+            "total_shipping_amount_formatted": "3,000원",
+            "total_amount": 327327,
+            "total_amount_formatted": "327,327원",
+            "total_paid_amount": 0,
+            "total_paid_amount_formatted": "0원",
+            "total_due_amount": 327327,
+            "total_due_amount_formatted": "327,327원",
+            "total_cancelled_amount": 0,
+            "total_cancelled_amount_formatted": "0원",
+            "total_refunded_amount": 0,
+            "total_refunded_amount_formatted": "0원",
+            "total_refunded_points_amount": 0,
+            "total_refunded_points_amount_formatted": "0원",
+            "total_product_coupon_discount_amount": 0,
+            "total_product_coupon_discount_amount_formatted": "0원",
+            "total_order_coupon_discount_amount": 0,
+            "total_order_coupon_discount_amount_formatted": "0원",
+            "total_coupon_discount_amount": 0,
+            "total_coupon_discount_amount_formatted": "0원",
+            "total_code_discount_amount": 0,
+            "total_code_discount_amount_formatted": "0원",
+            "total_points_used_amount": 0,
+            "total_points_used_amount_formatted": "0원",
+            "total_deposit_used_amount": 0,
+            "total_deposit_used_amount_formatted": "0원",
+            "total_earned_points_amount": 3273,
+            "total_earned_points_amount_formatted": "3,273원",
+            "mc_subtotal_amount": [],
+            "mc_total_discount_amount": [],
+            "mc_total_shipping_amount": [],
+            "mc_total_amount": [],
+            "mc_total_product_coupon_discount_amount": [],
+            "mc_total_order_coupon_discount_amount": [],
+            "mc_total_coupon_discount_amount": [],
+            "mc_total_code_discount_amount": [],
+            "mc_total_points_used_amount": [],
+            "mc_total_deposit_used_amount": [],
+            "item_count": 4,
+            "total_quantity": 0,
+            "total_list_price": 0,
+            "total_list_price_formatted": "0원",
+            "ordered_at": "2026-07-08T01:44:49+00:00",
+            "ordered_at_formatted": "2026-07-08 10:44:49",
+            "paid_at": null,
+            "paid_at_formatted": null,
+            "confirmed_at": null,
+            "confirmed_at_formatted": null,
+            "cancelled_at": null,
+            "cancelled_at_formatted": null,
+            "delivered_at": null,
+            "total_tax_amount": 29757,
+            "total_tax_amount_formatted": "29,757원",
+            "total_vat_amount": 0,
+            "total_vat_amount_formatted": "0원",
+            "total_taxable_supply_amount": 29757,
+            "total_taxable_supply_amount_formatted": "29,757원",
+            "total_tax_free_amount": 0,
+            "total_tax_free_amount_formatted": "0원",
+            "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+            "user_login_id": null,
+            "orderer_name": null,
+            "orderer_phone": null,
+            "orderer_tel": null,
+            "orderer_email": null,
+            "recipient_name": null,
+            "recipient_phone": null,
+            "recipient_tel": null,
+            "recipient_zipcode": null,
+            "recipient_address": null,
+            "recipient_detail_address": null,
+            "delivery_memo": null,
+            "delivery_memo_label": null,
+            "options": [],
+            "shipping_address": null,
+            "promotions_applied_snapshot": null,
+            "shipping_policy_applied_snapshot": null,
+            "admin_memo": null,
+            "customer_memo": null,
+            "created_at": "2026-07-08T01:44:49+00:00",
+            "updated_at": "2026-07-08T01:44:49+00:00",
+            "is_owner": true,
+            "abilities": {
+                "can_read": true,
+                "can_update": true,
+                "can_cancel": true
+            }
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -918,9 +2075,256 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | --- | --- | --- | --- | --- | --- |
 | orderNumber | path | string | 예 | — | 대상 order number의 식별자 |
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/orders/APIDOC-20260708-000001 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
+```
+
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `4` | 기본 키 (내부 식별자) |
+| order_number | string | `APIDOC-20260708-000001` | 주문번호 |
+| base_currency | string | `KRW` | 금액 표기 기준 통화 (모든 *_formatted 필드의 통화, 주문 시점 base_currency 고정) |
+| payment_currency | string | `KRW` | 결제 통화 (유저가 선택·결제한 통화, base_currency 와 다르면 병기 표시) |
+| is_cross_currency | boolean | `false` | cross currency 여부 |
+| order_status | string | `pending_payment` | 주문상태 (OrderStatusEnum) |
+| order_status_label | string | `결제대기` | `order_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| order_status_variant | string | `warning` | `order_status` 값의 표시 변형 키 (UI 배지 색상/스타일) |
+| is_partially_cancelled | boolean | `false` | partially cancelled 여부 |
+| order_device | string | `pc` | 주문 디바이스 (pc/mobile/app) |
+| order_device_label | string | `PC` | `order_device` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| is_first_order | boolean | `false` | first order 여부 |
+| subtotal_amount | integer | `324327` | 상품 합계 (할인 전, 상품가×수량 합계) |
+| subtotal_amount_formatted | string | `324,327원` | `subtotal_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_discount_amount | integer | `0` | 총 할인금액 (모든 할인 합계) |
+| total_discount_amount_formatted | string | `0원` | `total_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_shipping_amount | integer | `3000` | 총 배송비 |
+| total_shipping_amount_formatted | string | `3,000원` | `total_shipping_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_amount | integer | `327327` | 최종 주문금액 (subtotal - discount + shipping) |
+| total_amount_formatted | string | `327,327원` | `total_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_paid_amount | integer | `0` | 총 실제 결제금액 (PG 결제액) |
+| total_paid_amount_formatted | string | `0원` | `total_paid_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_due_amount | integer | `327327` | 총 결제예정금액 (무통장 등) |
+| total_due_amount_formatted | string | `327,327원` | `total_due_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| depositor_name | null | `null` | 무통장 입금자명 (입금확인 모달 기본값, payment 관계 로드 시에만 노출) |
+| total_cancelled_amount | integer | `0` | 총 취소금액 |
+| total_cancelled_amount_formatted | string | `0원` | `total_cancelled_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_refunded_amount | integer | `0` | 총 환불금액 |
+| total_refunded_amount_formatted | string | `0원` | `total_refunded_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_refunded_points_amount | integer | `0` | 총 환불 포인트 |
+| total_refunded_points_amount_formatted | string | `0원` | `total_refunded_points_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_product_coupon_discount_amount | integer | `0` | 상품 쿠폰 할인 합계 |
+| total_product_coupon_discount_amount_formatted | string | `0원` | `total_product_coupon_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_order_coupon_discount_amount | integer | `0` | 주문 쿠폰 할인 합계 |
+| total_order_coupon_discount_amount_formatted | string | `0원` | `total_order_coupon_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_coupon_discount_amount | integer | `0` | 총 쿠폰 할인금액 |
+| total_coupon_discount_amount_formatted | string | `0원` | `total_coupon_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_code_discount_amount | integer | `0` | 총 할인코드 할인금액 |
+| total_code_discount_amount_formatted | string | `0원` | `total_code_discount_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_points_used_amount | integer | `0` | 총 포인트 사용액 |
+| total_points_used_amount_formatted | string | `0원` | `total_points_used_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_deposit_used_amount | integer | `0` | 총 예치금 사용액 |
+| total_deposit_used_amount_formatted | string | `0원` | `total_deposit_used_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_earned_points_amount | integer | `3273` | 총 적립 예정 포인트 |
+| total_earned_points_amount_formatted | string | `3,273원` | `total_earned_points_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| mc_subtotal_amount | array | `[]` | 상품합계 다중 통화 |
+| mc_total_discount_amount | array | `[]` | 총 할인 다중 통화 |
+| mc_total_shipping_amount | array | `[]` | 총 배송비 다중 통화 |
+| mc_total_amount | array | `[]` | 최종금액 다중 통화 (payment_amount) |
+| mc_total_product_coupon_discount_amount | array | `[]` | 상품 쿠폰 할인 다중 통화 |
+| mc_total_order_coupon_discount_amount | array | `[]` | 주문 쿠폰 할인 다중 통화 |
+| mc_total_coupon_discount_amount | array | `[]` | 쿠폰 할인 합계 다중 통화 |
+| mc_total_code_discount_amount | array | `[]` | 할인코드 할인 다중 통화 |
+| mc_total_points_used_amount | array | `[]` | 포인트 사용 다중 통화 |
+| mc_total_deposit_used_amount | array | `[]` | 예치금 사용 다중 통화 |
+| item_count | integer | `4` | item 개수 (집계) |
+| total_quantity | integer | `0` | 주문 옵션 수량 합계 (options 로드 시) |
+| total_list_price | integer | `0` | 정가 합계 (옵션 스냅샷 정가 × 수량 합계) |
+| total_list_price_formatted | string | `0원` | `total_list_price` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| ordered_at | string | `2026-07-08T01:44:49+00:00` | ordered 일시 |
+| ordered_at_formatted | string | `2026-07-08 10:44:49` | `ordered_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| paid_at | null | `null` | paid 일시 |
+| paid_at_formatted | null | `null` | `paid_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| confirmed_at | null | `null` | confirmed 일시 |
+| confirmed_at_formatted | null | `null` | `confirmed_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| cancelled_at | null | `null` | cancelled 일시 |
+| cancelled_at_formatted | null | `null` | `cancelled_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| delivered_at | null | `null` | delivered 일시 |
+| total_tax_amount | integer | `29757` | 총 과세금액 |
+| total_tax_amount_formatted | string | `29,757원` | `total_tax_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_vat_amount | integer | `0` | 총 부가세금액 |
+| total_vat_amount_formatted | string | `0원` | `total_vat_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_taxable_supply_amount | integer | `29757` | 과세 공급가액 (총 과세금액 − 부가세, 영수증 과세금액 표시 SSoT) |
+| total_taxable_supply_amount_formatted | string | `29,757원` | `total_taxable_supply_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_tax_free_amount | integer | `0` | 총 면세금액 |
+| total_tax_free_amount_formatted | string | `0원` | `total_tax_free_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| user | object | `{"uuid":"a234c2b1-cde8-437f-b28b-23323be2b98d","name":"AP…` | 대상 사용자 정보 객체 (uuid/name/email 등 — user 관계 파생) |
+| user_id | string | `a234c2b1-cde8-437f-b28b-23323be2b98d` | user 식별자 (연관 리소스 참조) |
+| user_login_id | null | `null` | 회원 로그인 아이디 (login_id, 비회원 주문이면 null) |
+| orderer_name | null | `null` | 주문자 이름 (배송지에서 플래튼) |
+| orderer_phone | null | `null` | 주문자 휴대전화 (배송지에서 플래튼) |
+| orderer_tel | null | `null` | 주문자 일반전화 (배송지에서 플래튼, 미입력 시 null) |
+| orderer_email | null | `null` | 주문자 이메일 (배송지에서 플래튼, 비회원 알림 수신 통로) |
+| recipient_name | null | `null` | 수령인 이름 (배송지에서 플래튼) |
+| recipient_phone | null | `null` | 수령인 휴대전화 (배송지에서 플래튼) |
+| recipient_tel | null | `null` | 수령인 일반전화 (배송지에서 플래튼, 미입력 시 null) |
+| recipient_zipcode | null | `null` | 수령인 우편번호 (배송지에서 플래튼) |
+| recipient_address | null | `null` | 수령인 기본 주소 (배송지에서 플래튼) |
+| recipient_detail_address | null | `null` | 수령인 상세 주소 (배송지에서 플래튼, 미입력 시 null) |
+| delivery_memo | null | `null` | 배송 메모 (배송지에서 플래튼, 미입력 시 null) |
+| delivery_memo_label | null | `null` | `delivery_memo` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| options | array | `[]` | 주문 옵션(품목) 목록 (OrderOptionResource — 상품·옵션·수량·옵션상태·금액) |
+| shipping_address | null | `null` | 배송지 상세 (OrderAddressResource — 주문자/수령인/국내·해외 주소) |
+| billing_address | null | `null` | 청구지 상세 (OrderAddressResource, 미분리 시 null) |
+| payment | null | `null` | 대표 결제 정보 (OrderPaymentResource — 결제수단·결제상태·금액) |
+| payments | array | `[]` | 결제 이력 목록 (OrderPaymentResource 배열 — 다회 결제/부분결제 포함) |
+| shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
+| cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
+| promotions_applied_snapshot | null | `null` | 적용된 프로모션 스냅샷 (재계산용) |
+| shipping_policy_applied_snapshot | null | `null` | 적용된 배송정책 스냅샷 (재계산용) |
+| admin_memo | null | `null` | 관리자 메모 (내부 관리용) |
+| customer_memo | null | `null` | 고객 메모 (주문 시 고객이 남긴 메모) |
+| created_at | string | `2026-07-08T01:44:49+00:00` | 생성 일시 |
+| updated_at | string | `2026-07-08T01:44:49+00:00` | 최종 수정 일시 |
+| is_owner | boolean | `true` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
+| abilities | object | `{"can_read":true,"can_update":true,"can_cancel":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "id": 4,
+        "order_number": "APIDOC-20260708-000001",
+        "base_currency": "KRW",
+        "payment_currency": "KRW",
+        "is_cross_currency": false,
+        "order_status": "pending_payment",
+        "order_status_label": "결제대기",
+        "order_status_variant": "warning",
+        "is_partially_cancelled": false,
+        "order_device": "pc",
+        "order_device_label": "PC",
+        "is_first_order": false,
+        "subtotal_amount": 324327,
+        "subtotal_amount_formatted": "324,327원",
+        "total_discount_amount": 0,
+        "total_discount_amount_formatted": "0원",
+        "total_shipping_amount": 3000,
+        "total_shipping_amount_formatted": "3,000원",
+        "total_amount": 327327,
+        "total_amount_formatted": "327,327원",
+        "total_paid_amount": 0,
+        "total_paid_amount_formatted": "0원",
+        "total_due_amount": 327327,
+        "total_due_amount_formatted": "327,327원",
+        "depositor_name": null,
+        "total_cancelled_amount": 0,
+        "total_cancelled_amount_formatted": "0원",
+        "total_refunded_amount": 0,
+        "total_refunded_amount_formatted": "0원",
+        "total_refunded_points_amount": 0,
+        "total_refunded_points_amount_formatted": "0원",
+        "total_product_coupon_discount_amount": 0,
+        "total_product_coupon_discount_amount_formatted": "0원",
+        "total_order_coupon_discount_amount": 0,
+        "total_order_coupon_discount_amount_formatted": "0원",
+        "total_coupon_discount_amount": 0,
+        "total_coupon_discount_amount_formatted": "0원",
+        "total_code_discount_amount": 0,
+        "total_code_discount_amount_formatted": "0원",
+        "total_points_used_amount": 0,
+        "total_points_used_amount_formatted": "0원",
+        "total_deposit_used_amount": 0,
+        "total_deposit_used_amount_formatted": "0원",
+        "total_earned_points_amount": 3273,
+        "total_earned_points_amount_formatted": "3,273원",
+        "mc_subtotal_amount": [],
+        "mc_total_discount_amount": [],
+        "mc_total_shipping_amount": [],
+        "mc_total_amount": [],
+        "mc_total_product_coupon_discount_amount": [],
+        "mc_total_order_coupon_discount_amount": [],
+        "mc_total_coupon_discount_amount": [],
+        "mc_total_code_discount_amount": [],
+        "mc_total_points_used_amount": [],
+        "mc_total_deposit_used_amount": [],
+        "item_count": 4,
+        "total_quantity": 0,
+        "total_list_price": 0,
+        "total_list_price_formatted": "0원",
+        "ordered_at": "2026-07-08T01:44:49+00:00",
+        "ordered_at_formatted": "2026-07-08 10:44:49",
+        "paid_at": null,
+        "paid_at_formatted": null,
+        "confirmed_at": null,
+        "confirmed_at_formatted": null,
+        "cancelled_at": null,
+        "cancelled_at_formatted": null,
+        "delivered_at": null,
+        "total_tax_amount": 29757,
+        "total_tax_amount_formatted": "29,757원",
+        "total_vat_amount": 0,
+        "total_vat_amount_formatted": "0원",
+        "total_taxable_supply_amount": 29757,
+        "total_taxable_supply_amount_formatted": "29,757원",
+        "total_tax_free_amount": 0,
+        "total_tax_free_amount_formatted": "0원",
+        "user": {
+            "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+            "name": "API 문서 샘플 사용자",
+            "email": "apidoc-sample-user@example.com"
+        },
+        "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "user_login_id": null,
+        "orderer_name": null,
+        "orderer_phone": null,
+        "orderer_tel": null,
+        "orderer_email": null,
+        "recipient_name": null,
+        "recipient_phone": null,
+        "recipient_tel": null,
+        "recipient_zipcode": null,
+        "recipient_address": null,
+        "recipient_detail_address": null,
+        "delivery_memo": null,
+        "delivery_memo_label": null,
+        "options": [],
+        "shipping_address": null,
+        "billing_address": null,
+        "payment": null,
+        "payments": [],
+        "shippings": [],
+        "cancels": [],
+        "promotions_applied_snapshot": null,
+        "shipping_policy_applied_snapshot": null,
+        "admin_memo": null,
+        "customer_memo": null,
+        "created_at": "2026-07-08T01:44:49+00:00",
+        "updated_at": "2026-07-08T01:44:49+00:00",
+        "is_owner": true,
+        "abilities": {
+            "can_read": true,
+            "can_update": true,
+            "can_cancel": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

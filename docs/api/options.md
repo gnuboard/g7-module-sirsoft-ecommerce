@@ -35,9 +35,35 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product_option.bulk_price_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/options/bulk-price HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "product_ids": [
+        "예시값"
+    ],
+    "option_ids": [
+        "예시값"
+    ],
+    "method": "increase",
+    "value": 1,
+    "unit": "won"
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -69,9 +95,34 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product_option.bulk_stock_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/options/bulk-stock HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "product_ids": [
+        "예시값"
+    ],
+    "option_ids": [
+        "예시값"
+    ],
+    "method": "increase",
+    "value": 1
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -102,9 +153,35 @@
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.option.bulk_update_validation_rules`).
 
+**요청 예시**
+
+```http
+PATCH /api/modules/sirsoft-ecommerce/admin/options/bulk-update HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "ids": [
+        "예시값"
+    ],
+    "bulk_changes": [
+        "예시값"
+    ],
+    "items": [
+        "예시값"
+    ]
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

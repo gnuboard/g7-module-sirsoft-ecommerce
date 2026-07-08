@@ -29,9 +29,22 @@
 | --- | --- | --- | --- | --- | --- |
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/inquiries/{inquiryId} HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -58,9 +71,22 @@
 | --- | --- | --- | --- | --- | --- |
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/inquiries/{inquiryId}/reply HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -88,9 +114,27 @@
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 | content | body | string | 예 | min 1, max 5000 | 본문 내용 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/inquiries/{inquiryId}/reply HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "content": "예시 내용입니다."
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -119,9 +163,27 @@
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 | content | body | string | 예 | min 1, max 5000 | 본문 내용 |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/admin/inquiries/{inquiryId}/reply HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "content": "예시 내용입니다."
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -147,6 +209,15 @@
 
 _요청 파라미터 없음._
 
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/inquiries HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 _단건 응답: `data` 객체의 필드._
@@ -155,6 +226,69 @@ _단건 응답: `data` 객체의 필드._
 | --- | --- | --- | --- |
 | items | array | `[]` | 내 문의 항목 배열 (각 항목: id, product 요약, product_name, is_answered, 게시판 연동 시 title/category/content/is_secret/reply/attachments) |
 | meta | object | `{"current_page":1,"per_page":25,"total":0,"last_page":1,"…` | 페이지네이션 메타 (current_page/per_page/total/last_page/from/to, 문의 게시판 연동 여부 inquiry_available, abilities 답변·삭제 권한, board_settings) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "문의 목록을 조회했습니다.",
+    "data": {
+        "items": [
+            {
+                "id": 1,
+                "product_id": 1,
+                "product": {
+                    "id": 1,
+                    "name": "API 문서 샘플 상품",
+                    "thumbnail_url": null,
+                    "url": "/shop/products/1"
+                },
+                "product_name": "iste et inventore",
+                "is_answered": false,
+                "answered_at": null,
+                "created_at": "2026-07-08T01:44:49+00:00",
+                "updated_at": "2026-07-08T01:44:49+00:00",
+                "title": null,
+                "category": null,
+                "content": null,
+                "is_secret": "{MASKED}",
+                "reply": null,
+                "attachments": []
+            }
+        ],
+        "meta": {
+            "current_page": 1,
+            "per_page": 25,
+            "total": 1,
+            "last_page": 1,
+            "from": 1,
+            "to": 1,
+            "inquiry_available": false,
+            "abilities": {
+                "can_update": true,
+                "can_delete": true
+            },
+            "board_settings": {
+                "secret_mode": "{MASKED}",
+                "categories": [],
+                "use_file_upload": false,
+                "max_file_count": 5,
+                "max_file_size": 10485760,
+                "allowed_extensions": [],
+                "min_title_length": 2,
+                "max_title_length": 200,
+                "min_content_length": 10,
+                "max_content_length": 10000
+            }
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -179,9 +313,22 @@ _단건 응답: `data` 객체의 필드._
 | --- | --- | --- | --- | --- | --- |
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/user/inquiries/{inquiryId} HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -213,9 +360,30 @@ _단건 응답: `data` 객체의 필드._
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.inquiry.update_validation_rules`).
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/user/inquiries/{inquiryId} HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "title": "예시 제목",
+    "category": "예시값",
+    "content": "예시 내용입니다.",
+    "is_secret": true
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -242,9 +410,22 @@ _단건 응답: `data` 객체의 필드._
 | --- | --- | --- | --- | --- | --- |
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/user/inquiries/{inquiryId}/reply HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -271,9 +452,27 @@ _단건 응답: `data` 객체의 필드._
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 | content | body | string | 예 | min 1, max 5000 | 본문 내용 |
 
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/inquiries/{inquiryId}/reply HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "content": "예시 내용입니다."
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -301,9 +500,27 @@ _단건 응답: `data` 객체의 필드._
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
 | content | body | string | 예 | min 1, max 5000 | 본문 내용 |
 
+**요청 예시**
+
+```http
+PUT /api/modules/sirsoft-ecommerce/user/inquiries/{inquiryId}/reply HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "content": "예시 내용입니다."
+}
+```
+
 **응답 필드** (`data` 내부)
 
 <!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+
+**응답 예시**
+
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
