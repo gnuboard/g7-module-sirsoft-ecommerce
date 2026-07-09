@@ -4775,6 +4775,9 @@ class OrderAdjustmentServiceTest extends ModuleTestCase
 
     /**
      * 다중통화 스냅샷이 없는 주문의 환불 시 mc_* 필드는 모두 null입니다.
+     *
+     * 레거시 주문(다통화 도입 이전에 생성되어 currency_snapshot 이 비어 있는 행)의 취소 경로를
+     * 검증한다. OrderFactory 는 기본 스냅샷을 채우므로 여기서는 명시적으로 null 을 주입한다.
      */
     public function test_mc_fields_null_without_currency_snapshot(): void
     {
@@ -4790,6 +4793,8 @@ class OrderAdjustmentServiceTest extends ModuleTestCase
         // 통화 설정이 비어 있을 때만 우연히 falsy 가 되므로, 앞선 테스트가 통화 설정을 남기면
         // 이 테스트가 간헐 실패한다. "스냅샷 없는 주문" 이라는 전제를 명시적으로 못박는다.
         $order = $this->createOrderFromCalculation($input, ['currency_snapshot' => null]);
+        $this->assertNull($order->currency_snapshot, '테스트 전제: 주문에 통화 스냅샷이 없다');
+
         $optA = $order->options->first();
         $cancellation = $this->buildCancellation([
             ['order_option_id' => $optA->id, 'cancel_quantity' => 1],
