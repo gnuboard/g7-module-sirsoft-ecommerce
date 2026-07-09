@@ -592,6 +592,67 @@ class CashReceiptServiceTest extends ModuleTestCase
     }
 
     #[Test]
+    public function 최초_발급의_회차는_1이다(): void
+    {
+        $this->registerProvider();
+        $order = $this->makeOrder(11000, 11000, 0);
+
+        $this->service()->issue($order, CashReceiptType::INCOME, self::IDENTIFIER);
+
+        $this->assertSame(1, $this->issueCalls[0]['payload']['issue_sequence']);
+    }
+
+    #[Test]
+    public function 재발급의_회차는_증가한다(): void
+    {
+        // 토스는 동일 orderId 재사용을 중복 거부하므로 재발급마다 회차가 달라야 한다.
+        $this->registerProvider();
+        $order = $this->makeOrder(11000, 11000, 0);
+        $this->service()->issue($order, CashReceiptType::INCOME, self::IDENTIFIER);
+
+        $order->update(['total_cash_equivalent_amount' => 5500, 'total_tax_amount' => 5500]);
+        $this->service()->syncFromOrder($order->fresh(), '부분환불');
+
+        $this->assertSame(1, $this->issueCalls[0]['payload']['issue_sequence']);
+        $this->assertSame(2, $this->issueCalls[1]['payload']['issue_sequence'], '재발급은 2회차');
+    }
+
+    #[Test]
+    public function 발급이_실패해도_다음_회차는_증가한다(): void
+    {
+        // 프로바이더에 요청이 도달한 뒤 응답만 실패했을 수 있다.
+        // 같은 식별자를 재사용하면 중복 거부되므로 실패한 시도도 회차를 소모해야 한다.
+        $this->registerProvider();
+        $this->issueShouldFail = true;
+        $order = $this->makeOrder(11000, 11000, 0);
+
+        $this->service()->issue($order, CashReceiptType::INCOME, self::IDENTIFIER);
+        $this->assertSame(1, $this->issueCalls[0]['payload']['issue_sequence']);
+
+        $this->issueShouldFail = false;
+        $this->service()->issue($order->fresh(), CashReceiptType::INCOME, self::IDENTIFIER);
+
+        $this->assertSame(2, $this->issueCalls[1]['payload']['issue_sequence'], '실패한 1회차를 건너뛴다');
+    }
+
+    #[Test]
+    public function 취소_이력은_발급_회차를_소모하지_않는다(): void
+    {
+        $this->registerProvider();
+        $order = $this->makeOrder(11000, 11000, 0);
+        $this->service()->issue($order, CashReceiptType::INCOME, self::IDENTIFIER);
+
+        $this->service()->cancelAll($order->fresh(), '전액취소');
+
+        // 취소 1건이 남았지만 발급 회차는 issue 이력만 센다
+        $repository = app(OrderCashReceiptRepositoryInterface::class);
+        $this->assertSame(1, $repository->countIssues($order->fresh()));
+
+        $this->service()->issue($order->fresh(), CashReceiptType::INCOME, self::IDENTIFIER);
+        $this->assertSame(2, $this->issueCalls[1]['payload']['issue_sequence']);
+    }
+
+    #[Test]
     public function 주문_삭제_시_현금영수증_이력도_명시적으로_삭제된다(): void
     {
         // DB CASCADE 에 의존하지 않고 Service 가 명시적으로 삭제해야 한다.

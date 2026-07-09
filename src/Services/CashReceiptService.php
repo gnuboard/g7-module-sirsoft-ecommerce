@@ -106,6 +106,10 @@ class CashReceiptService
             'tax_free_amount' => $target['tax_free_amount'],
             'order_name' => $this->buildOrderName($order),
             'order_number' => $order->order_number,
+            // 이번 발급의 회차 (1부터). 프로바이더가 발급 요청 식별자를 회차로 구분할 때 사용한다.
+            // 토스는 동일 orderId 재사용을 중복 거부하므로 "{order_number}-cr{seq}" 로 접미한다.
+            // 프로바이더 종속 문자열 조립은 리스너가 하고, 코어는 숫자만 제공한다.
+            'issue_sequence' => $this->repository->countIssues($order) + 1,
         ];
 
         $result = HookManager::applyFilters(

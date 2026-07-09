@@ -94,4 +94,15 @@ class OrderCashReceiptRepository implements OrderCashReceiptRepositoryInterface
             ->orderByDesc('id')
             ->first();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function countIssues(Order $order): int
+    {
+        return $this->model->newQuery()
+            ->where('order_id', $order->id)
+            ->where('transaction_type', CashReceiptTransactionType::ISSUE->value)
+            ->count();
+    }
 }

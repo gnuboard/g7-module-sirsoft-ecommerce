@@ -80,6 +80,10 @@ effects:
   - issue_delegates_to_provider_filter         # 발급을 cash_receipt.issue 필터로 위임
   - cancel_delegates_without_amount            # 취소 필터에 금액을 넘기지 않음(항상 전액취소)
   - issue_records_ledger_and_payment_summary   # 이력 + 결제 요약 컬럼 동시 갱신
+  - issue_sequence_starts_at_one               # 최초 발급 회차 = 1
+  - issue_sequence_increments_on_reissue       # 재발급마다 회차 증가 (토스 orderId 중복 거부 회피)
+  - failed_issue_consumes_sequence             # 실패한 발급도 회차를 소모 (프로바이더 도달 후 실패 대비)
+  - cancel_does_not_consume_issue_sequence     # 취소 이력은 발급 회차를 소모하지 않음
 
   # syncFromOrder — 무상태 재계산
   - sync_reissues_on_amount_change             # 감소·증가 모두 전체취소 후 전액 재발급

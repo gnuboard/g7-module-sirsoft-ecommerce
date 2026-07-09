@@ -53,4 +53,18 @@ interface OrderCashReceiptRepositoryInterface
      * @return OrderCashReceipt|null 이력 (없으면 null)
      */
     public function findByReceiptKey(string $receiptKey): ?OrderCashReceipt;
+
+    /**
+     * 주문의 발급(issue) 시도 횟수를 반환합니다. (성공/실패 무관)
+     *
+     * 프로바이더가 발급 요청 식별자를 회차로 구분해야 할 때 쓰인다.
+     * 예: 토스페이먼츠는 동일 orderId 재사용을 중복으로 거부하므로 회차 접미가 필요하다.
+     *
+     * 실패한 시도까지 세는 이유 — 프로바이더에 요청이 도달한 뒤 응답만 실패했을 수 있고,
+     * 그 경우 같은 식별자를 재사용하면 중복 거부된다.
+     *
+     * @param  Order  $order  주문 모델
+     * @return int 발급 이력 건수
+     */
+    public function countIssues(Order $order): int;
 }
