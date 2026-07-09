@@ -9,6 +9,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\RefundMethodEnum;
+use Modules\Sirsoft\Ecommerce\Enums\ShippingFeeTaxPolicy;
 
 /**
  * 이커머스 모듈 환경설정 서비스
@@ -685,6 +686,59 @@ class EcommerceSettingsService implements ModuleSettingsInterface
             'sirsoft-ecommerce.payment.registered_pg_providers',
             []
         );
+    }
+
+    /**
+     * 등록된 현금영수증 발급 프로바이더 목록을 조회합니다. (플러그인 훅 기반)
+     *
+     * PG 프로바이더와 독립적으로 선택 가능하다 — KG이니시스로 결제하면서
+     * 현금영수증만 토스페이먼츠로 발급하는 구성을 허용한다.
+     *
+     * @return array 프로바이더 배열 [{id, name, name_key, icon}, ...]
+     */
+    public function getRegisteredCashReceiptProviders(): array
+    {
+        return HookManager::applyFilters(
+            'sirsoft-ecommerce.cash_receipt.registered_providers',
+            []
+        );
+    }
+
+    /**
+     * 현재 선택된 현금영수증 발급 프로바이더 ID를 반환합니다.
+     *
+     * @return string|null 프로바이더 ID (미설정 시 null)
+     */
+    public function getCashReceiptProvider(): ?string
+    {
+        $provider = $this->getSetting('order_settings.cash_receipt_provider');
+
+        return is_string($provider) && $provider !== '' ? $provider : null;
+    }
+
+    /**
+     * 자진발급 사용 여부를 반환합니다.
+     *
+     * 구매자가 현금영수증을 신청하지 않은 무통장 입금완료 건에 대해 사업자가
+     * 국세청 지정번호로 자진발급할지 여부. 기본값은 사용 안 함.
+     *
+     * @return bool 자진발급 사용 여부
+     */
+    public function isCashReceiptSelfIssueEnabled(): bool
+    {
+        return (bool) $this->getSetting('order_settings.cash_receipt_self_issue', false);
+    }
+
+    /**
+     * 배송비 과세 정책을 반환합니다.
+     *
+     * @return ShippingFeeTaxPolicy 배송비 과세 정책 (미설정 시 안분)
+     */
+    public function getShippingFeeTaxPolicy(): ShippingFeeTaxPolicy
+    {
+        $value = $this->getSetting('order_settings.shipping_fee_tax_policy');
+
+        return ShippingFeeTaxPolicy::fromValueOrDefault(is_string($value) ? $value : null);
     }
 
     /**

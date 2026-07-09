@@ -172,10 +172,10 @@ class OrderProcessingService
             $isZeroPayable
         ) {
             // 주문 생성
-            $order = $this->createOrder($tempOrder, $calculationResult, $initialStatus, $currencySnapshot, $guestLookupPassword, $shippingInfo);
+            $order = $this->createOrder($tempOrder, $calculationResult, $initialStatus, $currencySnapshot, $guestLookupPassword, $shippingInfo, $paymentMethod);
 
             // 주문 옵션 생성 (배송 정보 연결을 위해 옵션 ID 매핑 반환)
-            $createdOptions = $this->createOrderOptions($order, $tempOrder, $calculationResult, $currencySnapshot);
+            $createdOptions = $this->createOrderOptions($order, $tempOrder, $calculationResult, $currencySnapshot, $paymentMethod);
 
             // 주문 주소 생성 (주문자 + 배송지)
             $this->createOrderAddresses($order, $ordererInfo, $shippingInfo, $shippingMemo);
@@ -505,6 +505,9 @@ class OrderProcessingService
      * @param  OrderCalculationResult  $calculationResult  계산 결과
      * @param  OrderStatusEnum  $initialStatus  초기 상태
      * @param  array  $currencySnapshot  통화 스냅샷
+     * @param  string|null  $guestLookupPassword  비회원 조회 비밀번호
+     * @param  array  $shippingInfo  배송 정보
+     * @param  string|null  $paymentMethod  결제수단 (현금성 금액 산정용)
      */
     protected function createOrder(
         TempOrder $tempOrder,
@@ -512,9 +515,11 @@ class OrderProcessingService
         OrderStatusEnum $initialStatus,
         array $currencySnapshot,
         ?string $guestLookupPassword = null,
-        array $shippingInfo = []
+        array $shippingInfo = [],
+        ?string $paymentMethod = null
     ): Order {
         $summary = $calculationResult->summary;
+        $cashEquivalent = $this->resolveCashEquivalentAmount($paymentMethod, (int) ($summary->finalAmount ?? 0));
 
         // 다중 통화 변환
         $mcAmounts = $this->buildOrderMultiCurrency($summary, $currencySnapshot);
@@ -555,6 +560,10 @@ class OrderProcessingService
             // PG(KG 이니시스 등) 결제 요청 금액·무통장 입금 안내액의 SSoT 이므로 차감 전 paymentAmount 를 쓰면
             // 마일리지 사용분만큼 과다 청구된다. total_amount 와 동일한 차감 후 금액으로 둔다.
             'total_due_amount' => $summary->finalAmount ?? 0,
+            // 현금성 금액 = 현금영수증 발급 대상액. 무통장(dbank)만 실입금액 전액이 현금이며,
+            // 마일리지 사용분은 현금이 아니므로 차감 후 금액(finalAmount)을 쓴다.
+            // 가상계좌는 PG 가 자동 발급하므로 0, 카드/계좌이체/휴대폰도 0.
+            'total_cash_equivalent_amount' => $cashEquivalent,
             'total_cancelled_amount' => 0,
             'total_refunded_amount' => 0,
             'total_refunded_points_amount' => 0,
@@ -588,6 +597,7 @@ class OrderProcessingService
             'mc_total_tax_free_amount' => $mcAmounts['mc_total_tax_free_amount'],
             'mc_total_amount' => $mcAmounts['mc_total_amount'],
             'mc_total_paid_amount' => $mcAmounts['mc_total_paid_amount'],
+            'mc_total_cash_equivalent_amount' => $this->buildAllCurrencyConverter($currencySnapshot)($cashEquivalent),
         ];
 
         // 훅을 통한 데이터 가공
@@ -647,6 +657,31 @@ class OrderProcessingService
     }
 
     /**
+     * 결제수단별 현금성 금액을 산정합니다.
+     *
+     * 현금성 금액 = 현금영수증 발급 대상이 되는 실제 현금 입금액.
+     *
+     * | 결제수단          | 현금성 금액                                  |
+     * |------------------|--------------------------------------------|
+     * | dbank (무통장)    | 실입금액 전액 (마일리지 차감 후 finalAmount)  |
+     * | vbank (가상계좌)  | 0 — PG 가 자동 발급                          |
+     * | card/bank/phone  | 0                                           |
+     * | point/deposit    | 0 (현금이 아님)                              |
+     *
+     * @param  string|null  $paymentMethod  결제수단 식별자
+     * @param  int  $finalAmount  마일리지/예치금 차감 후 실결제액
+     * @return int 현금성 금액
+     */
+    protected function resolveCashEquivalentAmount(?string $paymentMethod, int $finalAmount): int
+    {
+        if ($paymentMethod !== PaymentMethodEnum::DBANK->value) {
+            return 0;
+        }
+
+        return max(0, $finalAmount);
+    }
+
+    /**
      * 주문 옵션 생성
      *
      * @param  Order  $order  주문
@@ -668,7 +703,8 @@ class OrderProcessingService
         Order $order,
         TempOrder $tempOrder,
         OrderCalculationResult $calculationResult,
-        array $currencySnapshot
+        array $currencySnapshot,
+        ?string $paymentMethod = null
     ): array {
         $createdOptions = [];
 
@@ -715,6 +751,12 @@ class OrderProcessingService
                 'subtotal_points_used_amount' => $item->pointsUsedShare ?? 0,
                 'subtotal_deposit_used_amount' => $item->depositUsedShare ?? 0,
                 'subtotal_paid_amount' => $item->finalAmount ?? 0,
+                // 옵션별 현금성 안분액. 옵션 finalAmount 합 = 주문 finalAmount 이므로
+                // 안분 잔차 없이 합계가 그대로 보존된다.
+                'subtotal_cash_equivalent_amount' => $this->resolveCashEquivalentAmount(
+                    $paymentMethod,
+                    (int) ($item->finalAmount ?? 0),
+                ),
                 'subtotal_tax_amount' => $item->taxableAmount ?? 0,
                 'subtotal_tax_free_amount' => $item->taxFreeAmount ?? 0,
                 'subtotal_earned_points_amount' => $item->pointsEarning ?? 0,
@@ -736,6 +778,9 @@ class OrderProcessingService
                 'mc_subtotal_tax_amount' => $mcAmounts['mc_subtotal_tax_amount'],
                 'mc_subtotal_tax_free_amount' => $mcAmounts['mc_subtotal_tax_free_amount'],
                 'mc_final_amount' => $mcAmounts['mc_final_amount'],
+                'mc_subtotal_cash_equivalent_amount' => $this->buildAllCurrencyConverter($currencySnapshot)(
+                    $this->resolveCashEquivalentAmount($paymentMethod, (int) ($item->finalAmount ?? 0)),
+                ),
             ]);
 
             // productOptionId → OrderOption 매핑 저장

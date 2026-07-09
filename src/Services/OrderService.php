@@ -357,6 +357,8 @@ class OrderService
         $order->taxInvoices()->delete();
         $order->shippings()->delete();
         $order->addresses()->delete();
+        // 현금영수증 이력은 결제(order_payment_id)를 참조하므로 결제보다 먼저 삭제한다.
+        $order->cashReceipts()->delete();
         $order->payment()->delete();
         $order->options()->delete();
 
