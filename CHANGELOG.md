@@ -4,6 +4,12 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르며,
 [Semantic Versioning](https://semver.org/lang/ko/)을 준수합니다.
 
+## [1.0.2] - 2026-07-09
+
+### Changed
+
+- 휴대폰·태블릿 화면에서 통화·배송국가 선택이 드롭다운 대신 항상 펼쳐진 가로 버튼으로 표시됩니다. 좁은 화면의 메뉴 안에서 드롭다운이 잘려 보이던 문제가 함께 해소됩니다. 데스크톱 화면의 드롭다운은 그대로입니다.
+
 ## [1.0.1] - 2026-07-08
 
 ### Added

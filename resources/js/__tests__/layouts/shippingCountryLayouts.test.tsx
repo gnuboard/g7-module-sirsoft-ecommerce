@@ -116,6 +116,112 @@ describe('header-currency-selector-user.json — 헤더 공용 셀렉터 2섹션
     expect(raw).toContain('g7_preferred_shipping_country');
   });
 
+  /**
+   * 사용자 템플릿(sirsoft-basic)은 390px 뷰포트 오버플로(+11px) 해소를 위해 이 슬롯을
+   * 헤더 우측 그룹에서 모바일 드로어(overflow-y-auto + w-80)로 옮겼다. 드로어에서는
+   * absolute 드롭다운 패널이 스크롤 경계에서 잘리므로, 주입 노드 자체가 responsive.portable
+   * (0~1023px) 오버라이드로 "트리거 숨김 + 패널 항상 펼침(static)" 을 선언한다.
+   *
+   * SlotContainer 는 주입 자식에게 variant/context prop 을 전달하지 않으므로 컨테이너별로
+   * 다르게 그릴 방법이 이것뿐이다. 데스크톱(≥1024px)은 기존 드롭다운을 그대로 유지한다.
+   */
+  it('트리거 버튼은 portable(0~1023px)에서 숨겨진다 (모바일 드로어 = 펼친 목록)', () => {
+    const trigger = walk(root, (n) => n.name === 'Button' && Array.isArray(n.actions) &&
+      n.actions.some((a: any) => a.handler === 'setState' && a.params?.showCurrencyDropdown !== undefined));
+    expect(trigger).toBeTruthy();
+    expect(trigger.responsive?.portable?.props?.className).toBe('hidden');
+  });
+
+  it('패널은 portable 에서 if 해제 + static 흐름 (데스크톱 absolute/z-50 은 보존)', () => {
+    const panel = (root.children ?? []).find(
+      (n: any) => n.name === 'Div' && n.props?.role === 'listbox'
+    );
+    expect(panel).toBeTruthy();
+
+    // 데스크톱 기본 경로 — 회귀 방지
+    expect(panel.if).toBe('{{_local.showCurrencyDropdown}}');
+    expect(panel.props.className).toContain('absolute');
+    expect(panel.props.className).toContain('z-50');
+
+    // portable 오버라이드 — 엔진은 override.if 로 base if 를 완전 교체한다
+    const portable = panel.responsive?.portable;
+    expect(portable).toBeTruthy();
+    expect(portable.if).toBe('{{true}}');
+    expect(portable.props.className).toContain('static');
+    expect(portable.props.className).not.toContain('absolute');
+    expect(portable.props.className).not.toContain('z-50');
+    // 접근성 role 은 props 얕은 머지에서 유실되지 않도록 오버라이드에도 명시
+    expect(portable.props.role).toBe('listbox');
+  });
+
+  /**
+   * 모바일(portable)에서는 통화·배송국가를 세로 목록이 아니라 가로 나열 칩으로 그린다.
+   * 세로 목록은 좁은 드로어에서 세로 공간을 과하게 먹는다.
+   *
+   * 엔진의 `iteration` 은 그 속성을 가진 노드 자신을 항목 수만큼 복제한다. 따라서 옵션들을
+   * 한 줄에 흘리려면 iteration 노드의 **부모**가 flex 컨테이너여야 한다 → 래퍼 Div 를 두고
+   * 그 래퍼에만 responsive.portable 로 `flex flex-wrap` 을 준다(데스크톱은 무클래스 블록).
+   */
+  const findSection = (labelKey: string) => {
+    const panel = (root.children ?? []).find((c: any) => c.props?.role === 'listbox');
+    return (panel.children ?? []).find(
+      (c: any) => JSON.stringify(c).includes(labelKey) && Array.isArray(c.children)
+    );
+  };
+
+  for (const [name, labelKey] of [
+    ['통화', 'common.currency_label'],
+    ['배송국가', 'common.shipping_country_label'],
+  ] as const) {
+    it(`${name} 섹션: iteration 노드의 부모 래퍼가 portable 에서 flex-wrap 이다 (가로 칩 나열)`, () => {
+      const section = findSection(labelKey);
+      expect(section).toBeTruthy();
+
+      // [0] = 라벨, [1] = 옵션 래퍼
+      const wrapper = section.children[1];
+      expect(wrapper.name).toBe('Div');
+      // 데스크톱은 무클래스(블록 흐름) — 기존 세로 목록 유지
+      expect(wrapper.props?.className).toBeUndefined();
+
+      const portableCls = wrapper.responsive?.portable?.props?.className ?? '';
+      expect(portableCls).toContain('flex');
+      expect(portableCls).toContain('flex-wrap');
+
+      // iteration 은 래퍼가 아니라 그 자식에 있어야 한다 (래퍼가 복제되면 칩이 세로로 쌓임)
+      expect(wrapper.iteration).toBeUndefined();
+      expect(wrapper.children[0].iteration).toBeTruthy();
+    });
+
+    it(`${name} 섹션: 옵션 버튼이 portable 에서 칩(rounded-full) 이고 데스크톱은 w-full 행이다`, () => {
+      const section = findSection(labelKey);
+      const iterNode = section.children[1].children[0];
+      const button = iterNode.children[0];
+      expect(button.name).toBe('Button');
+
+      // 데스크톱 기본 — 전체폭 행
+      expect(button.props.className).toContain('w-full');
+      expect(button.props.className).not.toContain('rounded-full');
+
+      // portable — 가로 칩
+      const chip = button.responsive?.portable?.props?.className ?? '';
+      expect(chip).toContain('inline-flex');
+      expect(chip).toContain('rounded-full');
+      expect(chip).toContain('whitespace-nowrap');
+      expect(chip).not.toContain('w-full');
+      // 접근성 속성은 props 얕은 머지에서 유실되지 않도록 오버라이드에도 유지
+      expect(button.responsive.portable.props.role).toBe('option');
+      expect(button.responsive.portable.props['aria-selected']).toBeTruthy();
+    });
+
+    it(`${name} 섹션: 선택 체크 아이콘은 portable 에서 숨긴다 (칩 폭 절약, 선택은 색+aria-selected 로 전달)`, () => {
+      const section = findSection(labelKey);
+      const button = section.children[1].children[0].children[0];
+      const check = (button.children ?? []).find((c: any) => c.props?.name === 'check');
+      expect(check).toBeTruthy();
+      expect(check.responsive?.portable?.if).toBe('{{false}}');
+    });
+  }
+
   it('트리거 라벨 = 배송국가 코드 텍스트 (관리자 헤더와 동일, flag-icons 비의존)', () => {
     // 트리거(통화 버튼) 안의 첫 Span 이 배송국가 코드를 텍스트로 표시해야 한다.
     const trigger = walk(root, (n) => n.name === 'Button' && Array.isArray(n.actions) &&
