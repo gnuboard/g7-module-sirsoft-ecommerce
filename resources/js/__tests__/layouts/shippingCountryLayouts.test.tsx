@@ -120,19 +120,38 @@ describe('header-currency-selector-user.json — 헤더 공용 셀렉터 2섹션
    * 사용자 템플릿(sirsoft-basic)은 390px 뷰포트 오버플로(+11px) 해소를 위해 이 슬롯을
    * 헤더 우측 그룹에서 모바일 드로어(overflow-y-auto + w-80)로 옮겼다. 드로어에서는
    * absolute 드롭다운 패널이 스크롤 경계에서 잘리므로, 주입 노드 자체가 responsive.portable
-   * (0~1023px) 오버라이드로 "트리거 숨김 + 패널 항상 펼침(static)" 을 선언한다.
+   * (0~1023px) 오버라이드로 static 인라인 목록으로 전환한다.
+   *
+   * 표시 여부는 데스크톱과 동일하게 `_local.showCurrencyDropdown` 이 결정한다 — portable 에
+   * `if` 를 두지 않으면 엔진이 base `if` 를 그대로 상속하므로(`override.if ?? baseDef.if`)
+   * 드로어에서도 기본 접힘이 되고, 트리거가 접기/펼치기 아코디언 역할을 한다.
    *
    * SlotContainer 는 주입 자식에게 variant/context prop 을 전달하지 않으므로 컨테이너별로
    * 다르게 그릴 방법이 이것뿐이다. 데스크톱(≥1024px)은 기존 드롭다운을 그대로 유지한다.
    */
-  it('트리거 버튼은 portable(0~1023px)에서 숨겨진다 (모바일 드로어 = 펼친 목록)', () => {
+  it('트리거 버튼은 portable 에서 아코디언 행이 되고 접힘 상태 요약(통화·배송국가)을 노출한다', () => {
     const trigger = walk(root, (n) => n.name === 'Button' && Array.isArray(n.actions) &&
       n.actions.some((a: any) => a.handler === 'setState' && a.params?.showCurrencyDropdown !== undefined));
     expect(trigger).toBeTruthy();
-    expect(trigger.responsive?.portable?.props?.className).toBe('hidden');
+
+    const portable = trigger.responsive?.portable;
+    expect(portable).toBeTruthy();
+    // 더 이상 숨기지 않는다 — 드로어 폭을 채우는 트리거 행
+    expect(portable.props.className).not.toBe('hidden');
+    expect(portable.props.className).toContain('w-full');
+    expect(portable.props.className).toContain('justify-between');
+    // 접근성: 얕은 머지가 아니라 통째 교체이므로 aria-* 를 오버라이드에도 명시
+    expect(portable.props['aria-expanded']).toBe('{{_local.showCurrencyDropdown ?? false}}');
+
+    // 접힘 상태에서 현재 값을 알 수 있어야 한다 (요약 = 통화 + 배송국가)
+    const summary = JSON.stringify(portable.children);
+    expect(summary).toContain('preferredCurrency');
+    expect(summary).toContain('preferredShippingCountry');
+    expect(summary).toContain('chevron-down');
+    expect(summary).toContain("{{_local.showCurrencyDropdown ? 'rotate-180' : ''}}");
   });
 
-  it('패널은 portable 에서 if 해제 + static 흐름 (데스크톱 absolute/z-50 은 보존)', () => {
+  it('패널은 portable 에서도 _local.showCurrencyDropdown 으로 게이트된다 (기본 접힘)', () => {
     const panel = (root.children ?? []).find(
       (n: any) => n.name === 'Div' && n.props?.role === 'listbox'
     );
@@ -143,15 +162,25 @@ describe('header-currency-selector-user.json — 헤더 공용 셀렉터 2섹션
     expect(panel.props.className).toContain('absolute');
     expect(panel.props.className).toContain('z-50');
 
-    // portable 오버라이드 — 엔진은 override.if 로 base if 를 완전 교체한다
     const portable = panel.responsive?.portable;
     expect(portable).toBeTruthy();
-    expect(portable.if).toBe('{{true}}');
+    // 핵심: portable 에 if 를 두지 않아야 base if 를 상속해 기본 접힘이 된다.
+    // `{{true}}` 로 강제하면 드로어에서 항상 펼쳐져 아코디언이 성립하지 않는다.
+    expect(portable.if).toBeUndefined();
     expect(portable.props.className).toContain('static');
     expect(portable.props.className).not.toContain('absolute');
     expect(portable.props.className).not.toContain('z-50');
     // 접근성 role 은 props 얕은 머지에서 유실되지 않도록 오버라이드에도 명시
     expect(portable.props.role).toBe('listbox');
+  });
+
+  it('배경 클릭 오버레이는 portable 에서 꺼진다 (드로어 전체를 덮어 클릭을 가로채는 회귀 방지)', () => {
+    const backdrop = (root.children ?? []).find(
+      (n: any) => n.name === 'Div' && (n.props?.className ?? '').includes('fixed inset-0')
+    );
+    expect(backdrop).toBeTruthy();
+    expect(backdrop.if).toBe('{{_local.showCurrencyDropdown}}');
+    expect(backdrop.responsive?.portable?.if).toBe('{{false}}');
   });
 
   /**
