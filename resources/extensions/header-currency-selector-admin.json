@@ -24,11 +24,11 @@
       }
     },
     {
-      "comment": "헤더 배송국가 셀렉터 목록 파생 주입 (유저 헤더 미러). 활성 국가만 {code, name(현지화)} 형태로. 해외배송 활성 게이트는 셀렉터 if 가 international_shipping_enabled 로 별도 체크(유저 헤더 동형). 셀렉터 if 게이트가 이 파생 상태(availableShippingCountries)를 참조.",
+      "comment": "헤더 배송국가 셀렉터 목록 파생 주입 (유저 헤더 미러). 활성 국가만 {code, name(현지화)} 형태로. 해외배송 활성 게이트는 셀렉터 if 가 international_shipping_enabled 로 별도 체크(유저 헤더 동형). 셀렉터 if 게이트가 이 파생 상태(availableShippingCountries)를 참조. 국가명 $localized(name, fallbackKey): 활성 로케일 키는 서버(localize_catalog_field)가 settings.countries.{code}.name 으로 미리 보강해 통상 즉시 hit 한다. fallbackKey 와 || c.code 는 보강이 실패한 경우의 방어선.",
       "handler": "setState",
       "params": {
         "target": "global",
-        "availableShippingCountries": "{{(_global.modules?.['sirsoft-ecommerce']?.shipping?.available_countries ?? []).filter(c => c.is_active).map(c => ({ code: c.code, name: (c.name?.[_global.locale] ?? c.name?.ko ?? c.code) }))}}"
+        "availableShippingCountries": "{{(_global.modules?.['sirsoft-ecommerce']?.shipping?.available_countries ?? []).filter(c => c.is_active).map(c => ({ code: c.code, name: ($localized(c.name, 'sirsoft-ecommerce::settings.countries.' + (c.code ?? '') + '.name') || c.code) }))}}"
       }
     }
   ],
