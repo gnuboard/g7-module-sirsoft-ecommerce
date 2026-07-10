@@ -54,6 +54,7 @@ class OrderCancellationService
      * @param  OrderCancelOptionRepositoryInterface  $orderCancelOptionRepository  주문 취소 옵션 Repository
      * @param  OrderRefundRepositoryInterface  $orderRefundRepository  주문 환불 Repository
      * @param  OrderRefundOptionRepositoryInterface  $orderRefundOptionRepository  주문 환불 옵션 Repository
+     * @param  CashReceiptService  $cashReceiptService  현금영수증 발급/취소 서비스
      */
     public function __construct(
         protected OrderAdjustmentService $adjustmentService,
@@ -67,7 +68,39 @@ class OrderCancellationService
         protected OrderCancelOptionRepositoryInterface $orderCancelOptionRepository,
         protected OrderRefundRepositoryInterface $orderRefundRepository,
         protected OrderRefundOptionRepositoryInterface $orderRefundOptionRepository,
+        protected CashReceiptService $cashReceiptService,
     ) {}
+
+    /**
+     * 취소 확정 후 현금영수증을 현재 금액에 맞춰 동기화합니다.
+     *
+     * 발급 이력이 없으면 no-op 이고, 잔여 발급액이 0 이면 전액취소만 수행하며,
+     * 그 외에는 전체취소 후 잔여 과세금액 기준으로 재발급한다 (부분취소 API 미사용).
+     *
+     * 어떤 실패도 호출부로 전파하지 않는다 — 환불은 이미 DB 에 확정됐고 되돌릴 수 없다.
+     * 실패는 이력 테이블(issue_status=FAILED)과 로그에 남아 관리자 수동 재발급으로 복구된다.
+     *
+     * 로그 레벨이 error 인 이유 — CashReceiptService 는 예상 가능한 실패(프로바이더가 success=false
+     * 반환, 복호화 불가)를 스스로 삼키고 warning + FAILED 이력으로 남긴다. 따라서 여기까지 예외가
+     * 올라왔다면 리스너가 계약을 어긴 것이고, 프로바이더 쪽 영수증이 실제로 취소됐는지조차 알 수 없다
+     * (국세청 기록과 DB 가 어긋날 수 있는 상태). 취소/재고/쿠폰 복원 실패(warning)와 달리 즉시
+     * 사람이 개입해야 하므로 PG 환불 실패와 같은 error 로 둔다.
+     *
+     * @param  Order  $order  취소가 반영된 주문
+     * @param  string|null  $reason  취소 사유
+     */
+    protected function syncCashReceipt(Order $order, ?string $reason): void
+    {
+        try {
+            $this->cashReceiptService->syncFromOrder($order, $reason);
+        } catch (\Throwable $e) {
+            // 식별번호·PG raw 응답은 담지 않는다 (개인정보 로그 미노출).
+            Log::error('현금영수증 동기화 실패 — 주문 취소는 확정됨 (관리자 수동 재발급 필요)', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
 
     /**
      * 전체 주문을 취소합니다.
@@ -292,7 +325,19 @@ class OrderCancellationService
             $this->finalizeStatus($orderCancel, $orderRefund, $cancelledBy);
         });
 
-        // ④ after_cancel 훅 (취소 스냅샷 전달)
+        // ④ 현금영수증 동기화 — 취소가 DB 에 확정된 뒤에 수행한다.
+        //
+        // 트랜잭션 안에서 부르지 않는 이유:
+        //   (a) 재발급 실패 이력(issue_status=FAILED)은 관리자 화면의 경고 배지 근거이자 국세청 신고
+        //       누락을 막는 원장이다. 롤백에 휩쓸려 사라지면 안 된다.
+        //   (b) 프로바이더 취소·재발급은 외부 API 2회 왕복이다. DB 잠금을 그동안 붙들 수 없고,
+        //       실제 영수증은 이미 취소됐는데 트랜잭션만 롤백되면 DB 와 국세청 기록이 어긋난다.
+        //
+        // syncFromOrder 는 내부에서 실패를 삼키고 FAILED 이력으로 남기지만, 프로바이더 리스너가
+        // 예외를 던질 가능성까지 감안해 방어한다 — 환불은 이미 끝났고 되돌릴 수 없다.
+        $this->syncCashReceipt($order->fresh(), $reason);
+
+        // ⑤ after_cancel 훅 (취소 스냅샷 전달)
         $hookName = $cancelType === CancelTypeEnum::FULL
             ? 'sirsoft-ecommerce.order.after_cancel'
             : 'sirsoft-ecommerce.order.after_partial_cancel';

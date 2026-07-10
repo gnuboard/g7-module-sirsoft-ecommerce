@@ -496,9 +496,10 @@ class CashReceiptServiceTest extends ModuleTestCase
         $payment = $order->fresh()->payment;
         $this->assertNull($payment->cash_receipt_identifier_encrypted, '암호문은 폐기되어야 한다');
         $this->assertSame('*******5678', $payment->cash_receipt_identifier, '마스킹은 유지');
-        $this->assertNotNull($payment->receipt_url, '영수증 URL 은 유지');
 
-        $this->assertNotNull($receipt->fresh()->receipt_url, '이력은 유지');
+        // 현금영수증 URL 은 이력 테이블이 보관한다. payment.receipt_url 은 PG 영수증(카드 매출전표)
+        // 전용 컬럼이므로 현금영수증 발급이 건드리지 않는다.
+        $this->assertNotNull($receipt->fresh()->receipt_url, '현금영수증 URL 은 이력에 유지');
         $this->assertSame(1, OrderCashReceipt::where('order_id', $order->id)->count());
     }
 

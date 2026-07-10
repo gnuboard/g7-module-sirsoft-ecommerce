@@ -668,17 +668,18 @@ class OrderProcessingService
      * | card/bank/phone  | 0                                           |
      * | point/deposit    | 0 (현금이 아님)                              |
      *
+     * 산정 규칙은 PaymentMethodEnum::resolveCashEquivalentAmount() 가 SSoT 다 —
+     * 취소 재계산(OrderAdjustmentService)도 같은 규칙을 써야 부분환불 후 재발급액이 맞는다.
+     *
      * @param  string|null  $paymentMethod  결제수단 식별자
      * @param  int  $finalAmount  마일리지/예치금 차감 후 실결제액
      * @return int 현금성 금액
      */
     protected function resolveCashEquivalentAmount(?string $paymentMethod, int $finalAmount): int
     {
-        if ($paymentMethod !== PaymentMethodEnum::DBANK->value) {
-            return 0;
-        }
-
-        return max(0, $finalAmount);
+        return PaymentMethodEnum::tryFrom((string) $paymentMethod)
+            ?->resolveCashEquivalentAmount($finalAmount)
+            ?? 0;
     }
 
     /**
@@ -1804,6 +1805,11 @@ class OrderProcessingService
             'paid_amount_local' => (int) round($amount),
             'paid_amount_base' => (float) $order->total_due_amount,
         ]);
+
+        // 입금 기록 훅 — 관리자가 "결제완료 전이 없이 입금만 기록"한 경로.
+        // 이 경로는 completePayment 를 타지 않으므로 after_payment_complete 가 발화하지 않는다.
+        // 현금영수증 자동발급 리스너가 두 훅을 모두 구독해 입금 확인 경로 전체를 덮는다.
+        HookManager::doAction('sirsoft-ecommerce.order.after_deposit_recorded', $order->fresh(), $amount);
     }
 
     /**

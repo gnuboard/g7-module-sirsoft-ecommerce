@@ -697,6 +697,288 @@ Content-Type: application/json
 **설명** 관리자가 특정 주문(`order`)을 전체취소 또는 부분취소합니다. `auth:sanctum` + `sirsoft-ecommerce.orders.update` 권한이 필요하며, `Admin\OrderController@cancelOrder`가 `items` 유무에 따라 `OrderCancellationService`의 `cancelOrder()`(전체) 또는 `cancelOrderOptions()`(부분)를 호출합니다. 취소자(`cancelledBy`)로 관리자 ID가 기록되고, `cancel_pg`로 PG 결제 취소 동반 여부를, `refund_priority`로 PG/포인트 환불 우선순위를 지정합니다. 취소 후 갱신된 주문을 `OrderResource`로 반환하며, 취소 불가 상태 등 실패 시 422를 반환합니다.
 
 
+### DELETE /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt
+<!-- @generated:start:api.modules.sirsoft-ecommerce.admin.orders.cash-receipt.cancel -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.admin.orders.cash-receipt.cancel`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\CashReceiptController@cancel`
+- **인증/권한**: `auth:sanctum` + `permission:sirsoft-ecommerce.orders.update`
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| order | path | string | 예 | — | 대상 order의 식별자 |
+
+**요청 예시**
+
+```http
+DELETE /api/modules/sirsoft-ecommerce/admin/orders/1/cash-receipt HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
+**응답 필드** (`data` 내부)
+
+`data` 는 항상 `null` 입니다 — 취소 성공 여부는 `success` 로 판정합니다. 취소 후의 원장 상태가 필요하면 주문 상세(`GET admin/orders/{order}`)의 `cash_receipts` 를 다시 조회합니다.
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증이 취소되었습니다.",
+    "data": null
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+**설명** 관리자가 특정 주문(`order`)에 발급된 현금영수증을 **전액 취소**합니다. `auth:sanctum` + `sirsoft-ecommerce.orders.update` 권한이 필요하며, `Admin\CashReceiptController@cancel`이 `CashReceiptService::cancelAll()`로 활성 영수증을 발급 프로바이더(토스페이먼츠 등)에 취소 요청합니다. 부분취소 API 는 사용하지 않습니다 — 금액이 바뀌는 경우는 재발급(`/cash-receipt/reissue`)이 담당합니다. 취소 이력은 원장에 남아 국세청 신고 근거로 유지되며, 재발급용 식별번호 암호문은 폐기하지 않습니다(관리자가 같은 번호로 다시 발급할 수 있어야 하므로). 발급 취소는 관리자 전용이며 회원·비회원에게는 노출하지 않습니다.
+
+실패 시 사유는 `errors.error_code` 로 구분합니다 — 활성 영수증이 없으면 `NO_ACTIVE_RECEIPT`, 프로바이더 취소가 실패하면 `CANCEL_FAILED` 이며 둘 다 422 입니다.
+
+```json
+{
+    "success": false,
+    "message": "취소할 현금영수증이 없습니다.",
+    "errors": {
+        "error_code": "NO_ACTIVE_RECEIPT"
+    }
+}
+```
+
+
+### POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt
+<!-- @generated:start:api.modules.sirsoft-ecommerce.admin.orders.cash-receipt.issue -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.admin.orders.cash-receipt.issue`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\CashReceiptController@issue`
+- **인증/권한**: `auth:sanctum` + `permission:sirsoft-ecommerce.orders.update`
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| order | path | string | 예 | — | 대상 order의 식별자 |
+| receipt_type | body | string | 예 | `income`, `expense` | 발급 용도 (income 소득공제용 — 개인 연말정산 / expense 지출증빙용 — 사업자 매입세액공제) |
+| identifier_type | body | string | 예 | `phone`, `card`, `business` | 발급 수단 (phone 휴대폰번호 / card 현금영수증카드번호 / business 사업자등록번호 — 사업자등록번호는 지출증빙 전용) |
+| identifier | body | string | 예 | max 30 | 식별번호 (하이픈·공백 제거 후 검증 — 휴대폰 10~11자리 / 현금영수증카드 13~19자리 / 사업자등록번호 10자리 체크섬) |
+
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/orders/1/cash-receipt HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "receipt_type": "income",
+    "identifier_type": "phone",
+    "identifier": "example-key"
+}
+```
+
+**응답 필드** (`data` 내부)
+
+`data` 는 발급 이력 1건(`CashReceiptResource`)입니다.
+
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| id | integer | 발급 이력 ID |
+| provider | string | 발급을 수행한 프로바이더 식별자 (예: `sirsoft-pay_tosspayments`) |
+| transaction_type | string | 거래 유형 — `issue`(발급) / `cancel`(취소). 발급 응답은 항상 `issue` |
+| receipt_type | string | 발급 용도 — `income`(소득공제용) / `expense`(지출증빙용) |
+| receipt_type_label | string | 발급 용도의 다국어 표시명 (예: `소득공제용`) |
+| amount | integer | 발급 금액 (주문 통화 기준 반올림, 과세분 포함 총액) |
+| amount_formatted | string | 발급 금액의 통화 표기 문자열 (예: `12,000원`) |
+| tax_free_amount | integer | 발급 금액 중 면세 금액 |
+| tax_free_amount_formatted | string | 면세 금액의 통화 표기 문자열 |
+| identifier_masked | string | 마스킹된 식별번호 (원본은 어떤 응답에도 노출되지 않음) |
+| receipt_url | string\|null | 프로바이더가 발급한 영수증 조회 링크 |
+| issue_number | string\|null | 프로바이더가 부여한 승인번호 |
+| issue_status | string | 발급 상태 — `IN_PROGRESS` / `COMPLETED` / `FAILED`. 성공 응답은 항상 `COMPLETED` |
+| error_code | string\|null | 실패 사유 코드 (성공 시 `null`) |
+| error_message | string\|null | 실패 사유 상세 (성공 시 `null`) |
+| issued_at | string\|null | 발급 일시 (ISO8601, 머신 판독용) |
+| issued_at_formatted | string\|null | 발급 일시 (사용자 타임존 기준 표시용) |
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증이 발급되었습니다.",
+    "data": {
+        "id": 12,
+        "provider": "sirsoft-pay_tosspayments",
+        "transaction_type": "issue",
+        "receipt_type": "income",
+        "receipt_type_label": "소득공제용",
+        "amount": 12000,
+        "amount_formatted": "12,000원",
+        "tax_free_amount": 0,
+        "tax_free_amount_formatted": "0원",
+        "identifier_masked": "010****5678",
+        "receipt_url": "https://dashboard.tosspayments.com/receipt/cash/...",
+        "issue_number": "CR20260710000012",
+        "issue_status": "COMPLETED",
+        "error_code": null,
+        "error_message": null,
+        "issued_at": "2026-07-10T14:32:11+09:00",
+        "issued_at_formatted": "2026-07-10 14:32"
+    }
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+**설명** 관리자가 특정 주문(`order`)에 현금영수증을 발급합니다. 주문 당시 구매자가 신청하지 않은 건의 **사후 발급**과, 발급 실패 후 식별번호를 다시 입력해 발급하는 경우에 사용합니다. `auth:sanctum` + `sirsoft-ecommerce.orders.update` 권한이 필요하며, `Admin\CashReceiptController@issue`가 `CashReceiptService::issue()`로 발급 프로바이더에 위임합니다.
+
+발급 가능 조건은 **무통장입금(dbank) + 입금완료(PAID) + 미발급 + 현금성 금액 > 0 + 프로바이더 설정됨** 이며, 하나라도 어긋나면 `errors.error_code` 로 사유를 구분해 반환합니다 — 이미 발급된 주문은 **409**(`ALREADY_ISSUED`), 그 외는 422(`NOT_CASH_PAYMENT` / `PAYMENT_NOT_PAID` / `NO_ISSUABLE_AMOUNT` / `PROVIDER_NOT_CONFIGURED`). 프로바이더가 발급을 거부하면 422(`PROVIDER_ERROR`)와 함께 `errors.error_message` 에 상세 사유가 담깁니다.
+
+`receipt_type`(발급 용도)과 `identifier_type`(발급 수단)은 독립 필드입니다. 지출증빙용도 휴대폰번호로 발급할 수 있으며, 사업자등록번호는 체크섬을 검증합니다. 소득공제 + 사업자등록번호 조합과, 지출증빙 + 국세청 자진발급 지정번호(`0100001234`) 조합은 거부됩니다.
+
+응답의 `data` 는 발급 이력 1건이며 `receipt_url`(영수증 조회 링크)·`identifier_masked`(뒤 4자리 외 마스킹)·`issue_number` 를 포함합니다. **식별번호 원본은 응답·로그 어디에도 노출되지 않으며**, 재발급용으로만 암호화 보관하다 구매확정 시 폐기합니다.
+
+발급 불가 응답의 `errors.error_code` 는 두 계열로 나뉩니다. 프론트는 이 값으로 안내 문구와 버튼 노출을 분기합니다.
+
+**① 사전 가드**(`resolveIssueBlocker`) — 프로바이더 호출 전에 판정하며 코드 6종이 고정입니다.
+
+| error_code | 상태코드 | 의미 |
+| --- | --- | --- |
+| `ALREADY_ISSUED` | 409 | 이미 활성 현금영수증이 발급된 주문 |
+| `PROVIDER_NOT_CONFIGURED` | 422 | 현금영수증 발급 프로바이더가 설정되지 않음 |
+| `PAYMENT_NOT_FOUND` | 422 | 주문에 결제 정보가 없음 |
+| `NOT_CASH_PAYMENT` | 422 | 무통장입금(dbank) 주문이 아님 |
+| `PAYMENT_NOT_PAID` | 422 | 입금이 확인되지 않음 |
+| `NO_ISSUABLE_AMOUNT` | 422 | 발급 가능한 현금성 금액이 0 (전액 마일리지 결제·전액 환불 등) |
+
+**② 프로바이더 실패** — 422 이며 `error_code` 는 **프로바이더가 반환한 값을 그대로 통과**시킵니다(고정 목록 없음). 어떤 리스너도 발급 요청을 처리하지 않은 경우에만 코어가 `NO_PROVIDER_HANDLED` 를 채웁니다. 상세 사유는 `errors.error_message` 에 담기므로, 프론트는 알 수 없는 코드를 만나면 `error_message` 를 그대로 노출하는 것을 기본 동작으로 삼습니다.
+
+```json
+{
+    "success": false,
+    "message": "이미 현금영수증이 발급된 주문입니다.",
+    "errors": {
+        "error_code": "ALREADY_ISSUED"
+    }
+}
+```
+
+
+### POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt/reissue
+<!-- @generated:start:api.modules.sirsoft-ecommerce.admin.orders.cash-receipt.reissue -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.admin.orders.cash-receipt.reissue`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\CashReceiptController@reissue`
+- **인증/권한**: `auth:sanctum` + `permission:sirsoft-ecommerce.orders.update`
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| order | path | string | 예 | — | 대상 order의 식별자 |
+
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/admin/orders/1/cash-receipt/reissue HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
+**응답 필드** (`data` 내부)
+
+`data` 는 재발급된 이력 1건(`CashReceiptResource`, 필드 구성은 발급 API 와 동일)이거나, 잔여 발급액이 0 이어서 재발급할 것이 없으면 `null` 입니다. 두 경우 모두 200 이므로 **`success` 만으로 판정하지 말고 `data` 의 존재 여부까지 확인**해야 합니다.
+
+**응답 예시**
+
+재발급 성공 (잔여 금액 존재):
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증이 재발급되었습니다.",
+    "data": {
+        "id": 14,
+        "provider": "sirsoft-pay_tosspayments",
+        "transaction_type": "issue",
+        "receipt_type": "income",
+        "receipt_type_label": "소득공제용",
+        "amount": 8000,
+        "amount_formatted": "8,000원",
+        "tax_free_amount": 0,
+        "tax_free_amount_formatted": "0원",
+        "identifier_masked": "010****5678",
+        "receipt_url": "https://dashboard.tosspayments.com/receipt/cash/...",
+        "issue_number": "CR20260710000014",
+        "issue_status": "COMPLETED",
+        "error_code": null,
+        "error_message": null,
+        "issued_at": "2026-07-10T15:02:44+09:00",
+        "issued_at_formatted": "2026-07-10 15:02"
+    }
+}
+```
+
+전액 환불되어 재발급 대상 금액이 0 인 경우 (정상 결과):
+
+```json
+{
+    "success": true,
+    "message": "현금영수증이 재발급되었습니다.",
+    "data": null
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+**설명** 관리자가 **"취소 성공 + 재발급 실패"** 중간 상태를 복구합니다. `auth:sanctum` + `sirsoft-ecommerce.orders.update` 권한이 필요하며, `Admin\CashReceiptController@reissue`가 `CashReceiptService::recoverFailedIssue()`를 호출합니다.
+
+부분환불이 일어나면 기존 영수증을 전액취소하고 잔여 금액으로 재발급하는데(부분취소 API 미사용), 취소는 성공했는데 재발급만 실패하면 활성 영수증이 없는 상태로 남습니다. 이때 원장에는 취소(COMPLETED)와 발급(FAILED) 2행이 남으며, 관리자 주문 상세가 경고 배지를 띄웁니다. 이 엔드포인트가 그 상태를 되돌립니다 — 마지막 발급 이력의 발급 용도와 저장된 식별번호 암호문을 재사용하므로 **요청 본문이 필요 없습니다**.
+
+활성 영수증이 이미 있으면 금액 동기화로 위임하고, 잔여 발급액이 0(전액 환불)이면 활성 영수증 없음이 정상 결과이므로 `data: null` 과 함께 200 을 반환합니다. 구매확정 후에는 식별번호 암호문이 폐기되므로 복구할 수 없고 422(`REISSUE_FAILED`)를 반환합니다 — 이 경우 관리자가 발급 API(`POST .../cash-receipt`)로 식별번호를 다시 입력해야 합니다.
+
+
 ### PATCH /api/modules/sirsoft-ecommerce/admin/orders/{order}/confirm-deposit
 <!-- @generated:start:api.modules.sirsoft-ecommerce.admin.orders.confirm-deposit -->
 - **라우트명**: `api.modules.sirsoft-ecommerce.admin.orders.confirm-deposit`
@@ -1611,6 +1893,184 @@ Content-Type: application/json
 <!-- @generated:end -->
 
 **설명** 회원이 마이페이지에서 본인 주문(`id`)을 취소합니다. `auth:sanctum` + `sirsoft-ecommerce.user-orders.cancel` 권한이 필요하며, `User\OrderController@cancel`이 `items` 유무에 따라 `OrderCancellationService`의 `cancelOrderOptions()`(부분) 또는 `cancelOrder()`(전체)를 호출합니다. 취소자(`cancelledBy`)로 회원 본인 ID가 기록되고, `refund_priority`로 PG/포인트 환불 우선순위를 지정합니다. 취소 가능 상태의 주문만 취소되며, 취소 후 갱신된 주문을 `OrderResource`로 반환합니다.
+
+
+### GET /api/modules/sirsoft-ecommerce/user/orders/{id}/cash-receipt
+<!-- @generated:start:api.modules.sirsoft-ecommerce.user.orders.cash-receipt.show -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.user.orders.cash-receipt.show`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\User\CashReceiptController@show`
+- **인증/권한**: `auth:sanctum`
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| id | path | string | 예 | — | 대상 리소스의 식별자 |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/user/orders/{id}/cash-receipt HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+```
+
+**응답 필드** (`data` 내부)
+
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| issuable | boolean | 지금 발급이 가능한지 여부 (무통장 + 입금완료 + 미발급 + 현금성 금액 > 0 + 프로바이더 설정됨) |
+| cash_receipt | object\|null | 현재 활성 영수증 1건 (`CashReceiptResource`). 발급 전이거나 전액 취소된 경우 `null` |
+
+`cash_receipt` 의 하위 필드 구성은 발급 API(`POST admin/orders/{order}/cash-receipt`)의 응답 필드 표와 동일합니다.
+
+**응답 예시**
+
+발급 전 (발급 가능):
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증 정보를 조회했습니다.",
+    "data": {
+        "issuable": true,
+        "cash_receipt": null
+    }
+}
+```
+
+발급 완료:
+
+```json
+{
+    "success": true,
+    "message": "현금영수증 정보를 조회했습니다.",
+    "data": {
+        "issuable": false,
+        "cash_receipt": {
+            "id": 12,
+            "provider": "sirsoft-pay_tosspayments",
+            "transaction_type": "issue",
+            "receipt_type": "income",
+            "receipt_type_label": "소득공제용",
+            "amount": 12000,
+            "amount_formatted": "12,000원",
+            "tax_free_amount": 0,
+            "tax_free_amount_formatted": "0원",
+            "identifier_masked": "010****5678",
+            "receipt_url": "https://dashboard.tosspayments.com/receipt/cash/...",
+            "issue_number": "CR20260710000012",
+            "issue_status": "COMPLETED",
+            "error_code": null,
+            "error_message": null,
+            "issued_at": "2026-07-10T14:32:11+09:00",
+            "issued_at_formatted": "2026-07-10 14:32"
+        }
+    }
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+**설명** 회원이 마이페이지 주문상세에서 본인 주문(`id`)의 현금영수증 발급 상태를 조회합니다. `auth:sanctum` 인증이 필요하며, `User\CashReceiptController@show`가 클라이언트가 넘긴 사용자 식별자를 신뢰하지 않고 `Auth::id()` 로만 소유권을 판정합니다 — 타인 주문이면 404 를 반환합니다(존재 여부를 노출하지 않기 위해 403 이 아닌 404).
+
+응답의 `data.issuable` 은 지금 발급이 가능한지 여부(무통장 + 입금완료 + 미발급 + 현금성 금액 > 0 + 프로바이더 설정됨)이고, `data.cash_receipt` 는 현재 활성 영수증 또는 발급 전이면 `null` 입니다. 주문상세 화면이 이 두 값으로 **[현금영수증 발급] 버튼**과 **[영수증 보기] 링크** 중 무엇을 보일지 결정합니다.
+
+
+### POST /api/modules/sirsoft-ecommerce/user/orders/{id}/cash-receipt
+<!-- @generated:start:api.modules.sirsoft-ecommerce.user.orders.cash-receipt.issue -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.user.orders.cash-receipt.issue`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\User\CashReceiptController@issue`
+- **인증/권한**: `auth:sanctum`
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| id | path | string | 예 | — | 대상 리소스의 식별자 |
+| receipt_type | body | string | 예 | `income`, `expense` | 발급 용도 (income 소득공제용 — 개인 연말정산 / expense 지출증빙용 — 사업자 매입세액공제) |
+| identifier_type | body | string | 예 | `phone`, `card`, `business` | 발급 수단 (phone 휴대폰번호 / card 현금영수증카드번호 / business 사업자등록번호 — 사업자등록번호는 지출증빙 전용) |
+| identifier | body | string | 예 | max 30 | 식별번호 (하이픈·공백 제거 후 검증 — 휴대폰 10~11자리 / 현금영수증카드 13~19자리 / 사업자등록번호 10자리 체크섬) |
+
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/user/orders/{id}/cash-receipt HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer {YOUR_TOKEN}
+Content-Type: application/json
+
+{
+    "receipt_type": "income",
+    "identifier_type": "phone",
+    "identifier": "example-key"
+}
+```
+
+**응답 필드** (`data` 내부)
+
+`data` 는 발급 이력 1건(`CashReceiptResource`)이며, 필드 구성은 관리자 발급 API(`POST admin/orders/{order}/cash-receipt`)의 응답 필드 표와 동일합니다.
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증이 발급되었습니다.",
+    "data": {
+        "id": 12,
+        "provider": "sirsoft-pay_tosspayments",
+        "transaction_type": "issue",
+        "receipt_type": "income",
+        "receipt_type_label": "소득공제용",
+        "amount": 12000,
+        "amount_formatted": "12,000원",
+        "tax_free_amount": 0,
+        "tax_free_amount_formatted": "0원",
+        "identifier_masked": "010****5678",
+        "receipt_url": "https://dashboard.tosspayments.com/receipt/cash/...",
+        "issue_number": "CR20260710000012",
+        "issue_status": "COMPLETED",
+        "error_code": null,
+        "error_message": null,
+        "issued_at": "2026-07-10T14:32:11+09:00",
+        "issued_at_formatted": "2026-07-10 14:32"
+    }
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+**설명** 회원이 주문 당시 신청하지 않은 현금영수증을 마이페이지 주문상세에서 **직접 사후 발급**합니다. `auth:sanctum` 인증이 필요하며, `User\CashReceiptController@issue`가 `Auth::id()` 로 소유권을 확인한 뒤(타인 주문이면 404) 관리자 발급과 **동일한 검증·가드·프로바이더 위임**을 거칩니다.
+
+요청 본문(`receipt_type` / `identifier_type` / `identifier`)과 오류 코드 체계는 관리자 발급 API 와 같습니다 — 이미 발급된 주문은 409(`ALREADY_ISSUED`), 그 외 발급 불가 사유는 422 에 `errors.error_code` 로 구분해 담깁니다.
+
+**발급 취소는 제공하지 않습니다** — 국세청 신고 정정을 동반하므로 관리자 전용이며, 유저용 `DELETE` 라우트 자체를 노출하지 않습니다(403 이 아니라 404/405).
 
 
 ### POST /api/modules/sirsoft-ecommerce/user/orders/{id}/estimate-refund

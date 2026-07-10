@@ -119,6 +119,184 @@ Content-Type: application/json
 **설명** 비회원이 조회 토큰으로 인증된 상태에서 자신의 주문을 취소합니다. 주문 소유권은 `VerifyGuestOrderToken` 미들웨어가 `X-Guest-Order-Token` 헤더로 검증하며, `OrderController@cancel`이 회원 취소와 동일한 `OrderCancellationService`를 재사용하되 취소자(`cancelledBy`)는 null로 둡니다. `items`를 전달하면 부분취소, 없으면 전체취소로 처리하고, `refund_priority`로 PG 환불과 포인트 환불 중 우선순위를 지정할 수 있습니다. 취소 후 갱신된 주문 상세를 `GuestOrderResource`로 반환합니다.
 
 
+### GET /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/cash-receipt
+<!-- @generated:start:api.modules.sirsoft-ecommerce.guest.orders.cash-receipt.show -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.guest.orders.cash-receipt.show`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CashReceiptController@show`
+- **인증/권한**: 공개 (인증 불필요)
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| orderNumber | path | string | 예 | — | 대상 order number의 식별자 |
+
+**요청 예시**
+
+```http
+GET /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/cash-receipt HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
+**응답 필드** (`data` 내부)
+
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| issuable | boolean | 지금 발급이 가능한지 여부 (무통장 + 입금완료 + 미발급 + 현금성 금액 > 0 + 프로바이더 설정됨) |
+| cash_receipt | object\|null | 현재 활성 영수증 1건 (`CashReceiptResource`). 발급 전이거나 전액 취소된 경우 `null` |
+
+`cash_receipt` 의 하위 필드 구성은 [발급 API 의 응답 필드 표](orders.md)와 동일합니다.
+
+**응답 예시**
+
+발급 전 (발급 가능):
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증 정보를 조회했습니다.",
+    "data": {
+        "issuable": true,
+        "cash_receipt": null
+    }
+}
+```
+
+발급 완료:
+
+```json
+{
+    "success": true,
+    "message": "현금영수증 정보를 조회했습니다.",
+    "data": {
+        "issuable": false,
+        "cash_receipt": {
+            "id": 12,
+            "provider": "sirsoft-pay_tosspayments",
+            "transaction_type": "issue",
+            "receipt_type": "income",
+            "receipt_type_label": "소득공제용",
+            "amount": 12000,
+            "amount_formatted": "12,000원",
+            "tax_free_amount": 0,
+            "tax_free_amount_formatted": "0원",
+            "identifier_masked": "010****5678",
+            "receipt_url": "https://dashboard.tosspayments.com/receipt/cash/...",
+            "issue_number": "CR20260710000012",
+            "issue_status": "COMPLETED",
+            "error_code": null,
+            "error_message": null,
+            "issued_at": "2026-07-10T14:32:11+09:00",
+            "issued_at_formatted": "2026-07-10 14:32"
+        }
+    }
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+> 요청 예시에는 표시되지 않지만 **`X-Guest-Order-Token` 헤더가 필수**입니다 — 비회원 주문 조회 인증 시 발급받은 토큰을 그대로 전달합니다. 누락하거나 주문번호와 맞지 않으면 404 를 반환합니다.
+
+**설명** 비회원이 주문 조회 후 해당 주문(`orderNumber`)의 현금영수증 발급 상태를 조회합니다. `VerifyGuestOrderToken` 미들웨어가 `X-Guest-Order-Token` 헤더(비회원 주문 조회 인증 시 발급)를 검증하며, **토큰이 지목한 주문 외에는 접근할 수 없습니다** — 토큰이 없거나 주문번호와 맞지 않으면 404 를 반환합니다.
+
+응답 형식은 회원용 조회(`GET user/orders/{id}/cash-receipt`)와 동일합니다 — `data.issuable`(발급 가능 여부)과 `data.cash_receipt`(활성 영수증 또는 `null`). 이 엔드포인트는 요청 본문을 받지 않으므로 발급 폼 검증에 걸리지 않습니다.
+
+
+### POST /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/cash-receipt
+<!-- @generated:start:api.modules.sirsoft-ecommerce.guest.orders.cash-receipt.issue -->
+- **라우트명**: `api.modules.sirsoft-ecommerce.guest.orders.cash-receipt.issue`
+- **컨트롤러**: `Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CashReceiptController@issue`
+- **인증/권한**: 공개 (인증 불필요)
+
+**요청 파라미터**
+
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| orderNumber | path | string | 예 | — | 대상 order number의 식별자 |
+| receipt_type | body | string | 예 | `income`, `expense` | 발급 용도 (income 소득공제용 — 개인 연말정산 / expense 지출증빙용 — 사업자 매입세액공제) |
+| identifier_type | body | string | 예 | `phone`, `card`, `business` | 발급 수단 (phone 휴대폰번호 / card 현금영수증카드번호 / business 사업자등록번호 — 사업자등록번호는 지출증빙 전용) |
+| identifier | body | string | 예 | max 30 | 식별번호 (하이픈·공백 제거 후 검증 — 휴대폰 10~11자리 / 현금영수증카드 13~19자리 / 사업자등록번호 10자리 체크섬) |
+
+**요청 예시**
+
+```http
+POST /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/cash-receipt HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Content-Type: application/json
+
+{
+    "receipt_type": "income",
+    "identifier_type": "phone",
+    "identifier": "example-key"
+}
+```
+
+**응답 필드** (`data` 내부)
+
+`data` 는 발급 이력 1건(`CashReceiptResource`)이며, 필드 구성은 [발급 API 의 응답 필드 표](orders.md)와 동일합니다.
+
+**응답 예시**
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "현금영수증이 발급되었습니다.",
+    "data": {
+        "id": 12,
+        "provider": "sirsoft-pay_tosspayments",
+        "transaction_type": "issue",
+        "receipt_type": "income",
+        "receipt_type_label": "소득공제용",
+        "amount": 12000,
+        "amount_formatted": "12,000원",
+        "tax_free_amount": 0,
+        "tax_free_amount_formatted": "0원",
+        "identifier_masked": "010****5678",
+        "receipt_url": "https://dashboard.tosspayments.com/receipt/cash/...",
+        "issue_number": "CR20260710000012",
+        "issue_status": "COMPLETED",
+        "error_code": null,
+        "error_message": null,
+        "issued_at": "2026-07-10T14:32:11+09:00",
+        "issued_at_formatted": "2026-07-10 14:32"
+    }
+}
+```
+
+**에러 응답**
+
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+
+<!-- @generated:end -->
+
+> 요청 예시에는 표시되지 않지만 **`X-Guest-Order-Token` 헤더가 필수**입니다 — 누락하거나 주문번호와 맞지 않으면 404 를 반환합니다.
+
+**설명** 비회원이 주문 당시 신청하지 않은 현금영수증을 주문상세에서 **직접 사후 발급**합니다. `VerifyGuestOrderToken` 미들웨어가 `X-Guest-Order-Token` 헤더를 검증해 소유권을 보장하며, 토큰이 검증한 주문에 대해서만 발급합니다.
+
+요청 본문(`receipt_type` / `identifier_type` / `identifier`), 검증 규칙, 발급 가능 조건, 오류 코드 체계는 관리자·회원 발급 API 와 모두 동일합니다 — 이미 발급된 주문은 409(`ALREADY_ISSUED`), 그 외 발급 불가 사유는 422 에 `errors.error_code` 로 구분해 담깁니다.
+
+**발급 취소는 제공하지 않습니다**(관리자 전용). 회원 경로와 마찬가지로 비회원용 `DELETE` 라우트 자체를 노출하지 않습니다.
+
+
 ### POST /api/modules/sirsoft-ecommerce/guest/orders/{orderNumber}/estimate-refund
 <!-- @generated:start:api.modules.sirsoft-ecommerce.guest.orders.estimate-refund -->
 - **라우트명**: `api.modules.sirsoft-ecommerce.guest.orders.estimate-refund`

@@ -80,9 +80,22 @@ class OrderPaymentResource extends BaseApiResource
             'deposit_due_at' => $this->deposit_due_at?->toIso8601String(), // audit:allow datetime-display-user-timezone reason: machine ISO8601, display uses deposit_due_at_formatted sibling
             'deposit_due_at_formatted' => $this->formatDateTimeStringForUser($this->deposit_due_at),
 
-            // 현금영수증
+            // 현금영수증 (cash_receipt_identifier 는 마스킹 값 — 원본/암호문은 노출하지 않는다)
+            'is_cash_receipt_requested' => (bool) $this->is_cash_receipt_requested,
+            'is_cash_receipt_issued' => (bool) $this->is_cash_receipt_issued,
             'cash_receipt_type' => $this->cash_receipt_type,
+            'cash_receipt_identifier_type' => $this->cash_receipt_identifier_type,
             'cash_receipt_identifier' => $this->cash_receipt_identifier,
+            // 머신 ISO8601 — 표시는 cash_receipt_issued_at_formatted 사용
+            'cash_receipt_issued_at' => $this->cash_receipt_issued_at?->toIso8601String(), // audit:allow datetime-display-user-timezone reason: machine ISO8601, display uses cash_receipt_issued_at_formatted sibling
+            'cash_receipt_issued_at_formatted' => $this->formatDateTimeStringForUser($this->cash_receipt_issued_at),
+
+            // PG 영수증 URL (카드 매출전표 등) — 현금영수증 URL 과는 다른 값이며 서로 덮어쓰지 않는다.
+            // 현금영수증 URL 은 주문의 cash_receipt.receipt_url 을 쓴다.
+            // receipt_url 은 기존 소비자(KG이니시스 영수증 팝업)가 참조하므로 키를 유지하고,
+            // 의미가 분명한 pg_receipt_url 을 함께 노출한다.
+            'receipt_url' => $this->receipt_url,
+            'pg_receipt_url' => $this->receipt_url,
 
             // 결제수단별 계좌/카드 요약 정보
             'account_info' => $this->getAccountInfo(),

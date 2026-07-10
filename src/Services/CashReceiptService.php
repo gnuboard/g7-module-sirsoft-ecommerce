@@ -8,6 +8,8 @@ use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIdentifierType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIssueStatus;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptTransactionType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptType;
+use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
+use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderCashReceipt;
 use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
@@ -81,6 +83,15 @@ class CashReceiptService
                 __('sirsoft-ecommerce::cash_receipt.errors.provider_not_configured'),
                 $identifier,
             );
+        }
+
+        // 멱등: 이미 활성 영수증이 있으면 중복 발급하지 않는다.
+        // 자동발급 리스너가 두 훅(after_payment_complete / after_deposit_recorded)에 동시 구독되어
+        // 한 입금에 두 번 도달할 수 있고, 관리자/유저가 동시에 발급을 눌러도 여기서 걸린다.
+        $existing = $this->repository->findActiveReceipt($order);
+
+        if ($existing !== null) {
+            return $existing;
         }
 
         $target = $this->calculateIssuableAmount($order);
@@ -295,6 +306,73 @@ class CashReceiptService
     }
 
     /**
+     * "취소 성공 + 재발급 실패" 중간 상태를 복구합니다. (관리자 수동 재발급)
+     *
+     * syncFromOrder() 는 활성 영수증이 있을 때만 동작한다 — 재발급이 실패해 활성 영수증이
+     * 사라진 상태는 그 메서드의 관심사가 아니다. 이 메서드가 그 구멍을 메운다:
+     * 발급 이력은 있는데 활성 영수증이 없고 발급 대상 금액이 남아 있으면, 마지막 발급 이력의
+     * 용도와 저장된 암호문으로 다시 발급한다.
+     *
+     * 활성 영수증이 이미 있으면 금액 동기화(syncFromOrder)로 위임한다.
+     *
+     * @param  Order  $order  주문 모델
+     * @param  string|null  $reason  사유
+     * @return OrderCashReceipt|null 복구된 영수증 (복구 대상이 없거나 실패 시 null)
+     */
+    public function recoverFailedIssue(Order $order, ?string $reason = null): ?OrderCashReceipt
+    {
+        // 활성 영수증이 있으면 금액 변동 동기화가 올바른 경로다.
+        if ($this->repository->findActiveReceipt($order) !== null) {
+            $this->syncFromOrder($order, $reason);
+
+            return $this->repository->findActiveReceipt($order);
+        }
+
+        // 발급 대상 금액이 없으면 복구할 것이 없다 (전액 환불 등).
+        if ($this->calculateIssuableAmount($order)['amount'] <= 0) {
+            return null;
+        }
+
+        $lastIssue = $this->repository->findByOrder($order)
+            ->first(fn (OrderCashReceipt $row) => $row->isIssue());
+
+        // 애초에 발급을 시도한 적이 없으면 복구가 아니라 신규 발급이다 (issue() 를 쓰라).
+        if ($lastIssue === null) {
+            return null;
+        }
+
+        $identifier = $this->resolveStoredIdentifier($order);
+
+        if ($identifier === null) {
+            $this->recordFailure(
+                $order,
+                $order->payment,
+                CashReceiptTransactionType::ISSUE,
+                $lastIssue->receipt_type,
+                'IDENTIFIER_UNAVAILABLE',
+                __('sirsoft-ecommerce::cash_receipt.errors.identifier_unavailable'),
+                null,
+                $lastIssue->provider,
+            );
+
+            Log::warning('[cash_receipt] 복구용 식별번호 복호화 불가 — 관리자가 식별번호를 재입력해야 함', [
+                'order_id' => $order->id,
+            ]);
+
+            return null;
+        }
+
+        $receipt = $this->issue(
+            $order,
+            $lastIssue->receipt_type,
+            $identifier,
+            $order->payment?->cash_receipt_identifier_type,
+        );
+
+        return $receipt->isCompletedIssue() ? $receipt : null;
+    }
+
+    /**
      * 현재 상태 기준 발급 가능 금액을 계산합니다.
      *
      * 주문 테이블의 재계산된 금액을 그대로 사용한다. 부분취소 시 OrderAdjustmentService 가
@@ -345,6 +423,74 @@ class CashReceiptService
     public function resolveProvider(): ?string
     {
         return $this->settingsService->getCashReceiptProvider();
+    }
+
+    /**
+     * 주문의 현재 활성 영수증을 반환합니다.
+     *
+     * @param  Order  $order  주문 모델
+     * @return OrderCashReceipt|null 활성 영수증 (없으면 null)
+     */
+    public function findActiveReceipt(Order $order): ?OrderCashReceipt
+    {
+        return $this->repository->findActiveReceipt($order);
+    }
+
+    /**
+     * 지금 이 주문에 현금영수증을 발급할 수 있는지 판정합니다.
+     *
+     * 자동발급 리스너와 관리자/유저 발급 API 가 공유하는 단일 가드다.
+     * 어느 조건에서 막혔는지 호출부가 응답 코드를 정하도록 사유 문자열을 반환한다.
+     *
+     * 발급액 0원 방어: $isZeroPayable 판정은 결제수단과 무관하게 잔여 결제액만 보므로
+     * "무통장 + 전액 마일리지" 0원 주문도 결제완료 훅을 발화시킨다. 그 주문에 0원 영수증을
+     * 발급하지 않도록 현금성 금액을 명시적으로 확인한다 (현금성 필드의 암묵적 귀결에 의존하지 않는다).
+     *
+     * @param  Order  $order  주문 모델
+     * @return string|null 발급 불가 사유 코드 (발급 가능하면 null)
+     */
+    public function resolveIssueBlocker(Order $order): ?string
+    {
+        if ($this->resolveProvider() === null) {
+            return 'PROVIDER_NOT_CONFIGURED';
+        }
+
+        $payment = $order->payment;
+
+        if ($payment === null) {
+            return 'PAYMENT_NOT_FOUND';
+        }
+
+        if ($payment->payment_method !== PaymentMethodEnum::DBANK) {
+            return 'NOT_CASH_PAYMENT';
+        }
+
+        if ($payment->payment_status !== PaymentStatusEnum::PAID) {
+            return 'PAYMENT_NOT_PAID';
+        }
+
+        if ($this->repository->findActiveReceipt($order) !== null) {
+            return 'ALREADY_ISSUED';
+        }
+
+        if ($this->calculateIssuableAmount($order)['amount'] <= 0) {
+            return 'NO_ISSUABLE_AMOUNT';
+        }
+
+        return null;
+    }
+
+    /**
+     * 발급 불가 사유 코드에 대응하는 다국어 메시지 키를 반환합니다.
+     *
+     * ResponseHelper 가 직접 번역하도록 해석된 문자열이 아닌 키를 반환한다.
+     *
+     * @param  string  $blocker  사유 코드
+     * @return string 다국어 메시지 키
+     */
+    public function describeIssueBlocker(string $blocker): string
+    {
+        return 'sirsoft-ecommerce::cash_receipt.errors.'.strtolower($blocker);
     }
 
     /**

@@ -50,6 +50,8 @@ class OrderCashReceiptRepository implements OrderCashReceiptRepositoryInterface
      */
     public function findActiveReceipts(Order $order): Collection
     {
+        // DB 에서 후보(발급 완료 건 + 취소 완료 건)만 좁힌 뒤,
+        // 활성 판정은 OrderCashReceipt::filterActive() SSoT 에 위임한다.
         $rows = $this->model->newQuery()
             ->where('order_id', $order->id)
             ->whereIn('transaction_type', [
@@ -60,28 +62,7 @@ class OrderCashReceiptRepository implements OrderCashReceiptRepositoryInterface
             ->orderByDesc('id')
             ->get();
 
-        // 취소 완료된 receipt_key 집합 — 같은 키의 발급 이력은 더 이상 활성이 아니다.
-        $cancelledKeys = $rows
-            ->filter(fn (OrderCashReceipt $row) => $row->transaction_type === CashReceiptTransactionType::CANCEL)
-            ->pluck('receipt_key')
-            ->filter()
-            ->unique()
-            ->all();
-
-        $active = $rows->filter(function (OrderCashReceipt $row) use ($cancelledKeys) {
-            if ($row->transaction_type !== CashReceiptTransactionType::ISSUE) {
-                return false;
-            }
-
-            // receipt_key 가 없는 발급 완료 건은 취소 대상을 특정할 수 없다 — 활성으로 보지 않는다.
-            if ($row->receipt_key === null || $row->receipt_key === '') {
-                return false;
-            }
-
-            return ! in_array($row->receipt_key, $cancelledKeys, true);
-        });
-
-        return $this->model->newCollection($active->values()->all());
+        return $this->model->newCollection(OrderCashReceipt::filterActive($rows));
     }
 
     /**

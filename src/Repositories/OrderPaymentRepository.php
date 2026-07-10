@@ -24,20 +24,18 @@ class OrderPaymentRepository implements OrderPaymentRepositoryInterface
         string $identifierMasked,
         ?CashReceiptIdentifierType $identifierType,
     ): OrderPayment {
-        $attributes = [
+        // receipt_url 은 건드리지 않는다 — 그 컬럼은 PG 영수증(카드 매출전표) URL 전용이고
+        // PG 플러그인이 결제 승인 시 기록한다. 현금영수증 URL 은 이력 테이블
+        // (ecommerce_order_cash_receipts.receipt_url) 이 보관하며 OrderResource 가 따로 노출한다.
+        // 여기서 덮어쓰면 카드 매출전표 URL 이 유실되고 한 컬럼이 두 의미를 갖게 된다.
+        $payment->update([
             'is_cash_receipt_issued' => true,
             'cash_receipt_type' => $type->value,
             'cash_receipt_identifier' => $identifierMasked,
             'cash_receipt_identifier_type' => $identifierType,
             'cash_receipt_identifier_encrypted' => $identifier,
             'cash_receipt_issued_at' => $receipt->issued_at,
-        ];
-
-        if ($receipt->receipt_url !== null) {
-            $attributes['receipt_url'] = $receipt->receipt_url;
-        }
-
-        $payment->update($attributes);
+        ]);
 
         return $payment;
     }

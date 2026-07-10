@@ -103,4 +103,45 @@ class OrderCashReceipt extends Model
         return (int) $this->amount === $amount
             && (int) $this->tax_free_amount === $taxFreeAmount;
     }
+
+    /**
+     * 이력 컬렉션에서 활성 영수증만 최신순으로 골라냅니다.
+     *
+     * "활성" = 발급 완료(COMPLETED) 이면서 같은 receipt_key 의 취소 완료 이력이 없는 건.
+     * receipt_key 가 없는 발급 건은 취소 대상을 특정할 수 없으므로 활성으로 보지 않는다.
+     *
+     * Repository(DB 조회)와 Resource(로드된 컬렉션) 양쪽이 같은 판정을 쓰도록
+     * 활성 판정 규칙은 이 메서드가 단일 SSoT 다.
+     *
+     * @param  iterable<int, self>  $receipts  발급/취소 이력 (정렬 무관)
+     * @return array<int, self> 활성 영수증 (id 내림차순)
+     */
+    public static function filterActive(iterable $receipts): array
+    {
+        $rows = collect($receipts)
+            ->filter(fn (self $row) => $row->issue_status === CashReceiptIssueStatus::COMPLETED)
+            ->sortByDesc('id');
+
+        $cancelledKeys = $rows
+            ->filter(fn (self $row) => $row->transaction_type === CashReceiptTransactionType::CANCEL)
+            ->pluck('receipt_key')
+            ->filter()
+            ->unique()
+            ->all();
+
+        return $rows
+            ->filter(function (self $row) use ($cancelledKeys) {
+                if ($row->transaction_type !== CashReceiptTransactionType::ISSUE) {
+                    return false;
+                }
+
+                if ($row->receipt_key === null || $row->receipt_key === '') {
+                    return false;
+                }
+
+                return ! in_array($row->receipt_key, $cancelledKeys, true);
+            })
+            ->values()
+            ->all();
+    }
 }

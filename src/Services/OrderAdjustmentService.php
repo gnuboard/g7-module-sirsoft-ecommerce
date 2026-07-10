@@ -121,7 +121,7 @@ class OrderAdjustmentService
         // 9. 옵션별 업데이트 정보 생성
         $optionUpdates = $this->buildOptionUpdates($order, $excludedMap, $recalcResult);
         $shippingUpdates = $this->buildShippingUpdates($order, $recalcResult);
-        $orderUpdates = $this->buildOrderUpdates($recalcResult);
+        $orderUpdates = $this->buildOrderUpdates($order, $recalcResult);
 
         // 10. 취소 대상 아이템 정보
         $adjustedItems = $this->buildAdjustedItems($order, $excludedMap);
@@ -597,6 +597,9 @@ class OrderAdjustmentService
                 'total_amount' => 0,
                 'total_paid_amount' => 0,
                 'total_points_used_amount' => 0,
+                // 전액취소면 남은 현금성 금액도 0 이다. 갱신하지 않으면 CashReceiptService 가
+                // 여전히 발급 대상이 있다고 보고 전체취소 대신 재발급을 시도한다.
+                'total_cash_equivalent_amount' => 0,
             ],
             optionUpdates: [],
             shippingUpdates: [],
@@ -767,10 +770,11 @@ class OrderAdjustmentService
     /**
      * 주문 테이블 업데이트 정보를 생성합니다.
      *
+     * @param  Order  $order  주문 (결제수단 판정용)
      * @param  OrderCalculationResult  $recalcResult  재계산 결과
      * @return array 업데이트 데이터
      */
-    private function buildOrderUpdates($recalcResult): array
+    private function buildOrderUpdates(Order $order, $recalcResult): array
     {
         // 재계산된 프로모션 스냅샷 (부분취소 후 남은 아이템 기준 할인 배분)
         $promotionsSnapshot = $recalcResult->promotions?->toArray() ?? [];
@@ -804,8 +808,32 @@ class OrderAdjustmentService
                 $recalcResult->summary->vatAmount
                 ?? VatCalculator::fromTaxableAmount((int) $recalcResult->summary->taxableAmount)
             ),
+            // 현금성 금액도 잔여 실결제액 기준으로 재계산한다. 이 값을 갱신하지 않으면
+            // CashReceiptService::syncFromOrder() 가 "금액 변동 없음"으로 판정해 부분환불 후
+            // 현금영수증 재발급이 일어나지 않는다.
+            'total_cash_equivalent_amount' => $this->resolveCashEquivalentAmount(
+                $order,
+                (int) round((float) $recalcResult->summary->finalAmount),
+            ),
             'promotions_applied_snapshot' => $promotionsSnapshot,
         ];
+    }
+
+    /**
+     * 잔여 실결제액에 대응하는 현금성 금액을 산정합니다.
+     *
+     * 산정 규칙은 PaymentMethodEnum::resolveCashEquivalentAmount() 가 SSoT 다
+     * (주문 생성 시점의 OrderProcessingService 와 동일 규칙).
+     *
+     * @param  Order  $order  주문
+     * @param  int  $finalAmount  잔여 실결제액 (마일리지·예치금 차감 후)
+     * @return int 현금성 금액
+     */
+    private function resolveCashEquivalentAmount(Order $order, int $finalAmount): int
+    {
+        $order->loadMissing('payment');
+
+        return $order->payment?->payment_method?->resolveCashEquivalentAmount($finalAmount) ?? 0;
     }
 
     /**

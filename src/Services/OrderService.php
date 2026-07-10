@@ -714,8 +714,9 @@ class OrderService
     public function confirmOption(Order $order, OrderOption $option): OrderOption
     {
         $previousStatus = $order->order_status?->value;
+        $purchaseConfirmed = false;
 
-        return DB::transaction(function () use ($order, $option, $previousStatus) {
+        $result = DB::transaction(function () use ($order, $option, $previousStatus, &$purchaseConfirmed) {
             HookManager::doAction('sirsoft-ecommerce.order-option.before_confirm', $order, $option);
 
             $option->update([
@@ -734,10 +735,14 @@ class OrderService
 
             $orderTransitioned = false;
             if (! $hasUnconfirmed) {
-                $order->update([
-                    'order_status' => OrderStatusEnum::CONFIRMED,
-                    'confirmed_at' => now(),
-                ]);
+                $orderUpdate = ['order_status' => OrderStatusEnum::CONFIRMED];
+                // 멱등: 최초 확정 시점을 보존한다 (OrderOptionService::transitionOrderStatus 와 대칭).
+                // 재확정 시 confirmed_at 을 덮어쓰면 구매확정 훅이 중복 발화하고 확정 시점이 소실된다.
+                $purchaseConfirmed = $order->confirmed_at === null;
+                if ($purchaseConfirmed) {
+                    $orderUpdate['confirmed_at'] = now();
+                }
+                $order->update($orderUpdate);
                 $orderTransitioned = true;
             }
 
@@ -757,6 +762,15 @@ class OrderService
 
             return $option->fresh();
         });
+
+        // 구매확정 훅 — order.confirmed_at 이 최초로 세팅된 순간에만 1회 발화(멱등).
+        // 커밋 이후에 발화한다: 큐 리스너(PurgeCashReceiptIdentifierListener)가 확정 전 상태를
+        // 읽지 않도록 하고, 리스너 실패가 구매확정 트랜잭션을 롤백시키지 않게 한다.
+        if ($purchaseConfirmed) {
+            HookManager::doAction('sirsoft-ecommerce.order.after_purchase_confirmed', $order->fresh());
+        }
+
+        return $result;
     }
 
     /**
