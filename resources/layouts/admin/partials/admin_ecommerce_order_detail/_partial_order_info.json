@@ -430,7 +430,7 @@
                         "type": "basic",
                         "name": "Div",
                         "props": {
-                          "className": "flex flex-col items-center gap-1 whitespace-nowrap"
+                          "className": "flex flex-col items-end gap-1 whitespace-nowrap"
                         },
                         "children": [
                           {
@@ -683,7 +683,7 @@
                         "type": "basic",
                         "name": "Div",
                         "props": {
-                          "className": "flex flex-col items-center gap-1 whitespace-nowrap"
+                          "className": "flex flex-col items-end gap-1 whitespace-nowrap"
                         },
                         "children": [
                           {
