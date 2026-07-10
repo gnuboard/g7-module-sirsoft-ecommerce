@@ -423,7 +423,7 @@ _단건 응답: `data` 객체의 필드._
 | payment_currency | string | `JPY` | 결제 통화 (유저가 선택·결제한 통화, base_currency 와 다르면 병기 표시) |
 | is_cross_currency | boolean | `false` | cross currency 여부 |
 | order_status | string | `payment_complete` | 주문상태 (OrderStatusEnum) |
-| order_status_label | string | `결제완료` | `order_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| order_status_label | string | `Payment Complete` | `order_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | order_status_variant | string | `info` | `order_status` 값의 표시 변형 키 (UI 배지 색상/스타일) |
 | is_partially_cancelled | boolean | `false` | partially cancelled 여부 |
 | order_device | string | `pc` | 주문 디바이스 (pc/mobile/app) |
@@ -511,8 +511,10 @@ _단건 응답: `data` 객체의 필드._
 | options | array | `[{"id":1263,"option_status":"payment_complete","option_st…` | 주문 옵션(품목) 목록 (OrderOptionResource — 상품·옵션·수량·옵션상태·금액) |
 | shipping_address | object | `{"id":319,"address_type":"shipping","orderer_name":"박대수",…` | 배송지 상세 (OrderAddressResource — 주문자/수령인/국내·해외 주소) |
 | billing_address | null | `null` | 청구지 상세 (OrderAddressResource, 미분리 시 null) |
-| payment | object | `{"id":334,"payment_status":"paid","payment_status_label":…` | 대표 결제 정보 (OrderPaymentResource — 결제수단·결제상태·금액) |
-| payments | array | `[{"id":334,"payment_status":"paid","payment_status_label"…` | 결제 이력 목록 (OrderPaymentResource 배열 — 다회 결제/부분결제 포함) |
+| payment | object | `{"id":1,"payment_status":"paid","payment_status_label":"P…` | 대표 결제 정보 (OrderPaymentResource — 결제수단·결제상태·금액) |
+| payments | array | `[{"id":1,"payment_status":"paid","payment_status_label":"…` | 결제 이력 목록 (OrderPaymentResource 배열 — 다회 결제/부분결제 포함) |
+| cash_receipt | null | `null` | 현재 유효한 현금영수증 (CashReceiptResource — 취소되지 않은 발급 건, 없으면 null) |
+| cash_receipts | array | `[]` | 현금영수증 발급·취소 이력 전체 (CashReceiptResource 배열 — 취소된 건 포함) |
 | shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
 | cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
 | promotions_applied_snapshot | object | `{"coupon_issue_ids":[7330],"item_coupons":[],"discount_co…` | 적용된 프로모션 스냅샷 (재계산용) |
@@ -653,6 +655,9 @@ Content-Type: application/json
 | items | body | array | 아니오 | min 1 | 처리 대상 항목 배열 |
 | cancel_pg | body | boolean | 아니오 | — | PG 결제 취소 동반 여부 (미지정 시 기본 true — 실제 PG 취소 수행) |
 | refund_priority | body | string | 아니오 | `pg_first`, `points_first` | 환불 배분 우선순위 (pg_first PG 우선 / points_first 포인트 우선, 기본 pg_first) |
+| refund_bank.bank_code | body | string | 아니오 | max 10 | 환불 계좌 은행코드. 가상계좌 + 입금완료 건은 필수(주문 시 입력된 계좌가 있으면 생략 가능). 세 필드는 전부 입력하거나 전부 비워야 함 |
+| refund_bank.account_number | body | string | 아니오 | max 50 | 환불 계좌번호 |
+| refund_bank.holder | body | string | 아니오 | max 50 | 환불 계좌 예금주 |
 
 **요청 예시**
 
@@ -1641,6 +1646,13 @@ HTTP/1.1 200
 | shipping_memo | body | string | 아니오 | max 500 | 배송 요청사항 메모 |
 | depositor_name | body | string | 아니오 | max 50 | depositor 이름 (식별자) |
 | save_shipping_address | body | boolean | 아니오 | — | 회원 주소록에 이번 배송지 저장 여부 (회원 주문 한정) |
+| cash_receipt_requested | body | boolean | 아니오 | — | 현금영수증 신청 여부 (true 면 아래 3개 필드가 필수) |
+| cash_receipt_type | body | string | 아니오 | — | 발급 용도 (`income` 소득공제 / `expense` 지출증빙) |
+| cash_receipt_identifier_type | body | string | 아니오 | — | 발급 수단 (`phone` 휴대폰번호 / `card` 현금영수증카드 / `business` 사업자등록번호 — business 는 지출증빙 전용) |
+| cash_receipt_identifier | body | string | 아니오 | max 30 | 발급 식별번호 (하이픈 없는 숫자. 사업자등록번호는 체크섬 검증. 마스킹 저장 + 원본은 암호화 보관) |
+| refund_bank.bank_code | body | string | 아니오 | max 10 | 환불 계좌 은행코드 (세 필드는 전부 입력하거나 전부 비워야 함) |
+| refund_bank.account_number | body | string | 아니오 | max 50 | 환불 계좌번호 |
+| refund_bank.holder | body | string | 아니오 | max 50 | 환불 계좌 예금주 |
 | guest_lookup_password | body | string | 예 | min 8, max 255 | 비회원 주문 조회 비밀번호 (비회원만 필수, 8자 이상 · 해시로 저장) |
 | guest_lookup_password_confirmation | body | string | 예 | — | 조회 비밀번호 확인 (guest_lookup_password 와 일치해야 함) |
 
@@ -1661,6 +1673,10 @@ Content-Type: application/json
     "shipping_memo": "예시값",
     "depositor_name": "예시 이름",
     "save_shipping_address": true,
+    "cash_receipt_requested": true,
+    "cash_receipt_type": "예시값",
+    "cash_receipt_identifier_type": "example-key",
+    "cash_receipt_identifier": "example-key",
     "guest_lookup_password": "Password123!",
     "guest_lookup_password_confirmation": "Password123!"
 }

@@ -742,6 +742,27 @@ class EcommerceSettingsService implements ModuleSettingsInterface
     }
 
     /**
+     * 은행코드로 은행명을 조회합니다.
+     *
+     * 환경설정의 은행 목록(order_settings.banks)에서 현재 로케일의 표시명을 찾습니다.
+     * 무통장 입금 계좌와 환불 계좌가 같은 목록을 공유하므로 여기서 단일 조회 지점을 제공합니다.
+     *
+     * @param  string  $bankCode  은행코드
+     * @return string 은행명 (목록에 없는 코드는 코드 그대로)
+     */
+    public function resolveBankName(string $bankCode): string
+    {
+        $banks = $this->getSetting('order_settings.banks');
+        $bank = collect(is_array($banks) ? $banks : [])->firstWhere('code', $bankCode);
+
+        if (! $bank) {
+            return $bankCode;
+        }
+
+        return $bank['name'][app()->getLocale()] ?? $bank['name']['ko'] ?? $bankCode;
+    }
+
+    /**
      * 특정 결제수단의 설정을 조회합니다.
      *
      * @param  string  $methodId  결제수단 ID

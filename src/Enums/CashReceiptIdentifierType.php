@@ -43,6 +43,26 @@ enum CashReceiptIdentifierType: string
     }
 
     /**
+     * 식별번호를 마스킹합니다 (뒤 4자리만 노출).
+     *
+     * 식별번호의 형태를 아는 것은 이 Enum 의 책임이므로 마스킹 규칙도 여기에 둔다.
+     * 주문 생성 시점(신청 저장)과 발급 시점(이력 기록)이 동일한 마스킹을 써야 하므로 SSoT 로 유지한다.
+     *
+     * @param  string  $identifier  식별번호 원본
+     * @return string 마스킹된 식별번호
+     */
+    public static function mask(string $identifier): string
+    {
+        $length = strlen($identifier);
+
+        if ($length <= 4) {
+            return str_repeat('*', $length);
+        }
+
+        return str_repeat('*', $length - 4).substr($identifier, -4);
+    }
+
+    /**
      * 유효한 값인지 확인합니다.
      *
      * @param  string  $value  검증할 값

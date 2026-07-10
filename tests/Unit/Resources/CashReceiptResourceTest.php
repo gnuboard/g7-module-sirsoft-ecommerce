@@ -6,6 +6,7 @@ use App\Extension\HookManager;
 use Illuminate\Http\Request;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIdentifierType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIssueStatus;
+use Modules\Sirsoft\Ecommerce\Enums\CashReceiptTransactionType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptType;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
@@ -211,6 +212,76 @@ class CashReceiptResourceTest extends ModuleTestCase
         $this->assertCount(3, $ledger);
         $this->assertSame(CashReceiptIssueStatus::FAILED->value, $ledger[0]['issue_status']);
         $this->assertSame('PROVIDER_ERROR', $ledger[0]['error_code']);
+    }
+
+    #[Test]
+    public function 리소스는_거래유형과_발급상태의_표시명을_함께_노출한다(): void
+    {
+        $this->registerProvider();
+        $order = $this->makeOrder();
+        app(CashReceiptService::class)->issue(
+            $order, CashReceiptType::INCOME, self::IDENTIFIER, CashReceiptIdentifierType::PHONE,
+        );
+
+        $receipt = $this->resourceArray($order)['cash_receipt'];
+
+        // 관리자 발급 이력 표는 원시값(issue / COMPLETED)이 아니라 표시명을 보여줘야 한다.
+        $this->assertSame(CashReceiptTransactionType::ISSUE->label(), $receipt['transaction_type_label']);
+        $this->assertSame(CashReceiptIssueStatus::COMPLETED->label(), $receipt['issue_status_label']);
+    }
+
+    #[Test]
+    public function 취소_이력의_상태는_발급_완료로_표시되지_않는다(): void
+    {
+        $this->registerProvider();
+        HookManager::addFilter(
+            'sirsoft-ecommerce.cash_receipt.cancel',
+            fn (array $result, Order $order, string $provider, string $receiptKey) => [
+                'success' => true, 'error_code' => null, 'error_message' => null,
+                'receipt_key' => $receiptKey, 'raw_response' => null,
+            ],
+        );
+
+        $order = $this->makeOrder();
+        $service = app(CashReceiptService::class);
+
+        $service->issue($order, CashReceiptType::INCOME, self::IDENTIFIER, CashReceiptIdentifierType::PHONE);
+        $service->cancelAll($order->fresh(), '테스트 취소');
+
+        $ledger = $this->resourceArray($order)['cash_receipts'];
+        $cancelRow = collect($ledger)->firstWhere('transaction_type', CashReceiptTransactionType::CANCEL);
+
+        $this->assertNotNull($cancelRow, '취소 이력이 있어야 한다');
+
+        // issue_status 는 "그 거래가 성공했는가" 이므로 COMPLETED 다. 그러나 취소 행에 "발급 완료" 라고
+        // 쓰면 관리자가 오해한다 — 이력 표에는 거래유형과 무관한 중립 표현을 쓴다.
+        $this->assertSame(CashReceiptIssueStatus::COMPLETED->value, $cancelRow['issue_status']);
+        $this->assertStringNotContainsString('발급', $cancelRow['result_label']);
+        $this->assertNotEmpty($cancelRow['result_label']);
+    }
+
+    #[Test]
+    public function 발급에_실패한_이력도_표시용_일시를_가진다(): void
+    {
+        $this->registerProvider();
+        $this->issueShouldFail = true;
+
+        $order = $this->makeOrder();
+
+        try {
+            app(CashReceiptService::class)->issue(
+                $order, CashReceiptType::INCOME, self::IDENTIFIER, CashReceiptIdentifierType::PHONE,
+            );
+        } catch (\Throwable) {
+            // 발급 실패는 이력만 남기고 삼켜지거나 예외로 전파된다 — 어느 쪽이든 이력은 남는다.
+        }
+
+        $failed = $this->resourceArray($order)['cash_receipts'][0];
+
+        // 실패 이력은 issued_at 이 null 이다. 그대로 두면 관리자 이력 표의 일시가 '-' 로 비어 버린다.
+        $this->assertSame(CashReceiptIssueStatus::FAILED->value, $failed['issue_status']);
+        $this->assertNull($failed['issued_at']);
+        $this->assertNotEmpty($failed['occurred_at_formatted'], '실패 이력도 발생 시각을 표시할 수 있어야 한다');
     }
 
     #[Test]

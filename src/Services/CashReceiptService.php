@@ -622,18 +622,15 @@ class CashReceiptService
     /**
      * 식별번호를 마스킹합니다 (뒤 4자리만 노출).
      *
+     * 마스킹 규칙의 SSoT 는 Enum 이다 — 주문 생성 시점(신청 저장)과 발급 시점(이력 기록)이
+     * 동일한 마스킹을 써야 하므로 규칙을 복제하지 않고 위임한다.
+     *
      * @param  string  $identifier  식별번호 원본
      * @return string 마스킹된 식별번호
      */
     private function maskIdentifier(string $identifier): string
     {
-        $length = strlen($identifier);
-
-        if ($length <= 4) {
-            return str_repeat('*', $length);
-        }
-
-        return str_repeat('*', $length - 4).substr($identifier, -4);
+        return CashReceiptIdentifierType::mask($identifier);
     }
 
     /**

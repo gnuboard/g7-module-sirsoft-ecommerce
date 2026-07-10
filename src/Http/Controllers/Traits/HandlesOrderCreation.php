@@ -91,7 +91,9 @@ trait HandlesOrderCreation
                 shippingMemo: $request->input('shipping_memo'),
                 depositorName: $request->input('depositor_name'),
                 dbankInfo: $request->getDbankInfo(),
-                guestLookupPassword: $request->getGuestLookupPassword()
+                guestLookupPassword: $request->getGuestLookupPassword(),
+                cashReceiptInfo: $request->getCashReceiptInfo(),
+                refundBankInfo: $request->getRefundBankInfo()
             );
 
             $order->load(['options', 'payment', 'shippingAddress']);

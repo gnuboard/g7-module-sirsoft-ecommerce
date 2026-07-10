@@ -89,4 +89,24 @@ class OrderPaymentRepository implements OrderPaymentRepositoryInterface
     {
         return $payment->getRawOriginal('cash_receipt_identifier_encrypted') !== null;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function updateRefundBank(
+        OrderPayment $payment,
+        string $bankCode,
+        string $bankName,
+        string $accountNumber,
+        string $holder,
+    ): OrderPayment {
+        $payment->update([
+            'refund_bank_code' => $bankCode,
+            'refund_bank_name' => $bankName,
+            'refund_bank_account' => $accountNumber,
+            'refund_bank_holder' => $holder,
+        ]);
+
+        return $payment;
+    }
 }

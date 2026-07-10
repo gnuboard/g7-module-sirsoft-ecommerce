@@ -29,6 +29,7 @@ use Modules\Sirsoft\Ecommerce\Models\OrderRefundOption;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderCancelOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderCancelRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderOptionRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderPaymentRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRefundOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRefundRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderShippingRepositoryInterface;
@@ -55,6 +56,7 @@ class OrderCancellationService
      * @param  OrderRefundRepositoryInterface  $orderRefundRepository  주문 환불 Repository
      * @param  OrderRefundOptionRepositoryInterface  $orderRefundOptionRepository  주문 환불 옵션 Repository
      * @param  CashReceiptService  $cashReceiptService  현금영수증 발급/취소 서비스
+     * @param  OrderPaymentRepositoryInterface  $orderPaymentRepository  주문 결제 Repository
      */
     public function __construct(
         protected OrderAdjustmentService $adjustmentService,
@@ -69,7 +71,38 @@ class OrderCancellationService
         protected OrderRefundRepositoryInterface $orderRefundRepository,
         protected OrderRefundOptionRepositoryInterface $orderRefundOptionRepository,
         protected CashReceiptService $cashReceiptService,
+        protected OrderPaymentRepositoryInterface $orderPaymentRepository,
     ) {}
+
+    /**
+     * 관리자가 취소 모달에서 입력한 환불 계좌를 결제행에 반영합니다.
+     *
+     * 미입력이면 기존 값(주문 시 입력분)을 그대로 둔다 — 취소 요청이 계좌를 지우지 않는다.
+     * 가상계좌 입금완료 건의 미입력은 CancelOrderRequest 가 이미 422 로 막는다.
+     *
+     * @param  Order  $order  대상 주문
+     * @param  array|null  $refundBankInfo  환불 계좌 (bank_code/account_number/holder)
+     */
+    protected function applyRefundBank(Order $order, ?array $refundBankInfo): void
+    {
+        if ($refundBankInfo === null) {
+            return;
+        }
+
+        $order->loadMissing('payment');
+
+        if (! $order->payment) {
+            return;
+        }
+
+        $this->orderPaymentRepository->updateRefundBank(
+            $order->payment,
+            $refundBankInfo['bank_code'],
+            $this->settingsService->resolveBankName($refundBankInfo['bank_code']),
+            $refundBankInfo['account_number'],
+            $refundBankInfo['holder'],
+        );
+    }
 
     /**
      * 취소 확정 후 현금영수증을 현재 금액에 맞춰 동기화합니다.
@@ -111,6 +144,7 @@ class OrderCancellationService
      * @param  int|null  $cancelledBy  취소 요청자 ID
      * @param  bool  $cancelPg  PG 결제 취소 여부
      * @param  RefundPriorityEnum  $refundPriority  환불 우선순위
+     * @param  array|null  $refundBankInfo  환불 계좌 (bank_code/account_number/holder, 미입력 시 null)
      * @return CancellationResult 취소 결과
      *
      * @throws \Exception 취소 불가 또는 PG 환불 실패 시
@@ -122,6 +156,7 @@ class OrderCancellationService
         ?int $cancelledBy = null,
         bool $cancelPg = true,
         RefundPriorityEnum $refundPriority = RefundPriorityEnum::PG_FIRST,
+        ?array $refundBankInfo = null,
     ): CancellationResult {
         $order->loadMissing(['options', 'payment', 'shippings']);
 
@@ -146,6 +181,7 @@ class OrderCancellationService
             cancelledBy: $cancelledBy,
             cancelPg: $cancelPg,
             refundPriority: $refundPriority,
+            refundBankInfo: $refundBankInfo,
         );
     }
 
@@ -159,6 +195,7 @@ class OrderCancellationService
      * @param  int|null  $cancelledBy  취소 요청자 ID
      * @param  bool  $cancelPg  PG 결제 취소 여부
      * @param  RefundPriorityEnum  $refundPriority  환불 우선순위
+     * @param  array|null  $refundBankInfo  환불 계좌 (bank_code/account_number/holder, 미입력 시 null)
      * @return CancellationResult 취소 결과
      *
      * @throws \Exception 취소 불가 또는 PG 환불 실패 시
@@ -171,6 +208,7 @@ class OrderCancellationService
         ?int $cancelledBy = null,
         bool $cancelPg = true,
         RefundPriorityEnum $refundPriority = RefundPriorityEnum::PG_FIRST,
+        ?array $refundBankInfo = null,
     ): CancellationResult {
         $order->loadMissing(['options', 'payment', 'shippings']);
 
@@ -188,6 +226,7 @@ class OrderCancellationService
             cancelledBy: $cancelledBy,
             cancelPg: $cancelPg,
             refundPriority: $refundPriority,
+            refundBankInfo: $refundBankInfo,
         );
     }
 
@@ -220,6 +259,7 @@ class OrderCancellationService
      * @param  int|null  $cancelledBy  요청자 ID
      * @param  bool  $cancelPg  PG 취소 여부
      * @param  RefundPriorityEnum  $refundPriority  환불 우선순위
+     * @param  array|null  $refundBankInfo  환불 계좌 (bank_code/account_number/holder, 미입력 시 null)
      * @return CancellationResult 취소 결과
      *
      * @throws \Exception
@@ -233,10 +273,15 @@ class OrderCancellationService
         ?int $cancelledBy,
         bool $cancelPg,
         RefundPriorityEnum $refundPriority = RefundPriorityEnum::PG_FIRST,
+        ?array $refundBankInfo = null,
     ): CancellationResult {
         // ① 검증
         $this->validateCancellable($order);
         $this->validateCancelItems($order, $cancelItems);
+
+        // 환불 계좌 갱신 — PG 환불(executePgRefund)이 이 컬럼을 읽어 refundReceiveAccount 를
+        // 구성하므로 환불 실행 전에 반영해야 한다. 관리자가 취소 모달에서 입력/수정한 값이다.
+        $this->applyRefundBank($order, $refundBankInfo);
 
         // 결제 취소 전 본인인증(IDV) 정책 가드 지점 (관리자/사용자 — payment.cancel purpose).
         // EnforceIdentityPolicyListener 가 'sirsoft-ecommerce.payment.cancel' 정책이 활성이고

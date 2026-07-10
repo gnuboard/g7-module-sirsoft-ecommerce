@@ -69,4 +69,25 @@ interface OrderPaymentRepositoryInterface
      * @return bool 암호문 존재 여부
      */
     public function hasCashReceiptIdentifier(OrderPayment $payment): bool;
+
+    /**
+     * 환불 계좌 정보를 갱신합니다.
+     *
+     * 주문 취소 시점에 관리자가 입력·수정한 계좌를 반영한다. PG 환불(executePgRefund)이
+     * 이 컬럼을 읽어 refundReceiveAccount 를 구성하므로 환불 실행 전에 갱신되어야 한다.
+     *
+     * @param  OrderPayment  $payment  결제 모델
+     * @param  string  $bankCode  은행코드
+     * @param  string  $bankName  은행명 (표시용)
+     * @param  string  $accountNumber  계좌번호
+     * @param  string  $holder  예금주
+     * @return OrderPayment 갱신된 결제 모델
+     */
+    public function updateRefundBank(
+        OrderPayment $payment,
+        string $bankCode,
+        string $bankName,
+        string $accountNumber,
+        string $holder,
+    ): OrderPayment;
 }

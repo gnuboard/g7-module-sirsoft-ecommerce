@@ -42,7 +42,19 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **응답 예시**
 
-<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
+<!-- @probed -->
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "Checkout has been deleted.",
+    "data": null
+}
+```
 
 **에러 응답**
 
@@ -208,7 +220,7 @@ Content-Type: application/json
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

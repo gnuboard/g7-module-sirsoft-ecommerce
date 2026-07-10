@@ -28,6 +28,8 @@ class CashReceiptResource extends BaseApiResource
             'id' => $this->id,
             'provider' => $this->provider,
             'transaction_type' => $this->transaction_type,
+            // 관리자 발급 이력 표는 원시값(issue/cancel, FAILED)이 아니라 표시명을 노출한다.
+            'transaction_type_label' => $this->transaction_type?->label(),
             'receipt_type' => $this->receipt_type,
             'receipt_type_label' => $this->receipt_type?->label(),
             'amount' => $this->roundToOrderCurrency($this->amount),
@@ -38,11 +40,19 @@ class CashReceiptResource extends BaseApiResource
             'receipt_url' => $this->receipt_url,
             'issue_number' => $this->issue_number,
             'issue_status' => $this->issue_status,
+            'issue_status_label' => $this->issue_status?->label(),
+            // 이력 표의 결과 열 — 발급/취소 행이 같은 열을 공유하므로 중립 표현을 쓴다.
+            // issue_status_label 은 발급 관점 표현("발급 완료")이라 취소 행에 쓰면 오해를 부른다.
+            'result_label' => $this->issue_status
+                ? __('sirsoft-ecommerce::cash_receipt.result_status.'.strtolower($this->issue_status->value))
+                : null,
             'error_code' => $this->error_code,
             'error_message' => $this->error_message,
             // 머신 ISO8601 — 표시는 issued_at_formatted 사용
             'issued_at' => $this->issued_at?->toIso8601String(), // audit:allow datetime-display-user-timezone reason: machine ISO8601, display uses issued_at_formatted sibling
             'issued_at_formatted' => $this->formatDateTimeStringForUser($this->issued_at),
+            // 이력 표의 시각 열 — 발급 실패 이력은 issued_at 이 null 이므로 기록 시각으로 대체한다.
+            'occurred_at_formatted' => $this->formatDateTimeStringForUser($this->issued_at ?? $this->created_at),
         ];
     }
 }

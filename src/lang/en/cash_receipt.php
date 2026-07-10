@@ -36,6 +36,16 @@ return [
     ],
 
     /*
+     * Ledger result column — issue and cancel rows share this column,
+     * so the wording must be neutral with respect to the transaction type.
+     */
+    'result_status' => [
+        'in_progress' => 'In Progress',
+        'completed' => 'Completed',
+        'failed' => 'Failed',
+    ],
+
+    /*
      * 배송비 과세 정책
      */
     'shipping_fee_tax_policy' => [

@@ -42,9 +42,9 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| basic_info | object | `{"shop_name":"111","route_path":"shop","no_route":false,"…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
-| language_currency | object | `{"default_currency":"JPY","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
-| order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
+| basic_info | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
+| language_currency | object | `{"default_currency":"KRW","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료·현금영수증 발급 제공자·자진발급·배송비 과세 방식 등) |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 배송 설정 (기본 국가·배송 가능 국가·무료배송·DB 관리 배송사(carriers)·배송유형(types)·계산 API 후보 필드 포함) |
 | seo | object | `{"meta_category_title":"{commerce_name} - {category_name}…` | SEO 메타 설정 (카테고리·검색·상품·쇼핑몰 인덱스별 메타 타이틀/설명 및 SEO 활성 토글) |
 | review_settings | object | `{"write_deadline_days":90,"max_images":5,"max_image_size_…` | 리뷰 정책 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
@@ -53,6 +53,7 @@ _단건 응답: `data` 객체의 필드._
 | mileage | object | `{"enabled":false,"default_earn_rate":1,"earn_trigger":"co…` | 마일리지 설정 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림·실제 활성 알림 채널 포함) |
 | claim | object | `{"refund_reasons":[{"id":1,"type":"refund","code":"order_…` | 클레임 설정 (DB 관리 대상인 환불 사유 목록: 코드·다국어명·귀책 유형·노출/활성 여부) |
 | available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
+| available_cash_receipt_providers | array | `[]` | 설치된 플러그인이 훅으로 등록한 현금영수증 발급 제공자 목록 (id·name_key — 미등록 시 빈 배열이며 신청 폼이 노출되지 않음) |
 | abilities | object | `{"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 | _meta | object | `{"limits":{"auto_cancel_days_min":1,"auto_cancel_days_max…` | <!-- TODO: 설명 --> |
 
@@ -481,9 +482,9 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| basic_info | object | `{"shop_name":"111","route_path":"shop","no_route":false,"…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
-| language_currency | object | `{"default_currency":"JPY","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
-| order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
+| basic_info | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
+| language_currency | object | `{"default_currency":"KRW","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료·현금영수증 발급 제공자·자진발급·배송비 과세 방식 등) |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 배송 설정 (기본 국가·배송 가능 국가·무료배송·DB 관리 배송사(carriers)·배송유형(types)·계산 API 후보 필드 포함) |
 | seo | object | `{"meta_category_title":"{commerce_name} - {category_name}…` | SEO 메타 설정 (카테고리·검색·상품·쇼핑몰 인덱스별 메타 타이틀/설명 및 SEO 활성 토글) |
 | review_settings | object | `{"write_deadline_days":90,"max_images":5,"max_image_size_…` | 리뷰 정책 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
@@ -492,6 +493,7 @@ _단건 응답: `data` 객체의 필드._
 | mileage | object | `{"enabled":false,"default_earn_rate":1,"earn_trigger":"co…` | 마일리지 설정 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림·실제 활성 알림 채널 포함) |
 | claim | object | `{"refund_reasons":[{"id":1,"type":"refund","code":"order_…` | 클레임 설정 (DB 관리 대상인 환불 사유 목록: 코드·다국어명·귀책 유형·노출/활성 여부) |
 | available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
+| available_cash_receipt_providers | array | `[]` | 설치된 플러그인이 훅으로 등록한 현금영수증 발급 제공자 목록 (id·name_key — 미등록 시 빈 배열이며 신청 폼이 노출되지 않음) |
 
 **응답 예시**
 
@@ -896,9 +898,9 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| basic_info | object | `{"shop_name":"111","route_path":"shop","no_route":false,"…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
-| language_currency | object | `{"default_currency":"JPY","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
-| order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
+| basic_info | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
+| language_currency | object | `{"default_currency":"KRW","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료·현금영수증 발급 제공자·자진발급·배송비 과세 방식 등) |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 배송 설정 (기본 국가·배송 가능 국가·무료배송·DB 관리 배송사(carriers)·배송유형(types)·계산 API 후보 필드 포함) |
 | seo | object | `{"meta_category_title":"{commerce_name} - {category_name}…` | SEO 메타 설정 (카테고리·검색·상품·쇼핑몰 인덱스별 메타 타이틀/설명 및 SEO 활성 토글) |
 | review_settings | object | `{"write_deadline_days":90,"max_images":5,"max_image_size_…` | 리뷰 정책 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
@@ -1301,7 +1303,7 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 체크아웃용 배송 설정 (기본 국가·배송 가능 국가·무료배송·배송유형 등) |
-| order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 체크아웃용 주문/결제 설정 (기본 PG·활성 결제수단·무통장 계좌 등) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 체크아웃용 주문/결제 설정 (기본 PG·활성 결제수단·무통장 계좌 등) |
 
 **응답 예시**
 
@@ -1434,7 +1436,7 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 공개 가능한 결제 설정 (활성 결제수단·무통장 은행명 매핑 포함, 민감 정보 제외) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 공개 가능한 결제 설정 (활성 결제수단·무통장 은행명 매핑 포함, 민감 정보 제외) |
 
 **응답 예시**
 
