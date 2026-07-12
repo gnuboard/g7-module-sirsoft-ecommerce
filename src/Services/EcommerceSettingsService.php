@@ -878,7 +878,7 @@ class EcommerceSettingsService implements ModuleSettingsInterface
             }
 
             if ($savedItem) {
-                $merged[] = array_merge([
+                $entry = array_merge([
                     'id' => $id,
                     'pg_provider' => $pgLocked
                         ? ($definition['defaults']['pg_provider'] ?? null)
@@ -896,7 +896,7 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                 ], $capabilities);
             } else {
                 // 신규 결제수단 (기본값 적용)
-                $merged[] = array_merge([
+                $entry = array_merge([
                     'id' => $id,
                     'pg_provider' => $definition['defaults']['pg_provider'] ?? null,
                     'sort_order' => count($merged) + 1,
@@ -911,6 +911,15 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                     '_cached_source' => $definition['source'] ?? 'builtin',
                 ], $capabilities);
             }
+
+            // 플러그인 결제수단(toss_* 등)이 선언한 코어 결제수단 매핑을 보존한다.
+            // 프론트가 주문 생성 시 이 값을 payment_method 로 전송해 코어 PaymentMethodEnum 을 만족시킨다
+            // (미보존 시 원시 id 전송 → 422). 선언하지 않은 builtin/KG 는 키 자체를 두지 않는다.
+            if (isset($definition['defaults']['core_payment_method'])) {
+                $entry['core_payment_method'] = $definition['defaults']['core_payment_method'];
+            }
+
+            $merged[] = $entry;
         }
 
         // 2. 고아 항목: 저장은 되어있지만 현재 available에 없는 결제수단
@@ -959,6 +968,11 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                 $savedMethods[$index]['_cached_icon'] = $def['icon'] ?? $method['_cached_icon'] ?? null;
                 $savedMethods[$index]['_cached_brand_mark'] = $def['brand_mark'] ?? $method['_cached_brand_mark'] ?? null;
                 $savedMethods[$index]['_cached_source'] = $def['source'] ?? $method['_cached_source'] ?? 'builtin';
+
+                // 플러그인 결제수단의 코어 결제수단 매핑도 스냅샷해 재조회 응답(프론트 소비)에 남긴다.
+                if (isset($def['defaults']['core_payment_method'])) {
+                    $savedMethods[$index]['core_payment_method'] = $def['defaults']['core_payment_method'];
+                }
             }
             // 고아 항목은 기존 _cached_* 유지
 

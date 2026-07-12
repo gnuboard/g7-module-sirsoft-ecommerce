@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIdentifierType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptType;
+use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Models\OrderCashReceipt;
 use Modules\Sirsoft\Ecommerce\Models\OrderPayment;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderPaymentRepositoryInterface;
@@ -108,5 +109,20 @@ class OrderPaymentRepository implements OrderPaymentRepositoryInterface
         ]);
 
         return $payment;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function isTransactionPaid(?string $transactionId): bool
+    {
+        if ($transactionId === null || $transactionId === '') {
+            return false;
+        }
+
+        return OrderPayment::query()
+            ->where('transaction_id', $transactionId)
+            ->where('payment_status', PaymentStatusEnum::PAID->value)
+            ->exists();
     }
 }

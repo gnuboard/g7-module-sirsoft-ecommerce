@@ -328,6 +328,40 @@ trait HandlesOrderCreation
             // (예: kginicis_lpay → gopaymethod=LPAY). 서버가 확장 ID 를 1급 시민으로
             // 저장하게 되면서 프론트 인터셉터가 원본 수단을 따로 전달할 필요가 없어졌다(#475).
             'payment_method' => $order->payment?->paymentMethodId(),
+            // 에스크로 결제(가상계좌·계좌이체) 시 필수인 상품 상세 배열. PG 가 사용 여부를
+            // 프론트에서 결정하므로 provider-agnostic 하게 항상 조립한다 (비에스크로는 무시).
+            'escrow_products' => $this->buildEscrowProducts($order, $locale),
         ];
+    }
+
+    /**
+     * 에스크로 결제용 상품 상세 배열을 구성합니다.
+     *
+     * 토스 SDK 의 escrowProducts 파라미터 형식 {id, name, code, unitPrice, quantity} 에 맞춘다.
+     * unitPrice 는 개당가(합계 아님)이며, name 은 현재 로케일로 로컬라이즈한다.
+     * 에스크로는 국내(KRW) 전용이므로 unitPrice 는 base(KRW) 정수를 그대로 쓴다.
+     *
+     * @param  Order  $order  주문 (options 로드됨)
+     * @param  string  $locale  현재 로케일
+     * @return array<int, array{id:string, name:string, code:string, unitPrice:int, quantity:int}>
+     */
+    protected function buildEscrowProducts(Order $order, string $locale): array
+    {
+        $fallback = config('app.fallback_locale', 'ko');
+
+        return $order->options->map(function ($option) use ($locale, $fallback) {
+            $name = $option->product_name;
+            $localizedName = is_array($name)
+                ? ($name[$locale] ?? $name[$fallback] ?? reset($name) ?: '')
+                : ($name ?? '');
+
+            return [
+                'id' => (string) $option->product_option_id,
+                'name' => $localizedName,
+                'code' => (string) $option->product_option_id,
+                'unitPrice' => (int) round((float) $option->unit_price),
+                'quantity' => (int) $option->quantity,
+            ];
+        })->values()->all();
     }
 }

@@ -1703,6 +1703,12 @@ Content-Type: application/json
 
 주문 확정 시점에는 재고·구매대상제한·배송국가·쿠폰 유효성과 함께 **마일리지 사용 정책**도 현재 설정 기준으로 재검증합니다. 임시 주문을 만든 뒤 관리자가 한도를 강화했거나 임시 주문이 조작된 경우 `422`(`errors.code = mileage_usage_not_allowed`)로 차단되며 주문은 생성되지 않습니다. 반대로 정상 생성된 주문에는 그 시점의 사용 정책이 `mileage_policy_snapshot` 으로 고정되어, 이후 설정이 바뀌어도 해당 주문의 판정 근거를 재현할 수 있습니다(통화·프로모션·배송정책 스냅샷과 동일 취지).
 
+**`pg_payment_data` 응답 필드 (PG 결제 주문 한정)** — 결제수단이 PG(카드·가상계좌·계좌이체 등)인 주문은 응답에 `pg_payment_handler`(프론트가 호출할 결제 핸들러 식별자)와 `pg_payment_data` 객체가 함께 내려갑니다. `pg_payment_data`는 PG SDK 결제창 호출에 필요한 값(`order_number`, `order_name`, `amount`, `currency`, `success_url`, `fail_url`, `customer_email`, `customer_phone`, `customer_key` 등)을 담습니다. 이 객체는 결제수단·PG에 따라 동적으로 조립되므로 자동 실측 문서화 대상이 아닙니다. 다음 필드는 프로바이더 비의존적으로 항상 포함됩니다:
+
+| 필드 | 타입 | 용도 |
+| --- | --- | --- |
+| `escrow_products` | array | 에스크로 결제(가상계좌·계좌이체)에서 필수인 상품 상세 배열. 각 원소는 `{id, name, code, unitPrice, quantity}` 형식이며 `unitPrice`는 개당가(합계 아님), `name`은 현재 로케일로 로컬라이즈됩니다. 에스크로 사용 여부는 PG 프론트에서 결정하므로 항상 조립되어 내려가고, 비에스크로 결제는 이 필드를 무시합니다. |
+
 
 ### GET /api/modules/sirsoft-ecommerce/user/orders/{id}
 <!-- @generated:start:api.modules.sirsoft-ecommerce.user.orders.show-by-id -->

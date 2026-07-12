@@ -90,4 +90,16 @@ interface OrderPaymentRepositoryInterface
         string $accountNumber,
         string $holder,
     ): OrderPayment;
+
+    /**
+     * 동일 PG 거래 ID 가 이미 결제완료(PAID) 상태로 저장되어 있는지 확인합니다.
+     *
+     * PG 웹훅/콜백의 리플레이(중복 통보) 멱등 처리에 사용한다. transaction_id 컬럼에는
+     * DB unique 제약이 없으므로, 중복 콜백이 completePayment 를 두 번 실행해 중복
+     * 적립·알림이 발생하는 것을 방지하기 위해 콜백 진입 시점에 조회한다.
+     *
+     * @param  string|null  $transactionId  PG 거래 ID (빈 값이면 false)
+     * @return bool 이미 PAID 로 저장된 거래이면 true
+     */
+    public function isTransactionPaid(?string $transactionId): bool;
 }
