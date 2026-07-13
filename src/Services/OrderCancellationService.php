@@ -986,13 +986,17 @@ class OrderCancellationService
         $orderCurrency = $order->payment->currency ?: ($order->currency_snapshot['order_currency'] ?? null);
         $refundLocal = $this->resolveOrderCurrencyRefundAmount($result, $orderCurrency);
 
+        // $refund 는 이 환불 시도의 고유 레코드다. PG 리스너가 멱등키(Idempotency-Key)를 조립할 때
+        // 사용한다 — 네트워크 재시도로 같은 취소가 두 번 도달해도 PG 가 중복 청구를 차단한다.
+        // 인자 추가는 하위호환이다: 기존 리스너(5-파라미터)는 초과 인자를 그대로 무시한다.
         $pgResult = HookManager::applyFilters(
             'sirsoft-ecommerce.payment.refund',
             ['success' => false, 'error_code' => null, 'error_message' => null, 'transaction_id' => null],
             $order,
             $order->payment,
             $refundLocal,
-            $reason
+            $reason,
+            $refund
         );
 
         if (! empty($pgResult['success'])) {

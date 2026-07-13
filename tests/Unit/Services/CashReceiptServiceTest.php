@@ -220,6 +220,11 @@ class CashReceiptServiceTest extends ModuleTestCase
         $this->assertSame('receipt-1', $receipt->raw_response['receiptKey']);
     }
 
+    /**
+     * 금액 변동(감소) 시 전체취소 후 잔액으로 재발급하는지 확인
+     *
+     * @effects amount_change_triggers_cancel_then_reissue
+     */
     #[Test]
     public function sync_금액감소시_전체취소_후_전액_재발급한다(): void
     {

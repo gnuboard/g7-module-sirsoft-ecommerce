@@ -27,16 +27,12 @@ import { test, expect, authenticatePage } from '../../fixtures/ecommerce-auth';
 import type { Page } from '@playwright/test';
 
 /**
- * 카트 담기에 쓰는 상품 — 전 상품이 옵션 보유(has_options=true)라 option_values 가 필수다.
+ * 카트 담기 로케일.
  *
  * CartService::bulkAddToCart 는 저장된 다국어 JSON 이 아니라 현재 로케일로 평탄화된 맵
  * (`{"색상":"화이트"}`) 과 비교한다(getLocalizedOptionValues). 그래서 요청 로케일을 ko 로 고정한다.
  */
 const CART_LOCALE = 'ko';
-const CART_ITEM = {
-  product_id: 1,
-  items: [{ option_values: { 색상: '화이트' }, quantity: 1 }],
-};
 
 /** 발급수단 드롭다운의 항목 라벨 (ko 고정 — beforeEach 가 g7_locale 을 ko 로 pin 한다) */
 const IDENTIFIER_LABEL = {
@@ -61,7 +57,7 @@ const IDENTIFIER = '#ext_checkout_cash_receipt_identifier';
  */
 async function seedCheckout(page: Page): Promise<void> {
   const result = await page.evaluate(
-    async ({ payload, locale }) => {
+    async ({ locale }) => {
       const token = localStorage.getItem('auth_token');
       const headers = {
         'Content-Type': 'application/json',
@@ -70,14 +66,62 @@ async function seedCheckout(page: Page): Promise<void> {
         Authorization: `Bearer ${token}`,
       };
 
+      // 담을 상품을 런타임에 찾는다. 상품 ID 를 고정하면 시드가 다른 환경에서
+      // 전부 실패하고, 그 실패가 "현금영수증 폼 결함" 으로 오해된다.
+      const list = await fetch(
+        '/api/modules/sirsoft-ecommerce/products?per_page=30',
+        { headers }
+      ).then((r) => r.json());
+
+      const candidates = (list?.data?.data ?? list?.data ?? []) as Array<{ id: number }>;
+      if (candidates.length === 0) {
+        return { step: 'product-list', status: 0, body: '판매 중인 상품이 없습니다.' };
+      }
+
       await fetch('/api/modules/sirsoft-ecommerce/cart/all', { method: 'DELETE', headers });
 
-      const added = await fetch('/api/modules/sirsoft-ecommerce/cart', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      });
-      if (!added.ok) return { step: 'cart', status: added.status, body: await added.text() };
+      // 상품마다 옵션 구성이 다르므로 상세를 읽어 판매 가능한 첫 옵션을 그대로 쓴다.
+      // option_values_localized 는 서버가 현재 로케일로 평탄화해 내려준 맵이며,
+      // CartService::bulkAddToCart 가 비교하는 형태와 동일하다.
+      let added: Response | null = null;
+      let lastBody = '';
+      for (const candidate of candidates) {
+        const detail = await fetch(
+          `/api/modules/sirsoft-ecommerce/products/${candidate.id}`,
+          { headers }
+        ).then((r) => r.json());
+
+        const options = (detail?.data?.options ?? []) as Array<{
+          option_values_localized?: Record<string, string>;
+          stock_quantity?: number;
+        }>;
+        // 재고가 없는 옵션을 고르면 주문 생성이 422 로 막혀 검증 대상에 닿지도 못한다.
+        const usable = options.find((o) => (o.stock_quantity ?? 0) > 0);
+        if (!usable) continue;
+
+        const res = await fetch('/api/modules/sirsoft-ecommerce/cart', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            product_id: candidate.id,
+            items: [
+              {
+                option_values: usable.option_values_localized ?? {},
+                quantity: 1,
+              },
+            ],
+          }),
+        });
+        if (res.ok) {
+          added = res;
+          break;
+        }
+        lastBody = await res.text();
+      }
+
+      if (!added) {
+        return { step: 'cart', status: 422, body: `담을 수 있는 상품 없음: ${lastBody}` };
+      }
 
       const cart = await fetch('/api/modules/sirsoft-ecommerce/cart', { headers }).then((r) => r.json());
       const itemIds = (cart?.data?.items ?? cart?.data ?? []).map((i: { id: number }) => i.id);
@@ -93,7 +137,7 @@ async function seedCheckout(page: Page): Promise<void> {
       });
       return { step: 'checkout', status: checkout.status, body: await checkout.text() };
     },
-    { payload: CART_ITEM, locale: CART_LOCALE }
+    { locale: CART_LOCALE }
   );
 
   expect(result.status, `${result.step} 단계 실패: ${result.body}`).toBeLessThan(300);
