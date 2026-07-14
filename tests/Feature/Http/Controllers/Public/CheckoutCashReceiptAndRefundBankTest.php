@@ -349,6 +349,62 @@ class CheckoutCashReceiptAndRefundBankTest extends ModuleTestCase
     }
 
     /**
+     * 환불계좌가 의미를 갖지 않는 결제수단이면 저장하지 않는다.
+     *
+     * 환불계좌는 무통장(관리자 수동 이체 대상)과 가상계좌(PG 환불 API 의 refundReceiveAccount)
+     * 에서만 쓰인다. 카드/간편결제는 원거래 취소로 환불되므로 계좌가 필요 없다.
+     *
+     * 체크아웃 화면은 결제수단을 바꿔도 _local 의 환불계좌 입력값을 비우지 않으므로,
+     * 무통장에서 계좌를 넣고 카드로 전환하면 그 값이 그대로 전송된다. 발급될 수 없는
+     * 주문에 계좌정보를 남기지 않도록 현금영수증(getCashReceiptInfo)과 같은 축으로 게이팅한다.
+     *
+     * @param  string  $paymentMethod  환불계좌를 쓰지 않는 결제수단
+     */
+    #[DataProvider('nonRefundBankPaymentMethodProvider')]
+    public function test_환불계좌를_쓰지_않는_결제수단이면_저장하지_않는다(string $paymentMethod): void
+    {
+        $this->postOrder([
+            'payment_method' => $paymentMethod,
+            'dbank' => null,
+            'refund_bank' => [
+                'bank_code' => '004',
+                'account_number' => '110-123-456789',
+                'holder' => '홍길동',
+            ],
+        ])->assertStatus(201);
+
+        $payment = $this->latestPayment();
+
+        $this->assertNull(
+            $payment->refund_bank_code,
+            "{$paymentMethod} 주문에 환불계좌가 저장되어서는 안 된다"
+        );
+        $this->assertNull($payment->refund_bank_account);
+        $this->assertNull($payment->refund_bank_holder);
+        $this->assertNull($payment->refund_bank_name);
+    }
+
+    /**
+     * 환불계좌를 쓰지 않는 결제수단 (무통장·가상계좌 제외).
+     *
+     * @return array<string, array{string}>
+     */
+    public static function nonRefundBankPaymentMethodProvider(): array
+    {
+        $cases = [];
+
+        foreach (PaymentMethodEnum::cases() as $method) {
+            if (in_array($method, [PaymentMethodEnum::DBANK, PaymentMethodEnum::VBANK], true)) {
+                continue;
+            }
+
+            $cases[$method->value] = [$method->value];
+        }
+
+        return $cases;
+    }
+
+    /**
      * @return array<string, array{array<string, mixed>, array<int, string>}>
      */
     public static function partialRefundBankProvider(): array

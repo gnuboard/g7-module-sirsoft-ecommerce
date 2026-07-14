@@ -72,6 +72,10 @@ class OrderPaymentResource extends BaseApiResource
             'vbank_due_at' => $this->vbank_due_at?->toIso8601String(), // audit:allow datetime-display-user-timezone reason: machine ISO8601 parsed by PG plugin JS injectors, display uses *_formatted sibling
             'vbank_due_at_formatted' => $this->formatDateTimeStringForUser($this->vbank_due_at),
 
+            // 에스크로 여부 — 결제 시점 스냅샷. 부분취소 차단(PaymentRefundListener)의 기준이자
+            // 주문 상세(관리자/회원)에서 에스크로 거래임을 표시하는 값.
+            'is_escrow' => (bool) $this->is_escrow,
+
             // 무통장입금 정보
             'dbank_name' => $this->dbank_name,
             'dbank_account' => $this->dbank_account,

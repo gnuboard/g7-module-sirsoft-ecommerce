@@ -139,6 +139,8 @@ effects:
   - checkout_purpose_switch_resets_invalid_identifier  # 소득공제 전환 시 business → phone 리셋
   - checkout_identifier_type_options_by_purpose   # 소득공제 2종 / 지출증빙 3종
   - checkout_identifier_cleared_on_type_change    # 발급수단 변경 시 번호 초기화
+  - checkout_state_reset_on_payment_method_change # 결제수단 전환 시 슬롯 소유 _local 초기화 (이전 수단 값 잔류 금지)
+  - refund_bank_not_stored_for_non_bank_methods   # 환불계좌를 쓰지 않는 결제수단이면 서버가 저장하지 않음
 
   # 주문 생성 저장 (FormRequest 4단계 사슬)
   - checkout_cash_receipt_request_persisted       # is_cash_receipt_requested + 용도 + 수단

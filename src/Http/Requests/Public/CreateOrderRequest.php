@@ -364,6 +364,13 @@ class CreateOrderRequest extends FormRequest
      */
     public function getRefundBankInfo(): ?array
     {
+        // 환불 계좌가 쓰이지 않는 결제수단(카드·계좌이체·휴대폰·마일리지·예치금·무료)이면 저장하지 않는다.
+        // 체크아웃 화면은 결제수단을 바꿔도 입력값을 비우지 않으므로, 무통장에서 계좌를 넣고
+        // 카드로 전환하면 그 값이 그대로 전송된다. getCashReceiptInfo() 와 같은 축으로 게이팅한다.
+        if (! PaymentMethodEnum::tryFrom((string) $this->input('payment_method'))?->needsRefundBankAccount()) {
+            return null;
+        }
+
         $bankCode = $this->input('refund_bank.bank_code');
 
         if (blank($bankCode)) {

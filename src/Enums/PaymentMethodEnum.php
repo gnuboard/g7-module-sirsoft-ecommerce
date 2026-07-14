@@ -91,6 +91,23 @@ enum PaymentMethodEnum: string
     }
 
     /**
+     * 환불 계좌를 받아야 하는 결제수단인지 확인합니다.
+     *
+     * 무통장입금은 관리자가 수동으로 이체할 대상 계좌가 필요하고, 가상계좌는 PG 환불 API 의
+     * refundReceiveAccount 로 계좌가 필요하다. 카드·계좌이체·휴대폰은 원거래 취소로 환불되고
+     * 마일리지·예치금·무료는 내부 처리이므로 계좌가 필요 없다.
+     *
+     * 체크아웃 화면은 결제수단을 바꿔도 입력값을 비우지 않으므로, 계좌가 필요 없는 주문에
+     * 계좌정보가 저장되지 않도록 서버가 이 축으로 게이팅한다.
+     *
+     * @return bool 환불 계좌 필요 여부
+     */
+    public function needsRefundBankAccount(): bool
+    {
+        return in_array($this, [self::DBANK, self::VBANK], true);
+    }
+
+    /**
      * 결제수단의 현금성(현금영수증 발급 대상) 금액을 산정합니다.
      *
      * 무통장입금(dbank)만 구매자가 직접 현금을 입금하므로 실결제액 전액이 현금성이다.

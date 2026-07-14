@@ -11,7 +11,7 @@
       "name": "Modal",
       "props": {
         "title": "$t:sirsoft-ecommerce.order.cash_receipt.issue_title",
-        "size": "small"
+        "width": "480px"
       },
       "children": [
         {

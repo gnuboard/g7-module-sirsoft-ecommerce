@@ -20,6 +20,7 @@
  *          checkout_purpose_switch_resets_invalid_identifier,
  *          checkout_identifier_type_options_by_purpose,
  *          checkout_identifier_cleared_on_type_change,
+ *          checkout_state_reset_on_payment_method_change,
  *          new_ui_uses_portable_only,
  *          new_ui_has_no_tailwind_breakpoint
  */
@@ -311,6 +312,38 @@ test.describe('체크아웃 현금영수증 신청 폼 (무통장 슬롯 주입)
 
     await expect(page.locator(ID_TYPE)).toContainText(IDENTIFIER_LABEL.phone);
     await expect(page.locator(IDENTIFIER)).toHaveValue('');
+  });
+
+  test('결제수단을 바꾸면 현금영수증 입력이 초기화된다 (이전 수단 값 잔류 금지)', async ({ page }) => {
+    // 회귀: 결제수단 버튼이 _local.paymentMethod 만 바꾸고 슬롯이 소유한 _local
+    // (checkoutExtraPayload / refundBank*) 은 비우지 않아, 무통장에서 현금영수증을 입력한 뒤
+    // 카드로 전환하면 그 값이 주문 생성 POST 에 그대로 실렸다.
+    await gotoCheckout(page);
+    await selectDbank(page);
+
+    const others = page.locator('[data-testid^="checkout-payment-method-"]:not([data-testid$="-dbank"])');
+    if ((await others.count()) === 0) {
+      test.info().annotations.push({
+        type: 'coverage-gap',
+        description: '무통장 외 활성 결제수단이 없어 전환 시 초기화는 미검증 (환경설정 의존)',
+      });
+      return;
+    }
+
+    // 무통장에서 현금영수증 신청 + 번호 입력
+    await page.locator(TOGGLE).check();
+    await page.locator(IDENTIFIER).fill('01012345678');
+    await expect(page.locator(IDENTIFIER)).toHaveValue('01012345678');
+
+    // 다른 결제수단으로 전환 → 슬롯 언마운트
+    await others.first().click();
+    await expect(page.locator(SLOT)).toHaveCount(0);
+
+    // 무통장으로 돌아오면 이전 입력이 남아 있지 않다 (신청 토글이 꺼진 초기 상태)
+    await selectDbank(page);
+    await expect(page.locator(SLOT)).toHaveCount(1);
+    await expect(page.locator(TOGGLE)).not.toBeChecked();
+    await expect(page.locator(FIELDS)).toHaveCount(0);
   });
 
   test('발급수단을 바꾸면 이전에 입력한 번호가 비워진다', async ({ page }) => {
