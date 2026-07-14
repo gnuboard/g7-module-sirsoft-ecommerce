@@ -149,6 +149,12 @@ Content-Type: application/json
 | --- | --- | --- | --- | --- | --- |
 | ids | body | array | 예 | min 1 | 대상 리소스 식별자 배열 (대량 작업 대상) |
 | bulk_changes | body | array | 아니오 | — | 옵션 일괄 변경 조건 (`price_adjustment`/`stock_quantity` 각각 method+value, 설정된 필드가 개별 수정보다 우선 적용) |
+| bulk_changes.price_adjustment | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| bulk_changes.price_adjustment.method | body | string | 아니오 | `set`, `add`, `percent` | <!-- TODO: 용도 --> |
+| bulk_changes.price_adjustment.value | body | number | 아니오 | — | <!-- TODO: 용도 --> |
+| bulk_changes.stock_quantity | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| bulk_changes.stock_quantity.method | body | string | 아니오 | `set`, `add`, `subtract` | <!-- TODO: 용도 --> |
+| bulk_changes.stock_quantity.value | body | integer | 아니오 | min 0 | <!-- TODO: 용도 --> |
 | items | body | array | 아니오 | — | 처리 대상 항목 배열 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.option.bulk_update_validation_rules`).
@@ -169,6 +175,16 @@ Content-Type: application/json
     "bulk_changes": [
         "예시값"
     ],
+    "bulk_changes.price_adjustment": [
+        "예시값"
+    ],
+    "bulk_changes.price_adjustment.method": "set",
+    "bulk_changes.price_adjustment.value": 1,
+    "bulk_changes.stock_quantity": [
+        "예시값"
+    ],
+    "bulk_changes.stock_quantity.method": "set",
+    "bulk_changes.stock_quantity.value": 1,
     "items": [
         "예시값"
     ]

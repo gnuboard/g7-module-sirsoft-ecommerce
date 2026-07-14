@@ -8,7 +8,7 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Orders 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(raw HTTP) + 실측 응답 필드 표 + 응답 예시(envelope)
 3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
@@ -363,7 +363,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/orders/1316 HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/orders/{order} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -405,7 +405,7 @@ Authorization: Bearer {YOUR_TOKEN}
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/orders/1316 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/orders/{order} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -591,7 +591,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/orders/1316 HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/{order} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -630,8 +630,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -662,7 +662,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/orders/1316/cancel HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cancel HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -676,7 +676,10 @@ Content-Type: application/json
         "예시값"
     ],
     "cancel_pg": true,
-    "refund_priority": "pg_first"
+    "refund_priority": "pg_first",
+    "refund_bank.bank_code": "예시값",
+    "refund_bank.account_number": "예시값",
+    "refund_bank.holder": "예시값"
 }
 ```
 
@@ -694,8 +697,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -717,7 +720,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/orders/1/cash-receipt HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -784,7 +787,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/orders/1/cash-receipt HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -859,8 +862,8 @@ HTTP/1.1 200
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -913,7 +916,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/orders/1/cash-receipt/reissue HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt/reissue HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1002,7 +1005,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/orders/1316/confirm-deposit HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/{order}/confirm-deposit HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1029,8 +1032,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1054,7 +1057,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/orders/1316/estimate-refund HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/estimate-refund HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1082,8 +1085,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1107,7 +1110,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/orders/1316/logs?per_page=1&sort_order=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/orders/{order}/logs?per_page=1&sort_order=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1292,8 +1295,8 @@ HTTP/1.1 200
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.read`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1319,7 +1322,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/orders/1316/options/bulk-status HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/orders/{order}/options/bulk-status HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1349,8 +1352,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1374,7 +1377,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/orders/1316/reset-guest-lookup-password HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/reset-guest-lookup-password HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1388,11 +1391,25 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+
+
+<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- @probed -->
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "비회원 조회 비밀번호가 재설정되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
@@ -1400,8 +1417,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1425,7 +1442,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/orders/1316/send-email HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/send-email HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1451,8 +1468,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1500,8 +1517,8 @@ Content-Type: application/json
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1645,6 +1662,11 @@ HTTP/1.1 200
 | expected_total_amount | body | number | 예 | min 0 | 프론트가 계산한 예상 결제금액 (서버 재계산값과 대조해 금액 위변조 검증) |
 | shipping_memo | body | string | 아니오 | max 500 | 배송 요청사항 메모 |
 | depositor_name | body | string | 아니오 | max 50 | depositor 이름 (식별자) |
+| dbank.bank_code | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
+| dbank.bank_name | body | string | 아니오 | max 50 | dbank.bank 이름 (식별자) |
+| dbank.account_number | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
+| dbank.account_holder | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
+| dbank.due_days | body | integer | 아니오 | min 1, max 30 | <!-- TODO: 용도 --> |
 | save_shipping_address | body | boolean | 아니오 | — | 회원 주소록에 이번 배송지 저장 여부 (회원 주문 한정) |
 | cash_receipt_requested | body | boolean | 아니오 | — | 현금영수증 신청 여부 (true 면 아래 3개 필드가 필수) |
 | cash_receipt_type | body | string | 아니오 | — | 발급 용도 (`income` 소득공제 / `expense` 지출증빙) |
@@ -1653,6 +1675,7 @@ HTTP/1.1 200
 | refund_bank.bank_code | body | string | 아니오 | max 10 | 환불 계좌 은행코드 (세 필드는 전부 입력하거나 전부 비워야 함) |
 | refund_bank.account_number | body | string | 아니오 | max 50 | 환불 계좌번호 |
 | refund_bank.holder | body | string | 아니오 | max 50 | 환불 계좌 예금주 |
+| orderer.email | body | email | 예 | max 255 | <!-- TODO: 용도 --> |
 | guest_lookup_password | body | string | 예 | min 8, max 255 | 비회원 주문 조회 비밀번호 (비회원만 필수, 8자 이상 · 해시로 저장) |
 | guest_lookup_password_confirmation | body | string | 예 | — | 조회 비밀번호 확인 (guest_lookup_password 와 일치해야 함) |
 
@@ -1668,15 +1691,39 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 Content-Type: application/json
 
 {
+    "orderer.name": "예시 이름",
+    "orderer.phone": "010-1234-5678",
+    "shipping.recipient_name": "예시 이름",
+    "shipping.recipient_phone": "010-1234-5678",
+    "shipping.recipient_tel": "예시값",
+    "shipping.country_code": "KR",
+    "shipping.zipcode": "06234",
+    "shipping.address": "서울특별시 강남구 테헤란로 1",
+    "shipping.address_detail": "서울특별시 강남구 테헤란로 1",
+    "shipping.address_type_code": "R",
+    "shipping.address_line_1": "서울특별시 강남구 테헤란로 1",
+    "shipping.address_line_2": "서울특별시 강남구 테헤란로 1",
+    "shipping.intl_city": "예시값",
+    "shipping.intl_state": "예시값",
+    "shipping.intl_postal_code": "06234",
     "payment_method": "예시값",
     "expected_total_amount": 1,
     "shipping_memo": "예시값",
     "depositor_name": "예시 이름",
+    "dbank.bank_code": "예시값",
+    "dbank.bank_name": "예시 이름",
+    "dbank.account_number": "예시값",
+    "dbank.account_holder": "예시값",
+    "dbank.due_days": 1,
     "save_shipping_address": true,
     "cash_receipt_requested": true,
     "cash_receipt_type": "예시값",
     "cash_receipt_identifier_type": "example-key",
     "cash_receipt_identifier": "example-key",
+    "refund_bank.bank_code": "예시값",
+    "refund_bank.account_number": "예시값",
+    "refund_bank.holder": "예시값",
+    "orderer.email": "user@example.com",
     "guest_lookup_password": "Password123!",
     "guest_lookup_password_confirmation": "Password123!"
 }
@@ -1909,8 +1956,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-orders.cancel`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -2083,8 +2130,8 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -2140,8 +2187,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-orders.cancel`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -2298,8 +2345,8 @@ Content-Type: application/json
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

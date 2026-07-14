@@ -550,8 +550,16 @@ Content-Type: application/json
 | --- | --- | --- | --- | --- | --- |
 | ids | body | array | 예 | min 1 | 대상 리소스 식별자 배열 (대량 작업 대상) |
 | bulk_changes | body | array | 아니오 | — | 상품 조건 기반 일괄 변경값 (지정 시 ids 전체에 sales_status/display_status 일괄 적용) |
+| bulk_changes.sales_status | body | string | 아니오 | — | <!-- TODO: 용도 --> |
+| bulk_changes.display_status | body | string | 아니오 | — | <!-- TODO: 용도 --> |
 | items | body | array | 아니오 | — | 처리 대상 항목 배열 |
 | option_bulk_changes | body | array | 아니오 | — | 옵션 조건 기반 일괄 변경값 (price_adjustment/stock_quantity 를 method+value 로 일괄 조정) |
+| option_bulk_changes.price_adjustment | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| option_bulk_changes.price_adjustment.method | body | string | 아니오 | `set`, `add`, `percent` | <!-- TODO: 용도 --> |
+| option_bulk_changes.price_adjustment.value | body | number | 아니오 | — | <!-- TODO: 용도 --> |
+| option_bulk_changes.stock_quantity | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| option_bulk_changes.stock_quantity.method | body | string | 아니오 | `set`, `add`, `subtract` | <!-- TODO: 용도 --> |
+| option_bulk_changes.stock_quantity.value | body | integer | 아니오 | min 0 | <!-- TODO: 용도 --> |
 | option_items | body | array | 아니오 | — | 옵션 개별 인라인 수정 배열 (각 항목: product_id·option_id + 수정할 옵션 필드) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.bulk_update_validation_rules`).
@@ -572,12 +580,24 @@ Content-Type: application/json
     "bulk_changes": [
         "예시값"
     ],
+    "bulk_changes.sales_status": "예시값",
+    "bulk_changes.display_status": "예시값",
     "items": [
         "예시값"
     ],
     "option_bulk_changes": [
         "예시값"
     ],
+    "option_bulk_changes.price_adjustment": [
+        "예시값"
+    ],
+    "option_bulk_changes.price_adjustment.method": "set",
+    "option_bulk_changes.price_adjustment.value": 1,
+    "option_bulk_changes.stock_quantity": [
+        "예시값"
+    ],
+    "option_bulk_changes.stock_quantity.method": "set",
+    "option_bulk_changes.stock_quantity.value": 1,
     "option_items": [
         "예시값"
     ]
@@ -794,8 +814,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -855,6 +875,8 @@ Authorization: Bearer {YOUR_TOKEN}
 | temp_key | body | string | 아니오 | max 64 | 임시 업로드 세션 키 (같은 상품의 여러 이미지를 한 세션으로 묶음, 생략 시 서버가 UUID 자동 발급) |
 | collection | body | string | 아니오 | — | 첨부 컬렉션 그룹명 (첨부를 용도별로 묶는 키, 미지정 시 default) |
 | alt_text | body | array | 아니오 | — | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) |
+| alt_text.ko | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| alt_text.en | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_upload_validation_rules`).
 
@@ -882,6 +904,14 @@ Content-Disposition: form-data; name="collection"
 예시값
 ------G7ExampleBoundary
 Content-Disposition: form-data; name="alt_text"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.ko"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.en"
 
 예시값
 ------G7ExampleBoundary--
@@ -1104,6 +1134,8 @@ Authorization: Bearer {YOUR_TOKEN}
 | temp_key | body | string | 아니오 | max 64 | 임시 업로드 세션 키 (같은 상품의 여러 이미지를 한 세션으로 묶음, 생략 시 서버가 UUID 자동 발급) |
 | collection | body | string | 아니오 | — | 첨부 컬렉션 그룹명 (첨부를 용도별로 묶는 키, 미지정 시 default) |
 | alt_text | body | array | 아니오 | — | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) |
+| alt_text.ko | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| alt_text.en | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_upload_validation_rules`).
 
@@ -1133,6 +1165,14 @@ Content-Disposition: form-data; name="collection"
 Content-Disposition: form-data; name="alt_text"
 
 예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.ko"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.en"
+
+예시값
 ------G7ExampleBoundary--
 ```
 
@@ -1150,8 +1190,8 @@ Content-Disposition: form-data; name="alt_text"
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1216,7 +1256,7 @@ Authorization: Bearer {YOUR_TOKEN}
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/products/1732 HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/products/{product} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1300,7 +1340,7 @@ Authorization: Bearer {YOUR_TOKEN}
 **요청 예시**
 
 ```http
-PUT /api/modules/sirsoft-ecommerce/admin/products/1732 HTTP/1.1
+PUT /api/modules/sirsoft-ecommerce/admin/products/{product} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1390,8 +1430,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -1413,7 +1453,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/products/1732/can-delete HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/products/{product}/can-delete HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1494,7 +1534,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/products/1732/copy?copy_images=1&copy_options=1&copy_categories=1&copy_sales_info=1&copy_description=1&copy_notice=1&copy_common_info=1&copy_other_info=1&copy_shipping=1&copy_seo=1&copy_identification=1 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/products/{product}/copy HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1598,7 +1638,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/products/1732/form HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/products/{product}/form HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -1643,7 +1683,7 @@ _단건 응답: `data` 객체의 필드._
 | purchase_restriction | string | `none` | 구매 제한: none(없음), restricted(제한) |
 | allowed_roles | array | `[]` | 구매 허용 역할 ID 배열 |
 | meta_title | null | `null` | SEO 제목 (다국어 JSON) |
-| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| meta_description | object | `{"ko":"면 손수건 3매입 #1 의 직접 입력 SEO 설명입니다.","en":"Custom SEO …` | SEO 설명 (다국어 JSON) |
 | seo_tags | array | `[]` | SEO 태그 목록 (메타 키워드 등 검색엔진 노출용 태그) |
 | seo_sync_title | boolean | `true` | SEO 제목 동기화 여부 (1: 상품명으로 자동 채움, 0: 직접 입력 보존) |
 | seo_sync_description | boolean | `true` | SEO 설명 동기화 여부 (1: 상품 설명으로 자동 채움, 0: 직접 입력 보존) |
@@ -1706,7 +1746,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/products/1732/logs?per_page=1&sort_order=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/products/{product}/logs HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -2391,7 +2431,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/products/1732 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/products/{product} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
@@ -2439,7 +2479,7 @@ _단건 응답: `data` 객체의 필드._
 | images | array | `[{"id":7,"hash":"7df7761cdf16","original_filename":"produ…` | 상품 이미지 목록 (각 항목: hash·url·alt_text·is_thumbnail·sort_order 등, images 관계 로드 시) |
 | thumbnail_url | string | `/api/modules/sirsoft-ecommerce/produc…` | thumbnail URL |
 | meta_title | null | `null` | SEO 제목 (다국어 JSON) |
-| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
+| meta_description | object | `{"ko":"면 손수건 3매입 #1 의 직접 입력 SEO 설명입니다.","en":"Custom SEO …` | SEO 설명 (다국어 JSON) |
 | meta_keywords | null | `null` | SEO 키워드 (배열) |
 | has_options | boolean | `true` | options 여부 |
 | option_groups | array | `[{"name":{"ko":"색상","en":"Color"},"name_localized":"색상","…` | 옵션 그룹 정의: [{name: "색상", values: ["빨강", "파랑"]}] |
@@ -2500,7 +2540,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/products/1732/downloadable-coupons HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/products/{product}/downloadable-coupons HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
@@ -2674,7 +2714,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/products/1732/inquiries?page=1&per_page=1&exclude_secret=1 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/products/{product}/inquiries HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
@@ -2797,7 +2837,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/products/1732/inquiries HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/products/{product}/inquiries HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
@@ -2825,8 +2865,8 @@ Content-Type: application/json
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-products.read`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -2856,7 +2896,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/products/1732/reviews?sort=created_at_desc&photo_only=0&page=1&per_page=1&rating=1&option_filters=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/products/{product}/reviews?sort=created_at_desc&photo_only=0&page=1&per_page=1&rating=1&option_filters=%EC%98%88%EC%8B%9C%EA%B0%92 HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생략 가능)
@@ -2974,8 +3014,8 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-products.read`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

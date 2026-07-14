@@ -65,7 +65,7 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | user_id | string | `a231747f-e82e-4cf2-9ae1-a261849dce40` | user 식별자 (연관 리소스 참조) |
 | user | object | `{"uuid":"a231747f-e82e-4cf2-9ae1-a261849dce40","name":"AP…` | 작성자 정보 (uuid·name·email, `user` 관계 로드 시) |
 | product | object | `{"id":320,"name":"API 문서 샘플 상품","thumbnail_url":null}` | 리뷰 대상 상품 정보 (id·현지화 상품명·썸네일 URL) |
-| option_snapshot | null | `null` | 주문 시점 옵션 스냅샷 (옵션명 보존용) |
+| option_snapshot | string | `{"id":104,"option_code":"FWACBAVCBKCD…` | 주문 시점 옵션 스냅샷 (옵션명 보존용) |
 | option_snapshot_label | string | `` | `option_snapshot` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | rating | integer | `5` | 별점 (1~5) |
 | content | string | `Molestiae repellendus accusantium omn…` | 리뷰 내용 |
@@ -79,12 +79,12 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | has_reply | boolean | `false` | reply 여부 |
 | has_reply_label | string | `미답변` | `has_reply` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | has_reply_badge_color | string | `gray` | 답변 여부 뱃지 색상 (답변완료=green / 미답변=gray) |
-| reply_content | null | `null` | 판매자 답변 내용 (없으면 null) |
+| reply_content | string | `소중한 리뷰 감사드립니다! 항상 최선을 다하겠습니다.` | 판매자 답변 내용 (없으면 null) |
 | reply_content_mode | string | `text` | 답변 콘텐츠 모드: text / html |
-| reply_admin_uuid | null | `null` | 답변 작성 관리자 UUID (`replyAdmin` 관계 로드 시) |
-| reply_admin | null | `null` | 답변 작성 관리자 정보 (uuid·name·email, `replyAdmin` 관계 로드 시) |
-| replied_at | null | `null` | replied 일시 |
-| reply_updated_at | null | `null` | reply updated 일시 |
+| reply_admin_uuid | string | `a2397737-f8da-4451-a9c0-2616e7cd2002` | 답변 작성 관리자 UUID (`replyAdmin` 관계 로드 시) |
+| reply_admin | object | `{"uuid":"a2397737-f8da-4451-a9c0-2616e7cd2002","name":"관리…` | 답변 작성 관리자 정보 (uuid·name·email, `replyAdmin` 관계 로드 시) |
+| replied_at | string | `2026-07-06 19:08:45` | replied 일시 |
+| reply_updated_at | string | `2026-07-07 19:08:45` | reply updated 일시 |
 | created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
 | updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
@@ -273,7 +273,39 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `99` | 기본 키 (내부 식별자) |
+| product_id | integer | `320` | 상품 ID |
+| order_option_id | integer | `859` | 주문 옵션 ID |
+| user_id | string | `a231747f-e82e-4cf2-9ae1-a261849dce40` | 작성자 ID |
+| user | object | `{"uuid":"a231747f-e82e-4cf2-9ae1-a261849dce40","name":"AP…` | 작성자 정보 (uuid·name·email, `user` 관계 로드 시) |
+| product | object | `{"id":320,"name":"API 문서 샘플 상품","thumbnail_url":null}` | 리뷰 대상 상품 정보 (id·현지화 상품명·썸네일 URL) |
+| option_snapshot | string | `{"id":104,"option_code":"FWACBAVCBKCD…` | 주문 시점 옵션 스냅샷 (옵션명 보존용) |
+| option_snapshot_label | string | `` | `option_snapshot` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| rating | integer | `5` | 별점 (1~5) |
+| content | string | `Molestiae repellendus accusantium omn…` | 리뷰 내용 |
+| content_mode | string | `text` | 콘텐츠 모드: text / html |
+| status | string | `visible` | 리뷰 상태: visible / hidden |
+| status_label | string | `전시중` | 상태의 사람이 읽는 라벨 (상태 Enum label() 산물) |
+| status_badge_color | string | `blue` | 상태 뱃지 색상 (visible=blue / hidden=gray) |
+| images | array | `[]` | 첨부 이미지 목록 (이미지 리소스 배열, `images` 관계 로드 시) |
+| image_count | integer | `0` | image 개수 (집계) |
+| orderOption | object | `{"id":859,"order_id":455,"order_number":"ORD-20260707-000…` | 리뷰가 연결된 주문 옵션 정보 (주문 ID·주문번호·수량·주문일) |
+| has_reply | boolean | `false` | reply 여부 |
+| has_reply_label | string | `미답변` | `has_reply` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| has_reply_badge_color | string | `gray` | 답변 여부 뱃지 색상 (답변완료=green / 미답변=gray) |
+| reply_content | null | `null` | 판매자 답변 내용 |
+| reply_content_mode | string | `text` | 답변 콘텐츠 모드: text / html |
+| reply_admin_uuid | null | `null` | 답변 작성 관리자 UUID (`replyAdmin` 관계 로드 시) |
+| reply_admin | null | `null` | 답변 작성 관리자 정보 (uuid·name·email, `replyAdmin` 관계 로드 시) |
+| replied_at | null | `null` | replied 일시 |
+| reply_updated_at | null | `null` | reply updated 일시 |
+| created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
+| updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
 **응답 예시**
 
@@ -315,7 +347,33 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| product_id | integer | `1` | product 식별자 (연관 리소스 참조) |
+| order_option_id | integer | `1` | order option 식별자 (연관 리소스 참조) |
+| user_id | string | `a234c2b1-cde8-437f-b28b-23323be2b98d` | user 식별자 (연관 리소스 참조) |
+| user | object | `{"uuid":"a234c2b1-cde8-437f-b28b-23323be2b98d","name":"AP…` | 대상 사용자 정보 객체 (uuid/name/email 등 — user 관계 파생) |
+| option_snapshot | string | `{"id":104,"option_code":"FWACBAVCBKCD…` | 주문 시점 옵션 스냅샷 (옵션명 보존용) |
+| option_snapshot_label | string | `` | `option_snapshot` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| rating | integer | `5` | 별점 (1~5) |
+| content | string | `Alias quas iusto dolorem eum eveniet …` | 본문 내용 |
+| content_mode | string | `text` | 콘텐츠 모드: text / html |
+| status | string | `visible` | 상태 값 (도메인별 상태 집합 — 사람이 읽는 라벨은 status_label, UI 변형은 status_variant 참조) |
+| status_label | string | `전시중` | 상태의 사람이 읽는 라벨 (상태 Enum label() 산물) |
+| status_badge_color | string | `blue` | 상태 뱃지 색상 (visible=blue / hidden=gray) |
+| has_reply | boolean | `false` | reply 여부 |
+| has_reply_label | string | `미답변` | `has_reply` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| has_reply_badge_color | string | `gray` | 답변 여부 뱃지 색상 (답변완료=green / 미답변=gray) |
+| reply_content | null | `null` | 판매자 답변 내용 |
+| reply_content_mode | string | `text` | 답변 콘텐츠 모드: text / html |
+| replied_at | null | `null` | replied 일시 |
+| reply_updated_at | null | `null` | reply updated 일시 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
 **응답 예시**
 
@@ -367,7 +425,33 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| product_id | integer | `1` | product 식별자 (연관 리소스 참조) |
+| order_option_id | integer | `1` | order option 식별자 (연관 리소스 참조) |
+| user_id | string | `a234c2b1-cde8-437f-b28b-23323be2b98d` | user 식별자 (연관 리소스 참조) |
+| user | object | `{"uuid":"a234c2b1-cde8-437f-b28b-23323be2b98d","name":"AP…` | 대상 사용자 정보 객체 (uuid/name/email 등 — user 관계 파생) |
+| option_snapshot | string | `{"id":104,"option_code":"FWACBAVCBKCD…` | 주문 시점 옵션 스냅샷 (옵션명 보존용) |
+| option_snapshot_label | string | `` | `option_snapshot` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| rating | integer | `5` | 별점 (1~5) |
+| content | string | `Alias quas iusto dolorem eum eveniet …` | 본문 내용 |
+| content_mode | string | `text` | 콘텐츠 모드: text / html |
+| status | string | `visible` | 상태 값 (도메인별 상태 집합 — 사람이 읽는 라벨은 status_label, UI 변형은 status_variant 참조) |
+| status_label | string | `전시중` | 상태의 사람이 읽는 라벨 (상태 Enum label() 산물) |
+| status_badge_color | string | `blue` | 상태 뱃지 색상 (visible=blue / hidden=gray) |
+| has_reply | boolean | `true` | reply 여부 |
+| has_reply_label | string | `답변완료` | `has_reply` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| has_reply_badge_color | string | `green` | 답변 여부 뱃지 색상 (답변완료=green / 미답변=gray) |
+| reply_content | string | `실측 예시값` | 판매자 답변 내용 |
+| reply_content_mode | string | `text` | 답변 콘텐츠 모드: text / html |
+| replied_at | string | `2026-07-08 15:00:32` | replied 일시 |
+| reply_updated_at | null | `null` | reply updated 일시 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:32` | 최종 수정 일시 |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
 **응답 예시**
 
@@ -379,8 +463,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.reviews.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -430,8 +514,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.reviews.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -622,8 +706,8 @@ Content-Type: application/octet-stream
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-reviews.write`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -654,11 +738,29 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 삭제 처리 성공 여부 (true 이면 리뷰와 첨부 이미지가 제거됨) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+<!-- @probed -->
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "리뷰 이미지가 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 

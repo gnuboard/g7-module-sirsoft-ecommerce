@@ -506,7 +506,17 @@ Content-Type: application/json
 | endpoint | body | string | 예 | max 500 | 테스트로 호출할 외부 배송비 계산 API 엔드포인트 URL. 내부 네트워크 주소(사설 IP·루프백·`localhost`·`*.internal` 등)와 userinfo(`https://a@b/`) 위장 주소는 422 로 거부됩니다 — 이 주소는 쇼핑몰 서버가 대신 호출하므로 내부망 접근을 막기 위함(SSRF). 사내 배송비 계산 서버를 쓰려면 코어 환경설정의 `security.allow_internal_outbound_urls` 를 켜세요 |
 | request_fields | body | array | 아니오 | — | 요청에 실어 보낼 필드명 목록 (후보 SSoT ShippingApiRequestField 5종) |
 | config | body | array | 아니오 | — | API 호출 고급 설정 (HTTP 메서드·인증방식·필드 매핑·응답 형식/경로 등) |
+| config.http_method | body | string | 아니오 | — | <!-- TODO: 용도 --> |
+| config.auth_type | body | string | 아니오 | — | <!-- TODO: 용도 --> |
+| config.auth_token | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
+| config.auth_header_name | body | string | 아니오 | max 100 | config.auth header 이름 (식별자) |
+| config.response_type | body | string | 아니오 | — | <!-- TODO: 용도 --> |
+| config.response_path | body | string | 아니오 | max 200 | <!-- TODO: 용도 --> |
+| config.field_map | body | array | 아니오 | — | <!-- TODO: 용도 --> |
 | sample | body | array | 아니오 | — | 테스트 계산에 사용할 샘플 주문 데이터 (무게/금액/수량 등) |
+| sample.group_total | body | number | 아니오 | min 0 | <!-- TODO: 용도 --> |
+| sample.total_quantity | body | integer | 아니오 | min 0 | <!-- TODO: 용도 --> |
+| sample.country_code | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
 
 **요청 예시**
 
@@ -525,9 +535,21 @@ Content-Type: application/json
     "config": [
         "예시값"
     ],
+    "config.http_method": "예시값",
+    "config.auth_type": "예시값",
+    "config.auth_token": "{YOUR_TOKEN}",
+    "config.auth_header_name": "예시 이름",
+    "config.response_type": "예시값",
+    "config.response_path": "예시값",
+    "config.field_map": [
+        "예시값"
+    ],
     "sample": [
         "예시값"
-    ]
+    ],
+    "sample.group_total": 1,
+    "sample.total_quantity": 1,
+    "sample.country_code": "KR"
 }
 ```
 
@@ -691,8 +713,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.shipping-policies.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

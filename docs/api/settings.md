@@ -8,7 +8,7 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Settings 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(raw HTTP) + 실측 응답 필드 표 + 응답 예시(envelope)
 3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
@@ -422,15 +422,90 @@ HTTP/1.1 200
 | --- | --- | --- | --- | --- | --- |
 | _tab | body | string | 아니오 | `basic_info`, `language_currency`, `seo`, `order_settings`, `claim`, `shipping`, `review_settings`, `notification_definitions`, `notifications`, `inquiry`, `mileage` | 저장할 설정 탭(카테고리) 지정 (탭별 부분 저장 식별용) |
 | notifications | body | array | 아니오 | — | 알림 채널 설정 배열 (채널 ID·활성 여부·정렬 순서) |
+| notifications.channels | body | array | 아니오 | — | <!-- TODO: 용도 --> |
 | basic_info | body | array | 아니오 | — | 쇼핑몰 기본 정보 섹션 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처 등) |
+| basic_info.shop_name | body | string | 아니오 | max 255 | basic info.shop 이름 (식별자) |
+| basic_info.route_path | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
+| basic_info.no_route | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| basic_info.company_name | body | string | 아니오 | max 255 | basic info.company 이름 (식별자) |
+| basic_info.business_number_1 | body | string | 아니오 | max 3 | <!-- TODO: 용도 --> |
+| basic_info.business_number_2 | body | string | 아니오 | max 2 | <!-- TODO: 용도 --> |
+| basic_info.business_number_3 | body | string | 아니오 | max 5 | <!-- TODO: 용도 --> |
+| basic_info.ceo_name | body | string | 아니오 | max 100 | basic info.ceo 이름 (식별자) |
+| basic_info.business_type | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
+| basic_info.business_category | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| basic_info.zipcode | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
+| basic_info.base_address | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
+| basic_info.detail_address | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| basic_info.phone_1 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
+| basic_info.phone_2 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
+| basic_info.phone_3 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
+| basic_info.fax_1 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
+| basic_info.fax_2 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
+| basic_info.fax_3 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
+| basic_info.email_id | body | string | 아니오 | max 100 | basic info.email 식별자 |
+| basic_info.email_domain | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
+| basic_info.privacy_officer | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
+| basic_info.privacy_officer_email | body | email | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| basic_info.mail_order_number | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
+| basic_info.telecom_number | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
 | language_currency | body | array | 아니오 | — | 통화 설정 섹션 (기본 통화·통화 목록: 코드·다국어명·환율·반올림 규칙·통화별 로케일) |
+| language_currency.default_currency | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
+| language_currency.currencies | body | array | 아니오 | — | <!-- TODO: 용도 --> |
 | seo | body | array | 아니오 | — | SEO 메타 설정 섹션 (페이지 유형별 메타 타이틀/설명·SEO 활성 토글) |
+| seo.meta_category_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
+| seo.meta_category_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
+| seo.meta_search_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
+| seo.meta_search_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
+| seo.meta_product_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
+| seo.meta_product_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
+| seo.meta_shop_index_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
+| seo.meta_shop_index_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
+| seo.seo_category | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| seo.seo_search_result | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| seo.seo_product_detail | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| seo.seo_shop_index | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
 | inquiry | body | array | 아니오 | — | 문의 연동 설정 섹션 (문의 게시판 slug) |
+| inquiry.board_slug | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
 | order_settings | body | array | 아니오 | — | 주문/결제 설정 섹션 (기본 PG·결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
+| order_settings.default_pg_provider | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
+| order_settings.cash_receipt_provider | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
+| order_settings.cash_receipt_self_issue | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.shipping_fee_tax_policy | body | string | 아니오 | `proportional`, `taxable`, `follow_main_item` | <!-- TODO: 용도 --> |
+| order_settings.payment_methods | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.banks | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.bank_accounts | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.auto_cancel_expired | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.auto_cancel_days | body | integer | 아니오 | min 0, max 30 | <!-- TODO: 용도 --> |
+| order_settings.cart_expiry_days | body | integer | 아니오 | min 1, max 365 | <!-- TODO: 용도 --> |
+| order_settings.stock_restore_on_cancel | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.confirmable_statuses | body | array | 아니오 | — | <!-- TODO: 용도 --> |
 | claim | body | array | 아니오 | — | 클레임 설정 섹션 (환불 사유 목록, DB 동기화 대상으로 분리 저장) |
+| claim.refund_reasons | body | array | 아니오 | — | <!-- TODO: 용도 --> |
 | review_settings | body | array | 아니오 | — | 리뷰 정책 섹션 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
+| review_settings.write_deadline_days | body | integer | 아니오 | min 1, max 365 | <!-- TODO: 용도 --> |
+| review_settings.max_images | body | integer | 아니오 | min 0, max 20 | <!-- TODO: 용도 --> |
+| review_settings.max_image_size_mb | body | integer | 아니오 | min 1, max 50 | <!-- TODO: 용도 --> |
 | mileage | body | array | 아니오 | — | 마일리지 설정 섹션 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림) |
+| mileage.enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| mileage.default_earn_rate | body | number | 아니오 | min 0, max 100 | <!-- TODO: 용도 --> |
+| mileage.earn_trigger | body | string | 아니오 | `delivered`, `confirmed` | <!-- TODO: 용도 --> |
+| mileage.earn_delay_days | body | integer | 아니오 | min 0, max 365 | <!-- TODO: 용도 --> |
+| mileage.currency_rules | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| mileage.expiry_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| mileage.expiry_days | body | integer | 아니오 | min 1, max 3650 | <!-- TODO: 용도 --> |
+| mileage.expiry_notification_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| mileage.expiry_notification_days_before | body | integer | 아니오 | min 1, max 365 | <!-- TODO: 용도 --> |
 | shipping | body | array | 아니오 | — | 배송 설정 섹션 (기본 국가·배송 가능 국가·무료배송·배송사(carriers)·배송유형(types) — carriers/types는 DB 동기화 대상으로 분리 저장) |
+| shipping.default_country | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
+| shipping.available_countries | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| shipping.international_shipping_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| shipping.free_shipping_threshold | body | integer | 아니오 | min 0 | <!-- TODO: 용도 --> |
+| shipping.free_shipping_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| shipping.address_validation_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| shipping.address_api_provider | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
+| shipping.carriers | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| shipping.types | body | array | 아니오 | — | <!-- TODO: 용도 --> |
 
 **요청 예시**
 
@@ -446,31 +521,128 @@ Content-Type: application/json
     "notifications": [
         "예시값"
     ],
+    "notifications.channels": [
+        "예시값"
+    ],
     "basic_info": [
         "예시값"
     ],
+    "basic_info.shop_name": "예시 이름",
+    "basic_info.route_path": "예시값",
+    "basic_info.no_route": true,
+    "basic_info.company_name": "예시 이름",
+    "basic_info.business_number_1": "예시값",
+    "basic_info.business_number_2": "예시값",
+    "basic_info.business_number_3": "예시값",
+    "basic_info.ceo_name": "예시 이름",
+    "basic_info.business_type": "예시값",
+    "basic_info.business_category": "예시값",
+    "basic_info.zipcode": "06234",
+    "basic_info.base_address": "서울특별시 강남구 테헤란로 1",
+    "basic_info.detail_address": "서울특별시 강남구 테헤란로 1",
+    "basic_info.phone_1": "010-1234-5678",
+    "basic_info.phone_2": "010-1234-5678",
+    "basic_info.phone_3": "010-1234-5678",
+    "basic_info.fax_1": "예시값",
+    "basic_info.fax_2": "예시값",
+    "basic_info.fax_3": "예시값",
+    "basic_info.email_id": "user@example.com",
+    "basic_info.email_domain": "user@example.com",
+    "basic_info.privacy_officer": "예시값",
+    "basic_info.privacy_officer_email": "user@example.com",
+    "basic_info.mail_order_number": "예시값",
+    "basic_info.telecom_number": "예시값",
     "language_currency": [
+        "예시값"
+    ],
+    "language_currency.default_currency": "예시값",
+    "language_currency.currencies": [
         "예시값"
     ],
     "seo": [
         "예시값"
     ],
+    "seo.meta_category_title": "예시 제목",
+    "seo.meta_category_description": "예시 내용입니다.",
+    "seo.meta_search_title": "예시 제목",
+    "seo.meta_search_description": "예시 내용입니다.",
+    "seo.meta_product_title": "예시 제목",
+    "seo.meta_product_description": "예시 내용입니다.",
+    "seo.meta_shop_index_title": "예시 제목",
+    "seo.meta_shop_index_description": "예시 내용입니다.",
+    "seo.seo_category": true,
+    "seo.seo_search_result": true,
+    "seo.seo_product_detail": true,
+    "seo.seo_shop_index": true,
     "inquiry": [
         "예시값"
     ],
+    "inquiry.board_slug": "example-key",
     "order_settings": [
+        "예시값"
+    ],
+    "order_settings.default_pg_provider": "예시값",
+    "order_settings.cash_receipt_provider": "예시값",
+    "order_settings.cash_receipt_self_issue": true,
+    "order_settings.shipping_fee_tax_policy": "proportional",
+    "order_settings.payment_methods": [
+        "예시값"
+    ],
+    "order_settings.banks": [
+        "예시값"
+    ],
+    "order_settings.bank_accounts": [
+        "예시값"
+    ],
+    "order_settings.auto_cancel_expired": true,
+    "order_settings.auto_cancel_days": 1,
+    "order_settings.cart_expiry_days": 1,
+    "order_settings.stock_restore_on_cancel": true,
+    "order_settings.confirmable_statuses": [
         "예시값"
     ],
     "claim": [
         "예시값"
     ],
+    "claim.refund_reasons": [
+        "예시값"
+    ],
     "review_settings": [
         "예시값"
     ],
+    "review_settings.write_deadline_days": 1,
+    "review_settings.max_images": 1,
+    "review_settings.max_image_size_mb": 1,
     "mileage": [
         "예시값"
     ],
+    "mileage.enabled": true,
+    "mileage.default_earn_rate": 1,
+    "mileage.earn_trigger": "delivered",
+    "mileage.earn_delay_days": 1,
+    "mileage.currency_rules": [
+        "예시값"
+    ],
+    "mileage.expiry_enabled": true,
+    "mileage.expiry_days": 1,
+    "mileage.expiry_notification_enabled": true,
+    "mileage.expiry_notification_days_before": 1,
     "shipping": [
+        "예시값"
+    ],
+    "shipping.default_country": "KR",
+    "shipping.available_countries": [
+        "KR"
+    ],
+    "shipping.international_shipping_enabled": true,
+    "shipping.free_shipping_threshold": 1,
+    "shipping.free_shipping_enabled": true,
+    "shipping.address_validation_enabled": true,
+    "shipping.address_api_provider": "서울특별시 강남구 테헤란로 1",
+    "shipping.carriers": [
+        "예시값"
+    ],
+    "shipping.types": [
         "예시값"
     ]
 }

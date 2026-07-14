@@ -251,6 +251,8 @@ Content-Type: application/json
 | temp_key | body | string | 아니오 | max 64 | 사전 업로드한 임시 이미지를 이 카테고리에 연결하기 위한 FileUploader temp_key |
 | collection | body | string | 아니오 | max 100 | 첨부 컬렉션 그룹명 (첨부를 용도별로 묶는 키, 미지정 시 default) |
 | alt_text | body | array | 아니오 | — | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) |
+| alt_text.ko | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| alt_text.en | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category-image.filter_upload_validation_rules`).
 
@@ -278,6 +280,14 @@ Content-Disposition: form-data; name="collection"
 예시값
 ------G7ExampleBoundary
 Content-Disposition: form-data; name="alt_text"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.ko"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.en"
 
 예시값
 ------G7ExampleBoundary--
@@ -578,6 +588,8 @@ HTTP/1.1 200
 | temp_key | body | string | 아니오 | max 64 | 사전 업로드한 임시 이미지를 이 카테고리에 연결하기 위한 FileUploader temp_key |
 | collection | body | string | 아니오 | max 100 | 첨부 컬렉션 그룹명 (첨부를 용도별로 묶는 키, 미지정 시 default) |
 | alt_text | body | array | 아니오 | — | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) |
+| alt_text.ko | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| alt_text.en | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.category-image.filter_upload_validation_rules`).
 
@@ -607,6 +619,14 @@ Content-Disposition: form-data; name="collection"
 Content-Disposition: form-data; name="alt_text"
 
 예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.ko"
+
+예시값
+------G7ExampleBoundary
+Content-Disposition: form-data; name="alt_text.en"
+
+예시값
 ------G7ExampleBoundary--
 ```
 
@@ -624,8 +644,8 @@ Content-Disposition: form-data; name="alt_text"
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -735,8 +755,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

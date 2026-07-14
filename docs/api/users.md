@@ -33,7 +33,7 @@
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/users/a26219fc-94a0-4f63-9404-04c2a6ac99e4/currency HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/users/{user}/currency HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -58,8 +58,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-currency.manage`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
@@ -82,7 +82,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/users/a26219fc-94a0-4f63-9404-04c2a6ac99e4/shipping-country HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/users/{user}/shipping-country HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -123,8 +123,8 @@ HTTP/1.1 200
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-shipping-country.manage`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

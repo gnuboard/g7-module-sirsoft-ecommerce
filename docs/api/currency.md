@@ -42,7 +42,7 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| preferred_currency | null | `null` | 회원이 저장한 선호 결제 통화 코드 (미설정 시 `null`) |
+| preferred_currency | string | `KRW` | 회원이 저장한 선호 결제 통화 코드 (미설정 시 `null`) |
 
 **응답 예시**
 
