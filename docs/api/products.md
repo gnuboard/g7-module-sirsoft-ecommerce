@@ -352,11 +352,129 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductResource`). 성공 시 HTTP 201._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 생성된 상품의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"샘플 상품","en":"Sample Product"}` | 상품명 (로케일별 값 객체) |
+| name_localized | string | `샘플 상품` | `name` 의 현재 로케일 해석 값 |
+| product_code | string | `PROD-GJUX-1484` | 상품코드 (상품 고유 관리 식별자) |
+| sku | string | `SKU-MRAD-9306` | 재고관리코드(SKU) |
+| categories | array | `[]` | 소속 카테고리 목록 (categories 관계 로드 시) |
+| category_ids | array | `[1]` | 소속 카테고리 ID 배열 (categories 관계 로드 시) |
+| primary_category_id | integer | `1` | 대표 카테고리 ID (is_primary 카테고리) |
+| brand_id | integer | `null` | 브랜드 식별자 |
+| list_price | integer | `112594` | 정가 (기본통화 자릿수로 정규화) |
+| selling_price | integer | `88949` | 판매가 (기본통화 자릿수로 정규화) |
+| discount_rate | integer | `21` | 할인율(%) ((1 - 판매가/정가) × 100) |
+| stock_quantity | integer | `22` | 재고 수량 (옵션 사용 시 옵션 재고 합계) |
+| safe_stock_quantity | integer | `12` | 안전재고 수량 |
+| is_below_safe_stock | boolean | `false` | 재고가 안전재고 미만인지 여부 |
+| is_stock_consistent | boolean | `true` | 상품 재고와 옵션 재고 합계의 일치 여부 |
+| sales_status | string | `on_sale` | 판매상태 (on_sale / suspended / sold_out / coming_soon) |
+| sales_status_label | string | `판매중` | `sales_status` 의 현지화 라벨 |
+| display_status | string | `visible` | 전시상태 (visible / hidden) |
+| display_status_label | string | `전시` | `display_status` 의 현지화 라벨 |
+| tax_status | string | `taxable` | 과세여부 (taxable / tax_free) |
+| tax_status_label | string | `과세` | `tax_status` 의 현지화 라벨 |
+| tax_rate | string | `10.00` | 세율(%) |
+| shipping_policy_id | integer | `null` | 배송정책 식별자 |
+| common_info_id | integer | `null` | 공통정보 식별자 |
+| description | object | `{"ko":"상품 설명","en":"Description"}` | 상세 설명 (로케일별 값 객체) |
+| description_localized | string | `상품 설명` | `description` 의 현재 로케일 해석 값 |
+| description_mode | string | `text` | 상세 설명 편집 모드 (text / html) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| purchase_restriction | string | `none` | 구매 대상 제한 (none / restricted) |
+| allowed_roles | array | `null` | 구매 허용 역할 ID 배열 |
+| barcode | string | `null` | 바코드 |
+| hs_code | string | `null` | HS 코드 (수출입 관세 분류 코드) |
+| images | array | `[]` | 상품 이미지 목록 (images 관계 로드 시) |
+| thumbnail_hash | string | `null` | 대표 이미지 해시 |
+| thumbnail_url | string | `null` | 대표 이미지 다운로드 URL |
+| meta_title | object | `null` | SEO 메타 제목 (다국어 JSON) |
+| meta_description | object | `null` | SEO 메타 설명 (다국어 JSON) |
+| meta_keywords | array | `null` | SEO 메타 키워드 배열 |
+| seo_sync_title | boolean | `true` | SEO 제목 자동 동기화 여부 |
+| seo_sync_description | boolean | `true` | SEO 설명 자동 동기화 여부 |
+| has_options | boolean | `false` | 옵션 사용 여부 |
+| option_groups | array | `[]` | 옵션 그룹 정의 (예: `[{"name":"색상","values":["빨강","파랑"]}]`) |
+| options | array | `[]` | 생성된 옵션(SKU) 목록 (`ProductOptionResource`) |
+| additional_options | array | `[]` | 추가옵션 그룹 목록 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
+
+> `categories` / `shipping_policy` / `label_assignments` / `notice_items` 는 해당 관계가 eager load 된 경우에만 포함됩니다 (`whenLoaded`).
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 등록되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "샘플 상품",
+            "en": "Sample Product"
+        },
+        "name_localized": "샘플 상품",
+        "product_code": "PROD-GJUX-1484",
+        "sku": "SKU-MRAD-9306",
+        "list_price": 112594,
+        "selling_price": 88949,
+        "discount_rate": 21,
+        "stock_quantity": 22,
+        "safe_stock_quantity": 12,
+        "is_below_safe_stock": false,
+        "is_stock_consistent": true,
+        "sales_status": "on_sale",
+        "sales_status_label": "판매중",
+        "display_status": "visible",
+        "display_status_label": "전시",
+        "tax_status": "taxable",
+        "tax_status_label": "과세",
+        "tax_rate": "10.00",
+        "shipping_policy_id": null,
+        "common_info_id": null,
+        "description": {
+            "ko": "상품 설명",
+            "en": "Description"
+        },
+        "description_localized": "상품 설명",
+        "description_mode": "text",
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": null,
+        "barcode": null,
+        "hs_code": null,
+        "thumbnail_hash": null,
+        "thumbnail_url": null,
+        "meta_title": null,
+        "meta_description": null,
+        "meta_keywords": null,
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "has_options": false,
+        "option_groups": [],
+        "options": [],
+        "additional_options": [],
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -409,11 +527,31 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductService::bulkUpdatePrice()` 반환값)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| updated_count | integer | `3` | 실제로 가격이 변경된 상품 건수 |
+| requested_count | integer | `3` | 요청한 `ids` 의 개수 (대상으로 지정한 건수) |
+
+> 응답 `message` 의 `:count` 는 `updated_count` 로 치환됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "3개 상품의 가격이 수정되었습니다.",
+    "data": {
+        "updated_count": 3,
+        "requested_count": 3
+    }
+}
+```
 
 **에러 응답**
 
@@ -464,11 +602,31 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductService::bulkUpdateStatus()` 반환값)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| updated_count | integer | `3` | 실제로 상태가 변경된 상품 건수 |
+| requested_count | integer | `3` | 요청한 `ids` 의 개수 (대상으로 지정한 건수) |
+
+> 응답 `message` 의 `:count` 는 `updated_count` 로 치환됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "3개 상품이 수정되었습니다.",
+    "data": {
+        "updated_count": 3,
+        "requested_count": 3
+    }
+}
+```
 
 **에러 응답**
 
@@ -519,11 +677,31 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductService::bulkUpdateStock()` 반환값)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| updated_count | integer | `3` | 실제로 재고가 변경된 상품 건수 |
+| requested_count | integer | `3` | 요청한 `ids` 의 개수 (대상으로 지정한 건수) |
+
+> 응답 `message` 의 `:count` 는 `updated_count` 로 치환됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "3개 상품의 재고가 수정되었습니다.",
+    "data": {
+        "updated_count": 3,
+        "requested_count": 3
+    }
+}
+```
 
 **에러 응답**
 
@@ -550,16 +728,16 @@ Content-Type: application/json
 | --- | --- | --- | --- | --- | --- |
 | ids | body | array | 예 | min 1 | 대상 리소스 식별자 배열 (대량 작업 대상) |
 | bulk_changes | body | array | 아니오 | — | 상품 조건 기반 일괄 변경값 (지정 시 ids 전체에 sales_status/display_status 일괄 적용) |
-| bulk_changes.sales_status | body | string | 아니오 | — | <!-- TODO: 용도 --> |
-| bulk_changes.display_status | body | string | 아니오 | — | <!-- TODO: 용도 --> |
-| items | body | array | 아니오 | — | 처리 대상 항목 배열 |
+| bulk_changes.sales_status | body | string | 아니오 | — | `ids` 전체에 일괄 적용할 판매상태 (지정 시 items 의 개별 sales_status 보다 우선) |
+| bulk_changes.display_status | body | string | 아니오 | — | `ids` 전체에 일괄 적용할 전시상태 (지정 시 items 의 개별 display_status 보다 우선) |
+| items | body | array | 아니오 | — | 처리 대상 항목 배열 (각 항목: id + 개별 수정할 상품 필드 — name/list_price/selling_price/sales_status/display_status. bulk_changes 로 지정된 필드는 제외됨) |
 | option_bulk_changes | body | array | 아니오 | — | 옵션 조건 기반 일괄 변경값 (price_adjustment/stock_quantity 를 method+value 로 일괄 조정) |
-| option_bulk_changes.price_adjustment | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| option_bulk_changes.price_adjustment.method | body | string | 아니오 | `set`, `add`, `percent` | <!-- TODO: 용도 --> |
-| option_bulk_changes.price_adjustment.value | body | number | 아니오 | — | <!-- TODO: 용도 --> |
-| option_bulk_changes.stock_quantity | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| option_bulk_changes.stock_quantity.method | body | string | 아니오 | `set`, `add`, `subtract` | <!-- TODO: 용도 --> |
-| option_bulk_changes.stock_quantity.value | body | integer | 아니오 | min 0 | <!-- TODO: 용도 --> |
+| option_bulk_changes.price_adjustment | body | array | 아니오 | — | 대상 상품들의 모든 옵션에 적용할 옵션 추가금 일괄 변경 블록 (method + value 쌍) |
+| option_bulk_changes.price_adjustment.method | body | string | 아니오 | `set`, `add`, `percent` | 옵션 추가금 변경 방식 (set 지정값으로 설정 / add 기존값에 가산 / percent 비율 적용) |
+| option_bulk_changes.price_adjustment.value | body | number | 아니오 | — | 옵션 추가금 변경 값 (method 에 따라 설정값·가산값·비율로 해석) |
+| option_bulk_changes.stock_quantity | body | array | 아니오 | — | 대상 상품들의 모든 옵션에 적용할 옵션 재고 일괄 변경 블록 (method + value 쌍) |
+| option_bulk_changes.stock_quantity.method | body | string | 아니오 | `set`, `add`, `subtract` | 옵션 재고 변경 방식 (set 지정값으로 설정 / add 증가 / subtract 감소) |
+| option_bulk_changes.stock_quantity.value | body | integer | 아니오 | min 0 | 옵션 재고 변경 수량 (method 에 따라 설정 수량·증감 수량으로 해석) |
 | option_items | body | array | 아니오 | — | 옵션 개별 인라인 수정 배열 (각 항목: product_id·option_id + 수정할 옵션 필드) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.bulk_update_validation_rules`).
@@ -606,11 +784,31 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductService::bulkUpdate()` 반환값)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| products_updated | integer | `3` | 반영된 상품 건수 (bulk_changes 적용 건수 + items 개별 수정 건수) |
+| options_updated | integer | `5` | 반영된 옵션 건수 (`ProductOptionService::bulkUpdate()` 결과) |
+
+> 응답 `message` 의 `:count` 는 `products_updated + options_updated` 합산값으로 치환됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "8개 상품이 수정되었습니다.",
+    "data": {
+        "products_updated": 3,
+        "options_updated": 5
+    }
+}
+```
 
 **에러 응답**
 
@@ -802,11 +1000,125 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductResource` — 수정 후 상품 전체). 필드 구성은 `GET /admin/products/by-code/{code}` 의 응답 필드 표와 동일합니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 수정된 상품의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 상품","en":"API Doc Sample Product"}` | 상품명 (로케일별 값 객체) |
+| name_localized | string | `API 문서 샘플 상품` | `name` 의 현재 로케일 해석 값 |
+| product_code | string | `APIDOCSAMPLE01` | 상품코드 |
+| sku | string | `SKU-DKOK-1319` | 재고관리코드(SKU) |
+| categories | array | `[]` | 소속 카테고리 목록 (categories 관계 로드 시) |
+| category_ids | array | `[]` | 소속 카테고리 ID 배열 |
+| primary_category_id | integer | `null` | 대표 카테고리 ID |
+| brand_id | integer | `null` | 브랜드 식별자 |
+| list_price | integer | `703155` | 정가 (기본통화 기준) |
+| selling_price | integer | `597682` | 판매가 (기본통화 기준) |
+| discount_rate | integer | `15` | 할인율(%) |
+| stock_quantity | integer | `509` | 재고 수량 |
+| safe_stock_quantity | integer | `38` | 안전재고 수량 |
+| is_below_safe_stock | boolean | `false` | 재고가 안전재고 미만인지 여부 |
+| is_stock_consistent | boolean | `true` | 상품 재고와 옵션 재고 합계 일치 여부 |
+| sales_status | string | `on_sale` | 판매상태 (on_sale / suspended / sold_out / coming_soon) |
+| sales_status_label | string | `판매중` | `sales_status` 의 현지화 라벨 |
+| display_status | string | `visible` | 전시상태 (visible / hidden) |
+| display_status_label | string | `전시` | `display_status` 의 현지화 라벨 |
+| tax_status | string | `taxable` | 과세여부 (taxable / tax_free) |
+| tax_status_label | string | `과세` | `tax_status` 의 현지화 라벨 |
+| tax_rate | string | `10.00` | 세율(%) |
+| shipping_policy_id | integer | `null` | 배송정책 식별자 |
+| common_info_id | integer | `null` | 공통정보 식별자 |
+| description | object | `{"ko":"상품 설명","en":"Description"}` | 상세 설명 (로케일별 값 객체) |
+| description_localized | string | `상품 설명` | `description` 의 현재 로케일 해석 값 |
+| description_mode | string | `text` | 상세 설명 편집 모드 (text / html) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| purchase_restriction | string | `none` | 구매 대상 제한 (none / restricted) |
+| allowed_roles | array | `null` | 구매 허용 역할 ID 배열 |
+| barcode | string | `null` | 바코드 |
+| hs_code | string | `null` | HS 코드 |
+| images | array | `[]` | 상품 이미지 목록 (images 관계 로드 시) |
+| thumbnail_hash | string | `null` | 대표 이미지 해시 |
+| thumbnail_url | string | `null` | 대표 이미지 다운로드 URL |
+| meta_title | object | `null` | SEO 메타 제목 (다국어 JSON) |
+| meta_description | object | `null` | SEO 메타 설명 (다국어 JSON) |
+| meta_keywords | array | `null` | SEO 메타 키워드 배열 |
+| seo_sync_title | boolean | `true` | SEO 제목 자동 동기화 여부 |
+| seo_sync_description | boolean | `true` | SEO 설명 자동 동기화 여부 |
+| has_options | boolean | `false` | 옵션 사용 여부 |
+| option_groups | array | `[]` | 옵션 그룹 정의 |
+| options | array | `[]` | 옵션(SKU) 목록 (`ProductOptionResource`) |
+| additional_options | array | `[]` | 추가옵션 그룹 목록 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 11:02:13` | 최종 수정 일시 (이번 수정 시각으로 갱신) |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "name_localized": "API 문서 샘플 상품",
+        "product_code": "APIDOCSAMPLE01",
+        "sku": "SKU-DKOK-1319",
+        "category_ids": [],
+        "primary_category_id": null,
+        "brand_id": null,
+        "list_price": 703155,
+        "selling_price": 597682,
+        "discount_rate": 15,
+        "stock_quantity": 509,
+        "safe_stock_quantity": 38,
+        "is_below_safe_stock": false,
+        "is_stock_consistent": true,
+        "sales_status": "on_sale",
+        "sales_status_label": "판매중",
+        "display_status": "visible",
+        "display_status_label": "전시",
+        "tax_status": "taxable",
+        "tax_status_label": "과세",
+        "tax_rate": "10.00",
+        "shipping_policy_id": null,
+        "common_info_id": null,
+        "description_mode": "text",
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": null,
+        "barcode": null,
+        "hs_code": null,
+        "thumbnail_hash": null,
+        "thumbnail_url": null,
+        "meta_title": null,
+        "meta_description": null,
+        "meta_keywords": null,
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "has_options": false,
+        "option_groups": [],
+        "options": [],
+        "additional_options": [],
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 11:02:13",
+        "abilities": {
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -843,11 +1155,27 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: side-effectful-write — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| product_code | string | `PROD-GJUX-1484` | `ProductService::generateUniqueCode()` 가 발급한, 기존 상품과 중복되지 않는 신규 상품코드 |
 
 **응답 예시**
 
-<!-- 실측 제외: side-effectful-write — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품코드가 생성되었습니다.",
+    "data": {
+        "product_code": "PROD-GJUX-1484"
+    }
+}
+```
 
 **에러 응답**
 
@@ -875,8 +1203,8 @@ Authorization: Bearer {YOUR_TOKEN}
 | temp_key | body | string | 아니오 | max 64 | 임시 업로드 세션 키 (같은 상품의 여러 이미지를 한 세션으로 묶음, 생략 시 서버가 UUID 자동 발급) |
 | collection | body | string | 아니오 | — | 첨부 컬렉션 그룹명 (첨부를 용도별로 묶는 키, 미지정 시 default) |
 | alt_text | body | array | 아니오 | — | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) |
-| alt_text.ko | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
-| alt_text.en | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| alt_text.ko | body | string | 아니오 | max 255 | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) — `ko` 로케일 값 |
+| alt_text.en | body | string | 아니오 | max 255 | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) — `en` 로케일 값 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_upload_validation_rules`).
 
@@ -919,19 +1247,57 @@ Content-Disposition: form-data; name="alt_text.en"
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. FileUploader 컴포넌트 규약에 맞춰 실제 이미지 정보는 `data.data` 로 한 단계 더 감싸져 있습니다. 성공 시 HTTP 201._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| data | object | `{ ... }` | 업로드된 이미지 정보 객체 (아래 하위 필드) |
+| data.id | integer | `1` | 업로드된 이미지 레코드의 기본 키 |
+| data.hash | string | `3f7a1c9e…` | 이미지 해시 (상품 생성/수정 시 `thumbnail_hash` 지정에 사용) |
+| data.original_filename | string | `product-main.jpg` | 업로드한 원본 파일명 |
+| data.mime_type | string | `image/jpeg` | 파일 MIME 타입 |
+| data.size | integer | `204800` | 파일 크기 (바이트) |
+| data.size_formatted | string | `200 KB` | 사람이 읽는 파일 크기 문자열 (B/KB/MB/GB) |
+| data.download_url | string | `/api/modules/sirsoft-ecommerce/products/images/3f7a1c9e/download` | 이미지 다운로드/표시 URL |
+| data.order | integer | `1` | 이미지 노출 순서 (`sort_order`, 미지정 시 1) |
+| data.is_image | boolean | `true` | MIME 타입이 `image/` 로 시작하는지 여부 |
+| data.is_thumbnail | boolean | `true` | 대표 이미지 여부 (컬렉션의 첫 이미지는 자동 지정) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "이미지가 업로드되었습니다.",
+    "data": {
+        "data": {
+            "id": 1,
+            "hash": "3f7a1c9e",
+            "original_filename": "product-main.jpg",
+            "mime_type": "image/jpeg",
+            "size": 204800,
+            "size_formatted": "200 KB",
+            "download_url": "/api/modules/sirsoft-ecommerce/products/images/3f7a1c9e/download",
+            "order": 1,
+            "is_image": true,
+            "is_thumbnail": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 파일 저장 등 업로드 처리 중 오류가 발생한 경우 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 상품 이미지 개수 상한 초과 (`ProductImageUploadLimitException`) |
 
 <!-- @generated:end -->
 
@@ -970,16 +1336,27 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 데이터를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`)._
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "이미지 순서가 변경되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 순서 갱신 처리 중 오류가 발생한 경우 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
@@ -1012,19 +1389,30 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 데이터를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`)._
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "이미지가 삭제되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 삭제 처리 중 오류가 발생한 경우 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 404 | Not Found | `id` 에 해당하는 이미지가 없는 경우 (`messages.product_images.not_found`) |
 
 <!-- @generated:end -->
 
@@ -1134,8 +1522,8 @@ Authorization: Bearer {YOUR_TOKEN}
 | temp_key | body | string | 아니오 | max 64 | 임시 업로드 세션 키 (같은 상품의 여러 이미지를 한 세션으로 묶음, 생략 시 서버가 UUID 자동 발급) |
 | collection | body | string | 아니오 | — | 첨부 컬렉션 그룹명 (첨부를 용도별로 묶는 키, 미지정 시 default) |
 | alt_text | body | array | 아니오 | — | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) |
-| alt_text.ko | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
-| alt_text.en | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| alt_text.ko | body | string | 아니오 | max 255 | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) — `ko` 로케일 값 |
+| alt_text.en | body | string | 아니오 | max 255 | 이미지 대체 텍스트 (접근성/이미지 미표시 시 대체 문구) — `en` 로케일 값 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product-image.filter_upload_validation_rules`).
 
@@ -1178,20 +1566,58 @@ Content-Disposition: form-data; name="alt_text.en"
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. FileUploader 컴포넌트 규약에 맞춰 실제 이미지 정보는 `data.data` 로 한 단계 더 감싸져 있습니다. 성공 시 HTTP 201._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| data | object | `{ ... }` | 업로드된 이미지 정보 객체 (아래 하위 필드) |
+| data.id | integer | `1` | 업로드된 이미지 레코드의 기본 키 |
+| data.hash | string | `3f7a1c9e…` | 이미지 해시 (상품 수정 시 `thumbnail_hash` 지정에 사용) |
+| data.original_filename | string | `product-main.jpg` | 업로드한 원본 파일명 |
+| data.mime_type | string | `image/jpeg` | 파일 MIME 타입 |
+| data.size | integer | `204800` | 파일 크기 (바이트) |
+| data.size_formatted | string | `200 KB` | 사람이 읽는 파일 크기 문자열 (B/KB/MB/GB) |
+| data.download_url | string | `/api/modules/sirsoft-ecommerce/products/images/3f7a1c9e/download` | 이미지 다운로드/표시 URL |
+| data.order | integer | `1` | 이미지 노출 순서 (`sort_order`) |
+| data.is_image | boolean | `true` | MIME 타입이 `image/` 로 시작하는지 여부 |
+| data.is_thumbnail | boolean | `true` | 대표 이미지 여부 (컬렉션의 첫 이미지는 자동 지정) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "이미지가 업로드되었습니다.",
+    "data": {
+        "data": {
+            "id": 1,
+            "hash": "3f7a1c9e",
+            "original_filename": "product-main.jpg",
+            "mime_type": "image/jpeg",
+            "size": 204800,
+            "size_formatted": "200 KB",
+            "download_url": "/api/modules/sirsoft-ecommerce/products/images/3f7a1c9e/download",
+            "order": 1,
+            "is_image": true,
+            "is_thumbnail": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 파일 저장 등 업로드 처리 중 오류가 발생한 경우 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 상품 이미지 개수 상한 초과 (`ProductImageUploadLimitException`) |
 
 <!-- @generated:end -->
 
@@ -1222,16 +1648,27 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 데이터를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`)._
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "대표 이미지가 설정되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 대표 이미지 설정 처리 중 오류가 발생한 경우 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
@@ -1418,11 +1855,125 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductResource` — 수정 후 상품 전체). 필드 구성은 `GET /admin/products/by-code/{code}` 의 응답 필드 표와 동일합니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 수정된 상품의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 상품","en":"API Doc Sample Product"}` | 상품명 (로케일별 값 객체) |
+| name_localized | string | `API 문서 샘플 상품` | `name` 의 현재 로케일 해석 값 |
+| product_code | string | `APIDOCSAMPLE01` | 상품코드 |
+| sku | string | `SKU-DKOK-1319` | 재고관리코드(SKU) |
+| categories | array | `[]` | 소속 카테고리 목록 (categories 관계 로드 시) |
+| category_ids | array | `[]` | 소속 카테고리 ID 배열 |
+| primary_category_id | integer | `null` | 대표 카테고리 ID |
+| brand_id | integer | `null` | 브랜드 식별자 |
+| list_price | integer | `703155` | 정가 (기본통화 기준) |
+| selling_price | integer | `597682` | 판매가 (기본통화 기준) |
+| discount_rate | integer | `15` | 할인율(%) |
+| stock_quantity | integer | `509` | 재고 수량 |
+| safe_stock_quantity | integer | `38` | 안전재고 수량 |
+| is_below_safe_stock | boolean | `false` | 재고가 안전재고 미만인지 여부 |
+| is_stock_consistent | boolean | `true` | 상품 재고와 옵션 재고 합계 일치 여부 |
+| sales_status | string | `on_sale` | 판매상태 (on_sale / suspended / sold_out / coming_soon) |
+| sales_status_label | string | `판매중` | `sales_status` 의 현지화 라벨 |
+| display_status | string | `visible` | 전시상태 (visible / hidden) |
+| display_status_label | string | `전시` | `display_status` 의 현지화 라벨 |
+| tax_status | string | `taxable` | 과세여부 (taxable / tax_free) |
+| tax_status_label | string | `과세` | `tax_status` 의 현지화 라벨 |
+| tax_rate | string | `10.00` | 세율(%) |
+| shipping_policy_id | integer | `null` | 배송정책 식별자 |
+| common_info_id | integer | `null` | 공통정보 식별자 |
+| description | object | `{"ko":"상품 설명","en":"Description"}` | 상세 설명 (로케일별 값 객체) |
+| description_localized | string | `상품 설명` | `description` 의 현재 로케일 해석 값 |
+| description_mode | string | `text` | 상세 설명 편집 모드 (text / html) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| purchase_restriction | string | `none` | 구매 대상 제한 (none / restricted) |
+| allowed_roles | array | `null` | 구매 허용 역할 ID 배열 |
+| barcode | string | `null` | 바코드 |
+| hs_code | string | `null` | HS 코드 |
+| images | array | `[]` | 상품 이미지 목록 (images 관계 로드 시) |
+| thumbnail_hash | string | `null` | 대표 이미지 해시 |
+| thumbnail_url | string | `null` | 대표 이미지 다운로드 URL |
+| meta_title | object | `null` | SEO 메타 제목 (다국어 JSON) |
+| meta_description | object | `null` | SEO 메타 설명 (다국어 JSON) |
+| meta_keywords | array | `null` | SEO 메타 키워드 배열 |
+| seo_sync_title | boolean | `true` | SEO 제목 자동 동기화 여부 |
+| seo_sync_description | boolean | `true` | SEO 설명 자동 동기화 여부 |
+| has_options | boolean | `false` | 옵션 사용 여부 |
+| option_groups | array | `[]` | 옵션 그룹 정의 |
+| options | array | `[]` | 옵션(SKU) 목록 (`ProductOptionResource`) |
+| additional_options | array | `[]` | 추가옵션 그룹 목록 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 11:02:13` | 최종 수정 일시 (이번 수정 시각으로 갱신) |
+| abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 상품",
+            "en": "API Doc Sample Product"
+        },
+        "name_localized": "API 문서 샘플 상품",
+        "product_code": "APIDOCSAMPLE01",
+        "sku": "SKU-DKOK-1319",
+        "category_ids": [],
+        "primary_category_id": null,
+        "brand_id": null,
+        "list_price": 703155,
+        "selling_price": 597682,
+        "discount_rate": 15,
+        "stock_quantity": 509,
+        "safe_stock_quantity": 38,
+        "is_below_safe_stock": false,
+        "is_stock_consistent": true,
+        "sales_status": "on_sale",
+        "sales_status_label": "판매중",
+        "display_status": "visible",
+        "display_status_label": "전시",
+        "tax_status": "taxable",
+        "tax_status_label": "과세",
+        "tax_rate": "10.00",
+        "shipping_policy_id": null,
+        "common_info_id": null,
+        "description_mode": "text",
+        "min_purchase_qty": 1,
+        "max_purchase_qty": 0,
+        "purchase_restriction": "none",
+        "allowed_roles": null,
+        "barcode": null,
+        "hs_code": null,
+        "thumbnail_hash": null,
+        "thumbnail_url": null,
+        "meta_title": null,
+        "meta_description": null,
+        "meta_keywords": null,
+        "seo_sync_title": true,
+        "seo_sync_description": true,
+        "has_options": false,
+        "option_groups": [],
+        "options": [],
+        "additional_options": [],
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 11:02:13",
+        "abilities": {
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -2386,9 +2937,51 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **응답 필드** (`data` 내부)
 
+_목록 응답: `data[]` 배열 항목의 필드 (`ProductListResource` — `GET /products/new` 와 동일 구성). `ids` 가 비어 있으면 `data` 는 빈 배열입니다._
 
-
-<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `322` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"eum et quia","en":"tenetur id quae"}` | 상품명 (로케일별 값 객체) |
+| name_localized | string | `eum et quia` | `name` 의 현재 로케일 해석 값 |
+| product_code | string | `PROD-GJUX-1484` | 상품코드 (상품 고유 관리 식별자) |
+| sku | string | `SKU-MRAD-9306` | 재고관리코드(SKU) |
+| thumbnail_url | string | `/api/modules/sirsoft-ecommerce/products/images/3f7a1c9e/download` | 대표 이미지 URL |
+| list_price | integer | `112594` | 정가 (기본통화 자릿수로 정규화) |
+| list_price_formatted | string | `112,594원` | `list_price` 의 표시용 통화 포맷 문자열 |
+| selling_price | integer | `88949` | 판매가 (기본통화 자릿수로 정규화) |
+| selling_price_formatted | string | `88,949원` | `selling_price` 의 표시용 통화 포맷 문자열 |
+| discount_rate | integer | `21` | 할인율(%) ((1 - 판매가/정가) × 100) |
+| multi_currency_list_price | object | `{"KRW":{"price":112594,"formatted":"112,594원","is_default":true,"editable":true}}` | 통화별 정가 맵 |
+| multi_currency_selling_price | object | `{"KRW":{"price":88949,"formatted":"88,949원","is_default":true,"editable":true}}` | 통화별 판매가 맵 |
+| stock_quantity | integer | `22` | 재고 수량 |
+| safe_stock_quantity | integer | `12` | 안전재고 수량 |
+| is_below_safe_stock | boolean | `false` | 재고가 안전재고 미만인지 여부 |
+| option_stock_sum | integer | `51` | 활성 옵션의 재고 합계 (options 관계 로드 시) |
+| sales_status | string | `on_sale` | 판매상태 (on_sale / suspended / sold_out / coming_soon) |
+| sales_status_label | string | `판매중` | `sales_status` 의 현지화 라벨 |
+| sales_status_variant | string | `success` | `sales_status` 의 UI 배지 변형 키 |
+| display_status | string | `visible` | 전시상태 (visible / hidden) |
+| display_status_label | string | `전시` | `display_status` 의 현지화 라벨 |
+| display_status_variant | string | `success` | `display_status` 의 UI 배지 변형 키 |
+| categories | array | `[]` | 소속 카테고리 목록 (categories 관계 로드 시) |
+| primary_category | string | `스마트폰` | 대표 카테고리명 (categories 관계 로드 시) |
+| categories_with_path | array | `[]` | 소속 카테고리 + 경로(breadcrumb) 목록 |
+| brand_name | string | `ASUS` | 브랜드명 (brand 관계 로드 시) |
+| shipping_policy_id | integer | `31` | 배송정책 식별자 |
+| shipping_policy_name | string | `국내 무료배송` | 배송정책명 (shippingPolicy 관계 로드 시) |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer | `0` | 최대 구매 수량 (0=무제한) |
+| has_options | boolean | `false` | 옵션 사용 여부 |
+| options_count | integer | `1` | 활성 옵션 개수 (options 관계 로드 시) |
+| options | array | `[]` | 활성 옵션(SKU) 목록 (`ProductOptionResource`) |
+| labels | array | `[]` | 노출 중인 상품 라벨 목록 (activeLabelAssignments 관계 로드 시) |
+| review_count | integer | `0` | 리뷰 개수 |
+| rating_avg | number | `0` | 평균 별점 (소수 1자리 반올림) |
+| created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
+| updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
+| is_owner | boolean | `false` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 |
+| abilities | object | `{"can_update":false,"can_delete":false}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
@@ -2854,11 +3447,27 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. 성공 시 HTTP 201._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 생성된 상품 문의 글의 기본 키 (게시판 모듈에 생성된 게시글 ID) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "문의가 등록되었습니다.",
+    "data": {
+        "id": 1
+    }
+}
+```
 
 **에러 응답**
 
@@ -2866,7 +3475,7 @@ Content-Type: application/json
 | --- | --- | --- |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-products.read`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 도메인 규칙 위반(비밀글 비허용 등, `RuntimeException` → `messages.inquiries.create_failed`) |
 
 <!-- @generated:end -->
 

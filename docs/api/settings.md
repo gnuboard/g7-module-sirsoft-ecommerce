@@ -422,90 +422,90 @@ HTTP/1.1 200
 | --- | --- | --- | --- | --- | --- |
 | _tab | body | string | 아니오 | `basic_info`, `language_currency`, `seo`, `order_settings`, `claim`, `shipping`, `review_settings`, `notification_definitions`, `notifications`, `inquiry`, `mileage` | 저장할 설정 탭(카테고리) 지정 (탭별 부분 저장 식별용) |
 | notifications | body | array | 아니오 | — | 알림 채널 설정 배열 (채널 ID·활성 여부·정렬 순서) |
-| notifications.channels | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| notifications.channels | body | array | 아니오 | — | 알림 채널 목록. 항목별 `id`(문자열, max 50, 필수), `is_active`(boolean, 필수), `sort_order`(integer, min 0) |
 | basic_info | body | array | 아니오 | — | 쇼핑몰 기본 정보 섹션 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처 등) |
-| basic_info.shop_name | body | string | 아니오 | max 255 | basic info.shop 이름 (식별자) |
-| basic_info.route_path | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
-| basic_info.no_route | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| basic_info.company_name | body | string | 아니오 | max 255 | basic info.company 이름 (식별자) |
-| basic_info.business_number_1 | body | string | 아니오 | max 3 | <!-- TODO: 용도 --> |
-| basic_info.business_number_2 | body | string | 아니오 | max 2 | <!-- TODO: 용도 --> |
-| basic_info.business_number_3 | body | string | 아니오 | max 5 | <!-- TODO: 용도 --> |
-| basic_info.ceo_name | body | string | 아니오 | max 100 | basic info.ceo 이름 (식별자) |
-| basic_info.business_type | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
-| basic_info.business_category | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
-| basic_info.zipcode | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
-| basic_info.base_address | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
-| basic_info.detail_address | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
-| basic_info.phone_1 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
-| basic_info.phone_2 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
-| basic_info.phone_3 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
-| basic_info.fax_1 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
-| basic_info.fax_2 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
-| basic_info.fax_3 | body | string | 아니오 | max 4 | <!-- TODO: 용도 --> |
-| basic_info.email_id | body | string | 아니오 | max 100 | basic info.email 식별자 |
-| basic_info.email_domain | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
-| basic_info.privacy_officer | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
-| basic_info.privacy_officer_email | body | email | 아니오 | max 255 | <!-- TODO: 용도 --> |
-| basic_info.mail_order_number | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
-| basic_info.telecom_number | body | string | 아니오 | max 100 | <!-- TODO: 용도 --> |
+| basic_info.shop_name | body | string | 아니오 | max 255 | 쇼핑몰 이름 (`basic_info` 전달 시 필수) |
+| basic_info.route_path | body | string | 아니오 | max 100 | 쇼핑몰 라우트 경로 (예: `shop`). `no_route: true` 이면 검증에서 제외 |
+| basic_info.no_route | body | boolean | 아니오 | — | 라우트 경로를 사용하지 않음 (쇼핑몰만 단독 운영하는 경우) |
+| basic_info.company_name | body | string | 아니오 | max 255 | 상호(회사명) |
+| basic_info.business_number_1 | body | string | 아니오 | max 3 | 사업자등록번호 앞 3자리 |
+| basic_info.business_number_2 | body | string | 아니오 | max 2 | 사업자등록번호 가운데 2자리 |
+| basic_info.business_number_3 | body | string | 아니오 | max 5 | 사업자등록번호 뒤 5자리 |
+| basic_info.ceo_name | body | string | 아니오 | max 100 | 대표자 이름 |
+| basic_info.business_type | body | string | 아니오 | max 100 | 업태 (예: 도매, 소매) |
+| basic_info.business_category | body | string | 아니오 | max 255 | 종목 (예: 전자상거래) |
+| basic_info.zipcode | body | string | 아니오 | max 10 | 사업장 우편번호 |
+| basic_info.base_address | body | string | 아니오 | max 500 | 사업장 기본주소 |
+| basic_info.detail_address | body | string | 아니오 | max 255 | 사업장 상세주소 |
+| basic_info.phone_1 | body | string | 아니오 | max 4 | 대표 전화번호 첫 번째 마디 |
+| basic_info.phone_2 | body | string | 아니오 | max 4 | 대표 전화번호 두 번째 마디 |
+| basic_info.phone_3 | body | string | 아니오 | max 4 | 대표 전화번호 세 번째 마디 |
+| basic_info.fax_1 | body | string | 아니오 | max 4 | 대표 팩스번호 첫 번째 마디 |
+| basic_info.fax_2 | body | string | 아니오 | max 4 | 대표 팩스번호 두 번째 마디 |
+| basic_info.fax_3 | body | string | 아니오 | max 4 | 대표 팩스번호 세 번째 마디 |
+| basic_info.email_id | body | string | 아니오 | max 100 | 대표 E-mail 의 아이디 부분 (`@` 앞) |
+| basic_info.email_domain | body | string | 아니오 | max 100 | 대표 E-mail 의 도메인 부분 (`@` 뒤) |
+| basic_info.privacy_officer | body | string | 아니오 | max 100 | 개인정보 보호책임자 이름 |
+| basic_info.privacy_officer_email | body | email | 아니오 | max 255 | 개인정보 보호책임자 E-mail |
+| basic_info.mail_order_number | body | string | 아니오 | max 100 | 통신판매업 신고번호 |
+| basic_info.telecom_number | body | string | 아니오 | max 100 | 부가통신 사업자번호 |
 | language_currency | body | array | 아니오 | — | 통화 설정 섹션 (기본 통화·통화 목록: 코드·다국어명·환율·반올림 규칙·통화별 로케일) |
-| language_currency.default_currency | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
-| language_currency.currencies | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| language_currency.default_currency | body | string | 아니오 | max 10 | 쇼핑몰 기본(base) 통화 코드. 상품/주문이 1건이라도 생성된 뒤에는 변경 불가 |
+| language_currency.currencies | body | array | 아니오 | — | 등록 통화 목록. 항목별 `code`(ISO 4217 3자리 대문자, 필수)·`name`(다국어 배열, 필수)·`symbol`·`exchange_rate`·`base_unit`·`rounding_unit`·`rounding_method`(`floor`\|`round`\|`ceil`)·`decimal_places`·`is_default`·`locales` |
 | seo | body | array | 아니오 | — | SEO 메타 설정 섹션 (페이지 유형별 메타 타이틀/설명·SEO 활성 토글) |
-| seo.meta_category_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
-| seo.meta_category_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
-| seo.meta_search_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
-| seo.meta_search_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
-| seo.meta_product_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
-| seo.meta_product_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
-| seo.meta_shop_index_title | body | string | 아니오 | max 500 | <!-- TODO: 용도 --> |
-| seo.meta_shop_index_description | body | string | 아니오 | max 1000 | <!-- TODO: 용도 --> |
-| seo.seo_category | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| seo.seo_search_result | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| seo.seo_product_detail | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| seo.seo_shop_index | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| seo.meta_category_title | body | string | 아니오 | max 500 | 카테고리 페이지 메타 Title (`{commerce_name}`·`{category_name}` 등 변수 사용 가능) |
+| seo.meta_category_description | body | string | 아니오 | max 1000 | 카테고리 페이지 메타 Description |
+| seo.meta_search_title | body | string | 아니오 | max 500 | 검색 결과 페이지 메타 Title (`{keyword_name}` 변수 사용 가능) |
+| seo.meta_search_description | body | string | 아니오 | max 1000 | 검색 결과 페이지 메타 Description |
+| seo.meta_product_title | body | string | 아니오 | max 500 | 상품 상세 페이지 메타 Title (`{product_name}` 변수 사용 가능) |
+| seo.meta_product_description | body | string | 아니오 | max 1000 | 상품 상세 페이지 메타 Description |
+| seo.meta_shop_index_title | body | string | 아니오 | max 500 | 쇼핑몰 메인 페이지 메타 Title |
+| seo.meta_shop_index_description | body | string | 아니오 | max 1000 | 쇼핑몰 메인 페이지 메타 Description |
+| seo.seo_category | body | boolean | 아니오 | — | 카테고리 페이지에 검색엔진 친화적 페이지 제공 여부 |
+| seo.seo_search_result | body | boolean | 아니오 | — | 검색결과 페이지에 검색엔진 친화적 페이지 제공 여부 |
+| seo.seo_product_detail | body | boolean | 아니오 | — | 상품 상세페이지에 검색엔진 친화적 페이지 제공 여부 |
+| seo.seo_shop_index | body | boolean | 아니오 | — | 쇼핑몰 메인 페이지에 검색엔진 친화적 페이지 제공 여부 |
 | inquiry | body | array | 아니오 | — | 문의 연동 설정 섹션 (문의 게시판 slug) |
-| inquiry.board_slug | body | string | 아니오 | max 255 | <!-- TODO: 용도 --> |
+| inquiry.board_slug | body | string | 아니오 | max 255 | 상품 1:1 문의를 연동할 게시판 slug (게시판 모듈 활성화 시에만 선택 가능) |
 | order_settings | body | array | 아니오 | — | 주문/결제 설정 섹션 (기본 PG·결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
-| order_settings.default_pg_provider | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
-| order_settings.cash_receipt_provider | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
-| order_settings.cash_receipt_self_issue | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| order_settings.shipping_fee_tax_policy | body | string | 아니오 | `proportional`, `taxable`, `follow_main_item` | <!-- TODO: 용도 --> |
-| order_settings.payment_methods | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| order_settings.banks | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| order_settings.bank_accounts | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| order_settings.auto_cancel_expired | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| order_settings.auto_cancel_days | body | integer | 아니오 | min 0, max 30 | <!-- TODO: 용도 --> |
-| order_settings.cart_expiry_days | body | integer | 아니오 | min 1, max 365 | <!-- TODO: 용도 --> |
-| order_settings.stock_restore_on_cancel | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| order_settings.confirmable_statuses | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| order_settings.default_pg_provider | body | string | 아니오 | max 50 | 결제 처리에 사용할 기본 PG사 ID (결제수단별 `pg_provider` 미지정 시 적용) |
+| order_settings.cash_receipt_provider | body | string | 아니오 | max 50 | 현금영수증 발급 프로바이더 ID. 결제 PG 와 독립 선택하며 빈 문자열이면 미사용 |
+| order_settings.cash_receipt_self_issue | body | boolean | 아니오 | — | 현금영수증 자진발급 사용 (구매자가 신청하지 않은 무통장 입금 건도 자동 발급) |
+| order_settings.shipping_fee_tax_policy | body | string | 아니오 | `proportional`, `taxable`, `follow_main_item` | 현금영수증의 배송비 과세 방식 (안분 / 전액 과세 / 주된 재화 기준) |
+| order_settings.payment_methods | body | array | 아니오 | — | 결제수단 목록. 항목별 `id`(필수)·`pg_provider`·`sort_order`(min 1)·`is_active`·`min_order_amount`(min 0)·`stock_deduction_timing`(`order_placed`\|`payment_complete`\|`none`)·`mileage_deduction_timing`(`order_placed`\|`payment_complete`). 최소 1개는 활성이어야 하며, PG 가 필요한 결제수단을 활성화하려면 PG사 지정 필수 |
+| order_settings.banks | body | array | 아니오 | — | 무통장입금용 은행 목록. 항목별 `code`(max 10, 필수)·`name`(다국어 배열, 현재 로케일 필수) |
+| order_settings.bank_accounts | body | array | 아니오 | — | 무통장 입금 계좌 목록. 항목별 `bank_code`·`account_number`·`account_holder`(모두 필수)·`is_active`·`is_default`. 계좌가 있으면 최소 1건은 사용+기본 상태여야 함 |
+| order_settings.auto_cancel_expired | body | boolean | 아니오 | — | 입금대기 상태 주문의 자동취소 사용 여부 |
+| order_settings.auto_cancel_days | body | integer | 아니오 | min 0, max 30 | 자동취소 기한(일). 주문일 포함 이 일수 경과 시 입금대기 주문을 자동 취소 |
+| order_settings.cart_expiry_days | body | integer | 아니오 | min 1, max 365 | 장바구니 보관기간(일). 경과 시 담긴 상품 자동 삭제 |
+| order_settings.stock_restore_on_cancel | body | boolean | 아니오 | — | 주문 취소 시 차감된 재고 자동 복구 여부 (반품/교환에도 적용) |
+| order_settings.confirmable_statuses | body | array | 아니오 | — | 사용자가 구매확정할 수 있는 주문 옵션 상태 목록 (`payment_complete`, `shipping_hold`, `preparing`, `shipping_ready`, `shipping`, `delivered` 중 선택) |
 | claim | body | array | 아니오 | — | 클레임 설정 섹션 (환불 사유 목록, DB 동기화 대상으로 분리 저장) |
-| claim.refund_reasons | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| claim.refund_reasons | body | array | 아니오 | — | 환불 사유 목록. 항목별 `id`·`code`(소문자·언더스코어, 필수)·`name`(다국어 배열, 현재 로케일 필수)·`fault_type`(`customer`\|`seller`\|`carrier`, 필수)·`is_user_selectable`·`is_active`·`sort_order`. 코드 중복 불가 |
 | review_settings | body | array | 아니오 | — | 리뷰 정책 섹션 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
-| review_settings.write_deadline_days | body | integer | 아니오 | min 1, max 365 | <!-- TODO: 용도 --> |
-| review_settings.max_images | body | integer | 아니오 | min 0, max 20 | <!-- TODO: 용도 --> |
-| review_settings.max_image_size_mb | body | integer | 아니오 | min 1, max 50 | <!-- TODO: 용도 --> |
+| review_settings.write_deadline_days | body | integer | 아니오 | min 1, max 365 | 구매 확정 후 리뷰를 작성할 수 있는 기간(일) |
+| review_settings.max_images | body | integer | 아니오 | min 0, max 20 | 리뷰 1건당 첨부 가능한 이미지 수 (0 = 이미지 첨부 불가) |
+| review_settings.max_image_size_mb | body | integer | 아니오 | min 1, max 50 | 리뷰 이미지 파일 1개의 최대 용량(MB) |
 | mileage | body | array | 아니오 | — | 마일리지 설정 섹션 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림) |
-| mileage.enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| mileage.default_earn_rate | body | number | 아니오 | min 0, max 100 | <!-- TODO: 용도 --> |
-| mileage.earn_trigger | body | string | 아니오 | `delivered`, `confirmed` | <!-- TODO: 용도 --> |
-| mileage.earn_delay_days | body | integer | 아니오 | min 0, max 365 | <!-- TODO: 용도 --> |
-| mileage.currency_rules | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| mileage.expiry_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| mileage.expiry_days | body | integer | 아니오 | min 1, max 3650 | <!-- TODO: 용도 --> |
-| mileage.expiry_notification_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| mileage.expiry_notification_days_before | body | integer | 아니오 | min 1, max 365 | <!-- TODO: 용도 --> |
+| mileage.enabled | body | boolean | 아니오 | — | 마일리지 적립·사용 기능 사용 여부 (`mileage` 전달 시 필수) |
+| mileage.default_earn_rate | body | number | 아니오 | min 0, max 100 | 기본 적립률(%). 상품 등록 시 기본값으로 사용되며, `enabled: true` 인 경우 0 초과여야 함 |
+| mileage.earn_trigger | body | string | 아니오 | `delivered`, `confirmed` | 마일리지 적립 시점 (배송완료 / 구매확정) |
+| mileage.earn_delay_days | body | integer | 아니오 | min 0, max 365 | 적립 시점 이후 실제 적립까지의 지연일 |
+| mileage.currency_rules | body | array | 아니오 | — | 통화별 사용 규칙. 항목별 `currency_code`(ISO 4217, 필수)·`point_value`(1점당 금액, min 0.001)·`min_use_amount`·`use_unit`(min 1)·`max_use_type`(`percent`\|`fixed`)·`max_use_percent`·`max_use_value`. 첫 행은 기본 통화여야 하고, 등록 통화만 허용하며 중복 불가 |
+| mileage.expiry_enabled | body | boolean | 아니오 | — | 마일리지 유효기간 사용 여부 (경과 시 미사용 마일리지 자동 소멸) |
+| mileage.expiry_days | body | integer | 아니오 | min 1, max 3650 | 마일리지 유효기간(일) |
+| mileage.expiry_notification_enabled | body | boolean | 아니오 | — | 소멸 예정 알림 발송 여부 |
+| mileage.expiry_notification_days_before | body | integer | 아니오 | min 1, max 365 | 유효기간 만료 며칠 전에 소멸 예정 알림을 발송할지 |
 | shipping | body | array | 아니오 | — | 배송 설정 섹션 (기본 국가·배송 가능 국가·무료배송·배송사(carriers)·배송유형(types) — carriers/types는 DB 동기화 대상으로 분리 저장) |
-| shipping.default_country | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
-| shipping.available_countries | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| shipping.international_shipping_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| shipping.free_shipping_threshold | body | integer | 아니오 | min 0 | <!-- TODO: 용도 --> |
-| shipping.free_shipping_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| shipping.address_validation_enabled | body | boolean | 아니오 | — | <!-- TODO: 용도 --> |
-| shipping.address_api_provider | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
-| shipping.carriers | body | array | 아니오 | — | <!-- TODO: 용도 --> |
-| shipping.types | body | array | 아니오 | — | <!-- TODO: 용도 --> |
+| shipping.default_country | body | string | 아니오 | max 10 | 기본 배송 국가 코드. 새 배송정책 등록 시 기본으로 추가되며, `available_countries` 에 존재해야 함 |
+| shipping.available_countries | body | array | 아니오 | — | 배송 가능 국가 목록. 항목별 `code`(max 10, 필수)·`name`(다국어 배열, 필수)·`is_active`. 코드 중복 불가 |
+| shipping.international_shipping_enabled | body | boolean | 아니오 | — | 해외배송 기능 사용 여부 |
+| shipping.free_shipping_threshold | body | integer | 아니오 | min 0 | 무료배송 기준 금액 (이 금액 이상 주문 시 무료배송) |
+| shipping.free_shipping_enabled | body | boolean | 아니오 | — | 무료배송 기준금액 적용 여부 |
+| shipping.address_validation_enabled | body | boolean | 아니오 | — | 주소 검증(주소찾기 API) 사용 여부 |
+| shipping.address_api_provider | body | string | 아니오 | max 50 | 주소찾기 API 제공자 식별자 (기본값 `kakao`) |
+| shipping.carriers | body | array | 아니오 | — | 배송사 목록(DB 동기화 대상). 항목별 `id`·`code`(소문자/숫자/하이픈, 필수)·`name`(다국어 배열, 현재 로케일 필수)·`type`(`domestic`\|`international`, 필수)·`tracking_url`(`{tracking_number}` 치환)·`is_active`·`sort_order`. 코드 중복 불가 |
+| shipping.types | body | array | 아니오 | — | 배송유형 목록(DB 동기화 대상). 항목별 `id`·`code`(소문자/숫자/하이픈, 필수)·`name`(다국어 배열, 현재 로케일 필수)·`category`(`domestic`\|`international`\|`other`, 필수)·`is_active`·`sort_order`. 코드 중복 불가 |
 
 **요청 예시**
 
@@ -1331,11 +1331,27 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: side-effectful-write — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| cleared | boolean | `true` | 이커머스 설정 캐시 + SEO 렌더 캐시 초기화 성공 여부 (성공 시 항상 `true`) |
 
 **응답 예시**
 
-<!-- 실측 제외: side-effectful-write — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "sirsoft-ecommerce::messages.settings.cache_clear_success",
+    "data": {
+        "cleared": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -1577,7 +1593,9 @@ HTTP/1.1 200
 
 **에러 응답**
 
-_대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있으면 보강 -->_
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 500 | Internal Server Error | 설정 조회 중 예외 발생 (`messages.settings.fetch_failed`) |
 
 <!-- @generated:end -->
 
@@ -1686,7 +1704,9 @@ HTTP/1.1 200
 
 **에러 응답**
 
-_대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있으면 보강 -->_
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 500 | Internal Server Error | 설정 조회 중 예외 발생 (`messages.settings.fetch_failed`) |
 
 <!-- @generated:end -->
 
@@ -1741,7 +1761,9 @@ HTTP/1.1 200
 
 **에러 응답**
 
-_대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있으면 보강 -->_
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 500 | Internal Server Error | 설정 조회 중 예외 발생 (`messages.settings.fetch_failed`) |
 
 <!-- @generated:end -->
 
@@ -1817,7 +1839,9 @@ HTTP/1.1 200
 
 **에러 응답**
 
-_대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있으면 보강 -->_
+| 상태코드 | 의미 | 발생 조건 |
+| --- | --- | --- |
+| 500 | Internal Server Error | 설정 조회 중 예외 발생 (`messages.settings.fetch_failed`) |
 
 <!-- @generated:end -->
 

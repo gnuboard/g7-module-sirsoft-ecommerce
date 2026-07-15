@@ -225,7 +225,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만). 컨트롤러가 `ResponseHelper::success('sirsoft-ecommerce::messages.address.deleted')` 를 데이터 인수 없이 호출하므로 `data` 는 `null` 입니다._
 
 **응답 예시**
 
@@ -387,7 +387,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만). 컨트롤러가 `ResponseHelper::success('sirsoft-ecommerce::messages.address.default_set')` 를 데이터 인수 없이 호출하므로 `data` 는 `null` 입니다. 변경된 목록은 배송지 목록 조회(`GET /user/addresses`)로 재조회합니다._
 
 **응답 예시**
 

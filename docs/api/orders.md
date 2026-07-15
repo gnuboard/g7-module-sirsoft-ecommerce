@@ -329,11 +329,29 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`OrderService::bulkUpdate()` 반환 배열)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| updated_count | integer | `3` | 실제로 변경된 주문 건수 (상태 변경 건수와 배송정보 변경 건수 중 큰 값) |
+| requested_count | integer | `3` | 요청한 `ids` 배열의 건수 (대상 주문 수) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": ":count개 주문이 수정되었습니다.",
+    "data": {
+        "updated_count": 3,
+        "requested_count": 3
+    }
+}
+```
 
 **에러 응답**
 
@@ -341,7 +359,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). 상태 전이 규칙 위반(현재 상태 → 목표 상태 불가), 배송 관련 상태 전환 시 `carrier_id`/`tracking_number` 누락, 취소→판매상태 복원 시 재고 부족 등도 여기에 해당 (`일괄 처리에 실패했습니다.`) |
+| 500 | Server Error | 일괄 처리 중 예기치 못한 오류 (`일괄 처리에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -371,11 +390,27 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-403 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 소프트 삭제 성공 여부 (항상 `true`) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-403 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문이 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -618,11 +653,66 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. 수정된 주문을 `OrderResource` 로 반환하므로 필드 구성은 `GET /admin/orders/{order}` (주문 상세) 의 응답 필드 표와 동일합니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| order_number | string | `20260706-1405449337` | 주문번호 |
+| order_status | string | `preparing` | 수정 반영된 주문상태 (OrderStatusEnum) |
+| order_status_label | string | `상품준비중` | `order_status` 값의 사람이 읽는 라벨 |
+| admin_memo | string | `고객 요청으로 주소 정정` | 수정 반영된 관리자 메모 |
+| recipient_name | string | `심채원` | 수정 반영된 수령인 이름 |
+| recipient_phone | string | `010-3955-6018` | 수정 반영된 수령인 휴대전화 |
+| recipient_zipcode | string | `38022` | 수정 반영된 수령인 우편번호 |
+| recipient_address | string | `부산광역시 양천구 공항대로 9` | 수정 반영된 수령인 기본 주소 |
+| recipient_detail_address | string | `101동 202호` | 수정 반영된 수령인 상세 주소 |
+| delivery_memo | string | `parcel_box` | 수정 반영된 배송 메모 |
+| shipping_address | object | `{"id":1,"address_type":"shipping",…}` | 배송지 상세 (OrderAddressResource) |
+| options / payments / shippings / cancels | array | `[…]` | 주문 상세와 동일한 하위 리소스 목록 |
+| updated_at | string | `2026-07-06T14:05:45+00:00` | 최종 수정 일시 |
+| abilities | object | `{"can_read":true,"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
+
+> 나머지 금액/일시/다중통화 필드는 `GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표를 참조하세요 (동일 `OrderResource`).
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문이 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "order_number": "20260706-1405449337",
+        "order_status": "preparing",
+        "order_status_label": "상품준비중",
+        "admin_memo": "고객 요청으로 주소 정정",
+        "recipient_name": "심채원",
+        "recipient_phone": "010-3955-6018",
+        "recipient_zipcode": "38022",
+        "recipient_address": "부산광역시 양천구 공항대로 9",
+        "recipient_detail_address": "101동 202호",
+        "delivery_memo": "parcel_box",
+        "delivery_memo_label": "택배함에 넣어주세요",
+        "options": [],
+        "shipping_address": {},
+        "payments": [],
+        "shippings": [],
+        "cancels": [],
+        "updated_at": "2026-07-06T14:05:45+00:00",
+        "abilities": {
+            "can_read": true,
+            "can_update": true
+        }
+    }
+}
+```
+
+> `data` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 수정 관련 필드만 발췌).
 
 **에러 응답**
 
@@ -631,7 +721,8 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). 주문상태 전이 규칙 위반 등 Service 단계 검증 실패도 포함 (`messages.orders.update_failed`) |
+| 500 | Server Error | 수정 처리 중 예기치 못한 오류 (`messages.orders.update_failed`) |
 
 <!-- @generated:end -->
 
@@ -685,11 +776,59 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. 취소 처리 후 재조회한 주문을 `OrderResource` 로 반환하므로 필드 구성은 `GET /admin/orders/{order}` (주문 상세) 의 응답 필드 표와 동일합니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| order_number | string | `20260706-1405449337` | 주문번호 |
+| order_status | string | `cancelled` | 취소 반영된 주문상태 (전체취소 시 `cancelled`, 부분취소 시 기존 상태 유지) |
+| is_partially_cancelled | boolean | `true` | 부분취소 여부 (일부 옵션만 취소된 경우 `true`) |
+| total_cancelled_amount | integer | `31000` | 취소 반영 후 총 취소금액 |
+| total_refunded_amount | integer | `31000` | 취소 반영 후 총 환불금액 (PG 환불액) |
+| total_refunded_points_amount | integer | `0` | 취소 반영 후 환불된 포인트 |
+| cancelled_at | string | `2026-07-11T02:10:00+00:00` | 취소 일시 (전체취소 시 기록) |
+| cancels | array | `[{"reason":"change_of_mind","reason_detail":null,…}]` | 취소 이력 목록 (OrderCancelResource — 취소 사유·상세·취소일시, 최근순) |
+| options | array | `[{"id":1,"option_status":"cancelled",…}]` | 주문 옵션 목록 (취소된 옵션은 `option_status: cancelled`) |
+| payments | array | `[{"payment_status":"cancelled",…}]` | 결제 이력 (PG 취소 동반 시 결제상태 반영) |
+| abilities | object | `{"can_read":true,"can_update":true,"can_cancel":false}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
+
+> 나머지 금액/일시/다중통화 필드는 `GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표를 참조하세요 (동일 `OrderResource`).
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문이 취소되었습니다.",
+    "data": {
+        "id": 1,
+        "order_number": "20260706-1405449337",
+        "order_status": "cancelled",
+        "order_status_label": "취소완료",
+        "is_partially_cancelled": false,
+        "total_amount": 184000,
+        "total_cancelled_amount": 184000,
+        "total_refunded_amount": 184000,
+        "total_refunded_points_amount": 0,
+        "cancelled_at": "2026-07-11T02:10:00+00:00",
+        "cancels": [],
+        "options": [],
+        "payments": [],
+        "abilities": {
+            "can_read": true,
+            "can_update": true,
+            "can_cancel": false
+        }
+    }
+}
+```
+
+> `data` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 취소 관련 필드만 발췌).
 
 **에러 응답**
 
@@ -698,7 +837,7 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터 검증 실패, 또는 취소 처리 실패 — 취소 불가 상태, PG 취소 실패, 가상계좌 환불계좌 정보 누락 등 (`주문 취소에 실패했습니다.` + `errors.detail` 에 예외 메시지) |
 
 <!-- @generated:end -->
 
@@ -1020,11 +1159,53 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. 입금확인 후 재조회한 주문을 `OrderResource` 로 반환하므로 필드 구성은 `GET /admin/orders/{order}` (주문 상세) 의 응답 필드 표와 동일합니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| order_number | string | `20260706-1405449337` | 주문번호 |
+| order_status | string | `payment_complete` | 입금확인 반영된 주문상태 (`mark_order_complete` 지정 시 주문완료 상태) |
+| order_status_label | string | `결제완료` | `order_status` 값의 사람이 읽는 라벨 |
+| total_paid_amount | integer | `184000` | 입금 반영된 총 실제 결제금액 |
+| total_due_amount | integer | `0` | 입금 반영 후 남은 결제예정금액 |
+| depositor_name | string | `홍길동` | 확인된 무통장 입금자명 |
+| paid_at | string | `2026-07-11T02:10:00+00:00` | 결제완료 일시 (입금확인 시점 기록) |
+| payments | array | `[{"payment_status":"paid",…}]` | 결제 이력 (OrderPaymentResource — 무통장 결제건이 `paid` 로 전이) |
+| abilities | object | `{"can_read":true,"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
+
+> 나머지 금액/일시/다중통화 필드는 `GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표를 참조하세요 (동일 `OrderResource`).
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "입금이 확인되어 결제완료 처리되었습니다.",
+    "data": {
+        "id": 1,
+        "order_number": "20260706-1405449337",
+        "order_status": "payment_complete",
+        "order_status_label": "결제완료",
+        "total_amount": 184000,
+        "total_paid_amount": 184000,
+        "total_due_amount": 0,
+        "depositor_name": "홍길동",
+        "paid_at": "2026-07-11T02:10:00+00:00",
+        "payments": [],
+        "abilities": {
+            "can_read": true,
+            "can_update": true
+        }
+    }
+}
+```
+
+> `data` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 입금확인 관련 필드만 발췌).
 
 **에러 응답**
 
@@ -1033,7 +1214,7 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터 검증 실패, 입금액 불일치(`입금액이 결제예정금액과 일치하지 않습니다.` + `errors.detail`), 또는 입금확인 처리 실패 — 무통장 결제가 아닌 주문·이미 결제완료된 주문 등 (`입금확인 처리에 실패했습니다.` + `errors.detail`) |
 
 <!-- @generated:end -->
 
@@ -1073,11 +1254,88 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`AdjustmentResult::toPreviewArray()` 반환 배열)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| refund_amount | number | `31000` | PG 환불 예상금액 (음수면 추가결제 필요) |
+| refund_points_amount | number | `0` | 마일리지(포인트) 환불 예상금액 |
+| original_paid_amount | number | `184000` | 재계산 전 원 결제금액 |
+| recalculated_paid_amount | number | `153000` | 취소 반영 후 재계산된 결제금액 |
+| shipping_difference | number | `0` | 배송비 차이 (양수 환불 / 음수 추가결제) |
+| discount_difference | number | `0` | 할인 차이 (양수: 할인 감소분) |
+| additional_payment_amount | number | `0` | 추가결제 필요 금액 (환불액이 음수일 때의 절댓값, 없으면 0) |
+| cancelled_items | array | `[{"order_option_id":1,"cancel_quantity":1,"cancel_amount":31000}]` | 취소 대상 아이템별 취소 수량·취소 금액 |
+| refund_priority | string | `pg_first` | 적용된 환불 배분 우선순위 (RefundPriorityEnum — `pg_first` / `points_first`) |
+| remaining_pg_balance | number | `153000` | 환불 후 잔여 PG 결제 잔액 |
+| remaining_points_balance | number | `0` | 환불 후 잔여 포인트 잔액 |
+| refund_total | number | `31000` | 총 환불 예상금액 (PG 환불액 + 포인트 환불액) |
+| refund_formatted | object | `{"refund_total":"31,000원", …}` | 환불 총액·잔액의 base 통화 포맷 문자열 + 결제 통화 병기 (취소 모달 표기 SSoT) |
+| restored_coupons | array | `[{"coupon_name":"첫구매 무료배송","discount_amount":0}]` | 취소로 복원되는 쿠폰 정보 |
+| shipping_details | array | `[{"policy_name":"기본 배송정책","base_difference":0,"extra_difference":0,"total_difference":0}]` | 배송정책별 배송비 차액 상세 |
+| mc_refund_amount | object \| null | `{"KRW":{"amount":31000,"formatted":"31,000원"}, …}` | PG 환불금액 다중 통화 |
+| mc_refund_points_amount | object \| null | `{"KRW":{"amount":0,"formatted":"0원"}, …}` | 포인트 환불금액 다중 통화 |
+| mc_refund_shipping_amount | object \| null | `{"KRW":{"amount":0,"formatted":"0원"}, …}` | 배송비 환불금액 다중 통화 |
+| original_snapshot | object | `{"total_paid_amount":184000,"total_points_used_amount":0, …}` | 재계산 전 주문 금액 스냅샷 |
+| recalculated_snapshot | object | `{"total_paid_amount":153000, …}` | 재계산 후 주문 금액 스냅샷 |
+| mc_original_snapshot | object \| null | `{"mc_subtotal_amount":{…},"mc_total_paid_amount":{…}}` | 원 주문 다중 통화 스냅샷 |
+| mc_recalculated_snapshot | object \| null | `{"mc_subtotal_amount":{…},"mc_total_paid_amount":{…}}` | 재계산 다중 통화 스냅샷 |
+| original_coupons | array | `[{"name":"첫구매 무료배송","target_type":"shipping_fee","discount_amount":0}]` | 원 주문에 적용된 쿠폰 상세 |
+| recalculated_coupons | array | `[]` | 재계산 후 유지되는 쿠폰 상세 (조건 미달 시 소멸) |
+| cancel_blocked | boolean | `false` | 취소 차단 여부 (부분취소로 추가결제가 필요해지는 실결제 주문이면 `true`) |
+| cancel_blocked_reason | string \| null | `null` | 차단 사유 문구 (차단이 아니면 `null`) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "환불 예상금액을 조회했습니다.",
+    "data": {
+        "refund_amount": 31000,
+        "refund_points_amount": 0,
+        "original_paid_amount": 184000,
+        "recalculated_paid_amount": 153000,
+        "shipping_difference": 0,
+        "discount_difference": 0,
+        "additional_payment_amount": 0,
+        "cancelled_items": [
+            {
+                "order_option_id": 1,
+                "cancel_quantity": 1,
+                "cancel_amount": 31000
+            }
+        ],
+        "refund_priority": "pg_first",
+        "remaining_pg_balance": 153000,
+        "remaining_points_balance": 0,
+        "refund_total": 31000,
+        "refund_formatted": {},
+        "restored_coupons": [],
+        "shipping_details": [],
+        "mc_refund_amount": {
+            "KRW": {
+                "amount": 31000,
+                "formatted": "31,000원"
+            }
+        },
+        "mc_refund_points_amount": null,
+        "mc_refund_shipping_amount": null,
+        "original_snapshot": {},
+        "recalculated_snapshot": {},
+        "mc_original_snapshot": null,
+        "mc_recalculated_snapshot": null,
+        "original_coupons": [],
+        "recalculated_coupons": [],
+        "cancel_blocked": false,
+        "cancel_blocked_reason": null
+    }
+}
+```
 
 **에러 응답**
 
@@ -1087,6 +1345,7 @@ Content-Type: application/json
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 500 | Server Error | 환불 예상금액 계산 중 오류 (`환불 예상금액 조회에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -1340,11 +1599,51 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`OrderOptionService::bulkChangeStatusWithQuantity()` 반환 배열)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| changed_count | integer | `2` | 상태가 변경된 주문 옵션 건수 |
+| split_count | integer | `1` | 부분 수량 전환으로 옵션이 분할된 건수 |
+| results | array | `[{"order_option_id":1, …}]` | 옵션별 처리 결과 배열 (아래 하위 필드) |
+| results[].order_option_id | integer | `1` | 상태를 변경한 원본 주문 옵션 ID |
+| results[].split_order_option_id | integer \| null | `57` | 부분 수량 전환으로 새로 분할 생성된 옵션 ID (분할 없으면 `null`) |
+| results[].merged_into_order_option_id | integer \| null | `null` | 동일 상태 기존 옵션으로 병합된 경우 그 대상 옵션 ID (병합 없으면 `null`) |
+| results[].quantity_changed | integer | `1` | 이번에 상태 전환한 수량 |
+| results[].is_full_quantity | boolean | `false` | 옵션의 전체 수량을 전환했는지 여부 (부분 전환이면 `false`) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": ":count개 옵션의 상태가 변경되었습니다.",
+    "data": {
+        "changed_count": 2,
+        "split_count": 1,
+        "results": [
+            {
+                "order_option_id": 1,
+                "split_order_option_id": 57,
+                "merged_into_order_option_id": null,
+                "quantity_changed": 1,
+                "is_full_quantity": false
+            },
+            {
+                "order_option_id": 2,
+                "split_order_option_id": null,
+                "merged_into_order_option_id": null,
+                "quantity_changed": 3,
+                "is_full_quantity": true
+            }
+        ]
+    }
+}
+```
 
 **에러 응답**
 
@@ -1353,7 +1652,9 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터 검증 실패, 또는 옵션 상태 변경 실패 — 옵션 전이 규칙 위반, 취소 후 복원 시 재고 부족 등 (`옵션 상태 변경에 실패했습니다.`) |
+| 428 | Identity Verification Required | 결제완료(`payment_complete`) 전이 시 본인인증(IDV) 정책이 enforce 이고 미인증인 경우 |
+| 500 | Server Error | 옵션 상태 변경 중 예기치 못한 오류 (`옵션 상태 변경에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -1393,7 +1694,7 @@ Content-Type: application/json
 
 
 
-<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`). 재설정한 평문 비밀번호는 응답/로그에 노출하지 않습니다._
 
 **응답 예시**
 
@@ -1418,7 +1719,8 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.orders.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지), 또는 회원 주문(`user_id` 가 있는 주문)에 호출한 경우 (`비회원 주문만 조회 비밀번호를 재설정할 수 있습니다.`) |
+| 500 | Server Error | 재설정 처리 중 예기치 못한 오류 (`비회원 조회 비밀번호 재설정에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -1456,11 +1758,21 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-500 — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`)._
 
 **응답 예시**
 
-<!-- 실측 제외: http-500 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "이메일이 발송되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
@@ -1507,18 +1819,28 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`). 주문 상태는 변경되지 않고 `order_payments` 에 취소 이력만 기록됩니다._
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "결제가 취소되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `orderNumber` 에 해당하는 주문이 없거나 접근 권한이 없는 경우도 포함 (CancelPaymentRequest 의 주문 해석 실패) |
 
 <!-- @generated:end -->
 
@@ -1658,15 +1980,30 @@ HTTP/1.1 200
 
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
+| orderer.name | body | string | 예 | max 50 | 대상의 이름/명칭 |
+| orderer.phone | body | string | 예 | max 20 | 전화번호 |
+| shipping.recipient_name | body | string | 예 | max 50 | shipping.recipient 이름 (식별자) |
+| shipping.recipient_phone | body | string | 아니오 | max 20 | 수령인 연락처 |
+| shipping.recipient_tel | body | string | 아니오 | max 20 | 수령인 일반전화 (`shipping.recipient_phone` 미입력 시 필수 — 둘 중 하나는 반드시 입력) |
+| shipping.country_code | body | string | 아니오 | — | 국가 코드 (ISO 3166-1 alpha-2) |
+| shipping.zipcode | body | string | 아니오 | max 10 | 우편번호 |
+| shipping.address | body | string | 아니오 | max 255 | 기본 주소 |
+| shipping.address_detail | body | string | 예 | max 255 | 상세 주소 |
+| shipping.address_type_code | body | string | 아니오 | `R`, `J` | 국내 주소 표기 방식 (`R` 도로명 / `J` 지번) |
+| shipping.address_line_1 | body | string | 아니오 | max 255 | 주소 1행 (기본 주소) |
+| shipping.address_line_2 | body | string | 아니오 | max 255 | 주소 2행 (상세 주소) |
+| shipping.intl_city | body | string | 아니오 | max 100 | 도시 (국제 주소) |
+| shipping.intl_state | body | string | 아니오 | max 100 | 주/도 (국제 주소) |
+| shipping.intl_postal_code | body | string | 아니오 | max 20 | 우편번호 (국제 주소) |
 | payment_method | body | string | 예 | — | 결제수단. 코어 8종(`card`/`vbank`/`dbank`/`bank`/`phone`/`point`/`deposit`/`free`) 과 PG 플러그인이 등록한 확장 결제수단 ID(예: `nhnkcp_naverpay`, `kginicis_lpay`)를 모두 허용한다. 확장 결제수단도 1급 시민으로 그대로 저장된다. 카탈로그에 없는 값은 422 |
 | expected_total_amount | body | number | 예 | min 0 | 프론트가 계산한 예상 결제금액 (서버 재계산값과 대조해 금액 위변조 검증) |
 | shipping_memo | body | string | 아니오 | max 500 | 배송 요청사항 메모 |
 | depositor_name | body | string | 아니오 | max 50 | depositor 이름 (식별자) |
-| dbank.bank_code | body | string | 아니오 | max 10 | <!-- TODO: 용도 --> |
-| dbank.bank_name | body | string | 아니오 | max 50 | dbank.bank 이름 (식별자) |
-| dbank.account_number | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
-| dbank.account_holder | body | string | 아니오 | max 50 | <!-- TODO: 용도 --> |
-| dbank.due_days | body | integer | 아니오 | min 1, max 30 | <!-- TODO: 용도 --> |
+| dbank.bank_code | body | string | 아니오 | max 10 | 수동 무통장입금 계좌의 은행코드 (`payment_method=dbank` 이면 필수) |
+| dbank.bank_name | body | string | 아니오 | max 50 | 수동 무통장입금 계좌의 은행명 (표시용) |
+| dbank.account_number | body | string | 아니오 | max 50 | 수동 무통장입금 입금 계좌번호 (`payment_method=dbank` 이면 필수) |
+| dbank.account_holder | body | string | 아니오 | max 50 | 수동 무통장입금 계좌 예금주 (`payment_method=dbank` 이면 필수) |
+| dbank.due_days | body | integer | 아니오 | min 1, max 30 | 입금 기한 일수 (주문일로부터 며칠 이내 입금, 1~30일) |
 | save_shipping_address | body | boolean | 아니오 | — | 회원 주소록에 이번 배송지 저장 여부 (회원 주문 한정) |
 | cash_receipt_requested | body | boolean | 아니오 | — | 현금영수증 신청 여부 (true 면 아래 3개 필드가 필수) |
 | cash_receipt_type | body | string | 아니오 | — | 발급 용도 (`income` 소득공제 / `expense` 지출증빙) |
@@ -1675,7 +2012,7 @@ HTTP/1.1 200
 | refund_bank.bank_code | body | string | 아니오 | max 10 | 환불 계좌 은행코드 (세 필드는 전부 입력하거나 전부 비워야 함) |
 | refund_bank.account_number | body | string | 아니오 | max 50 | 환불 계좌번호 |
 | refund_bank.holder | body | string | 아니오 | max 50 | 환불 계좌 예금주 |
-| orderer.email | body | email | 예 | max 255 | <!-- TODO: 용도 --> |
+| orderer.email | body | email | 예 | max 255 | 이메일 주소 |
 | guest_lookup_password | body | string | 예 | min 8, max 255 | 비회원 주문 조회 비밀번호 (비회원만 필수, 8자 이상 · 해시로 저장) |
 | guest_lookup_password_confirmation | body | string | 예 | — | 조회 비밀번호 확인 (guest_lookup_password 와 일치해야 함) |
 
@@ -1731,18 +2068,87 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (HTTP 201). 회원은 `order` 에 `OrderResource`, 비회원은 민감 필드를 가린 `GuestOrderResource` 가 담깁니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| order | object | `{"id":181,"order_number":"20260711-0210001234", …}` | 생성된 주문 (회원: `OrderResource` / 비회원: `GuestOrderResource`) |
+| redirect_url | string | `/shop/orders/20260711-0210001234/complete` | 주문완료 페이지 경로 (프론트가 이동할 URL) |
+| requires_pg_payment | boolean | `true` | PG 결제창 호출이 필요한지 여부 (무통장·전액 마일리지 등 non-PG 는 `false`) |
+| pg_provider | string | `sirsoft-tosspayments` | PG 플러그인 식별자 (`requires_pg_payment=true` 일 때만 포함) |
+| pg_payment_handler | string | `sirsoft-tosspayments.requestPayment` | 프론트가 dispatch 할 결제 진입 핸들러 풀네임 (provider 가 선언한 경우에만 포함) |
+| pg_payment_data | object | `{"order_number":"…","amount":184000,"currency":"KRW", …}` | PG SDK 결제창 호출 파라미터 (`requires_pg_payment=true` 일 때만 포함 — 아래 표 참조) |
+
+`pg_payment_data` 하위 필드 (프로바이더 비의존 공통):
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| order_number | string | `20260711-0210001234` | 주문번호 (PG 주문 식별자) |
+| order_name | string | `코튼 후드티 #12 외 2건` | 결제창에 표시할 주문명 (첫 상품명 + 외 N건) |
+| amount | integer | `184000` | PG 청구금액 — 결제 통화의 최소 화폐단위 정수 (KRW 원 / USD 센트) |
+| currency | string | `KRW` | PG 청구 통화 (주문 스냅샷 환율로 환산된 결제 통화) |
+| customer_name | string | `유정우` | 주문자명 (배송지에서 조회) |
+| customer_email | string | `ji792@mail.test` | 주문자 이메일 |
+| customer_phone | string | `01055144949` | 주문자 휴대전화 (숫자만) |
+| customer_key | string \| null | `user_12` | 회원 식별 키 (비회원은 `null`) |
+| escrow_products | array | `[{"id":12,"name":"코튼 후드티 #12","code":"YD1JTVLJEMKAUTKS","unitPrice":31000,"quantity":1}]` | 에스크로 결제(가상계좌·계좌이체)용 상품 상세 (`unitPrice` 는 개당가, 비에스크로는 무시) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "주문이 완료되었습니다.",
+    "data": {
+        "order": {
+            "id": 181,
+            "order_number": "20260711-0210001234",
+            "order_status": "pending_payment",
+            "total_amount": 184000,
+            "total_due_amount": 184000
+        },
+        "redirect_url": "/shop/orders/20260711-0210001234/complete",
+        "requires_pg_payment": true,
+        "pg_provider": "sirsoft-tosspayments",
+        "pg_payment_handler": "sirsoft-tosspayments.requestPayment",
+        "pg_payment_data": {
+            "order_number": "20260711-0210001234",
+            "order_name": "코튼 후드티 #12 외 2건",
+            "amount": 184000,
+            "currency": "KRW",
+            "customer_name": "유정우",
+            "customer_email": "ji792@mail.test",
+            "customer_phone": "01055144949",
+            "customer_key": "user_12",
+            "escrow_products": [
+                {
+                    "id": 12,
+                    "name": "코튼 후드티 #12",
+                    "code": "YD1JTVLJEMKAUTKS",
+                    "unitPrice": 31000,
+                    "quantity": 1
+                }
+            ]
+        }
+    }
+}
+```
+
+> `order` 는 주문 상세와 동일한 `OrderResource`(회원) / `GuestOrderResource`(비회원) 전체 구조입니다 (위 예시는 주요 필드만 발췌).
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-orders.create`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `payment_method` 가 결제수단 카탈로그에 없는 값이면 여기서 차단된다 |
+| 404 | Not Found | 임시 주문(주문서)이 없거나 만료된 경우 (`주문서를 찾을 수 없습니다.` 계열 — `exceptions.temp_order_not_found`) |
+| 422 | Unprocessable Entity | 요청 파라미터 검증 실패, 예상 결제금액 불일치(`expected_total_amount` ≠ 서버 재계산값), 결제 통화 미지원(`errors.code = unsupported_payment_currency`), 재고 부족(`errors.insufficient_items`), 구매 불가 상품(`errors.code = cart_unavailable`), 주문 확정 재계산 검증 실패(쿠폰 만료·최소주문금액 미달 등 — `errors.code = order_calculation_validation_failed`). `payment_method` 가 결제수단 카탈로그에 없는 값이면 여기서 차단된다 |
+| 428 | Identity Verification Required | 결제 진입 본인인증(IDV) 정책이 활성이고 미인증(grace 만료)인 경우 |
+| 500 | Server Error | 주문 생성 중 예기치 못한 오류 (`주문 생성에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -1893,14 +2299,42 @@ _단건 응답: `data` 객체의 필드._
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "order_number": "20260706-1405449337",
+        "order_status": "payment_complete",
+        "order_status_label": "결제완료",
+        "total_amount": 184000,
+        "total_amount_formatted": "184,000원",
+        "options": [],
+        "shipping_address": {},
+        "payments": [],
+        "shippings": [],
+        "cancels": [],
+        "abilities": {
+            "can_read": true,
+            "can_cancel": true
+        }
+    }
+}
+```
+
+> `data` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 주요 필드만 발췌).
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 404 | Not Found | 주문이 없거나 본인 주문이 아닌 경우 (정보 노출 방지를 위해 권한 없음도 404 — `주문을 찾을 수 없습니다.`) |
 
 <!-- @generated:end -->
 
@@ -1944,11 +2378,53 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드. 취소 처리 후 재조회한 주문을 `OrderResource` 로 반환하므로 필드 구성은 주문 상세와 동일합니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| order_number | string | `20260706-1405449337` | 주문번호 |
+| order_status | string | `cancelled` | 취소 반영된 주문상태 (전체취소 시 `cancelled`) |
+| is_partially_cancelled | boolean | `false` | 부분취소 여부 (`items` 지정 시 `true`) |
+| total_cancelled_amount | integer | `184000` | 총 취소금액 |
+| total_refunded_amount | integer | `184000` | 총 환불금액 |
+| cancelled_at | string | `2026-07-11T02:10:00+00:00` | 취소 일시 |
+| cancels | array | `[{"reason":"change_of_mind", …}]` | 취소 이력 (OrderCancelResource) |
+| options | array | `[{"option_status":"cancelled", …}]` | 주문 옵션 목록 (취소된 옵션 반영) |
+| abilities | object | `{"can_read":true,"can_cancel":false}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
+
+> 나머지 금액/일시/다중통화 필드는 `GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표를 참조하세요 (동일 `OrderResource`).
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문이 취소되었습니다.",
+    "data": {
+        "id": 1,
+        "order_number": "20260706-1405449337",
+        "order_status": "cancelled",
+        "order_status_label": "취소완료",
+        "is_partially_cancelled": false,
+        "total_cancelled_amount": 184000,
+        "total_refunded_amount": 184000,
+        "cancelled_at": "2026-07-11T02:10:00+00:00",
+        "cancels": [],
+        "options": [],
+        "abilities": {
+            "can_read": true,
+            "can_cancel": false
+        }
+    }
+}
+```
+
+> `data` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 취소 관련 필드만 발췌).
 
 **에러 응답**
 
@@ -1957,7 +2433,7 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-orders.cancel`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터 검증 실패(본인 주문 아님·취소 불가 상태 포함), 또는 취소 처리 실패 (`exceptions.order_cancel_failed`) |
 
 <!-- @generated:end -->
 
@@ -2175,11 +2651,78 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`AdjustmentResult::toPreviewArray()` 반환 배열 — 관리자 `POST /admin/orders/{order}/estimate-refund` 와 동일 구조)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| refund_amount | number | `31000` | PG 환불 예상금액 (음수면 추가결제 필요) |
+| refund_points_amount | number | `0` | 마일리지(포인트) 환불 예상금액 |
+| original_paid_amount | number | `184000` | 재계산 전 원 결제금액 |
+| recalculated_paid_amount | number | `153000` | 취소 반영 후 재계산된 결제금액 |
+| shipping_difference | number | `0` | 배송비 차이 (양수 환불 / 음수 추가결제) |
+| discount_difference | number | `0` | 할인 차이 (양수: 할인 감소분) |
+| additional_payment_amount | number | `0` | 추가결제 필요 금액 (없으면 0) |
+| cancelled_items | array | `[{"order_option_id":1,"cancel_quantity":1,"cancel_amount":31000}]` | 취소 대상 아이템별 취소 수량·금액 |
+| refund_priority | string | `pg_first` | 적용된 환불 배분 우선순위 |
+| remaining_pg_balance | number | `153000` | 환불 후 잔여 PG 결제 잔액 |
+| remaining_points_balance | number | `0` | 환불 후 잔여 포인트 잔액 |
+| refund_total | number | `31000` | 총 환불 예상금액 (PG + 포인트) |
+| refund_formatted | object | `{"refund_total":"31,000원", …}` | 환불 금액의 통화 포맷 문자열 (취소 모달 표기) |
+| restored_coupons | array | `[]` | 취소로 복원되는 쿠폰 정보 |
+| shipping_details | array | `[]` | 배송정책별 배송비 차액 상세 |
+| mc_refund_amount / mc_refund_points_amount / mc_refund_shipping_amount | object \| null | `{"KRW":{"amount":31000,"formatted":"31,000원"}}` | 환불 금액 다중 통화 |
+| original_snapshot / recalculated_snapshot | object | `{"total_paid_amount":184000, …}` | 재계산 전/후 금액 스냅샷 |
+| mc_original_snapshot / mc_recalculated_snapshot | object \| null | `{"mc_total_paid_amount":{…}}` | 다중 통화 스냅샷 |
+| original_coupons / recalculated_coupons | array | `[]` | 재계산 전/후 쿠폰 적용 상세 |
+| cancel_blocked | boolean | `false` | 취소 차단 여부 (부분취소로 추가결제가 필요해지는 실결제 주문이면 `true`) |
+| cancel_blocked_reason | string \| null | `null` | 차단 사유 문구 (차단이 아니면 `null`) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "환불 예상금액을 조회했습니다.",
+    "data": {
+        "refund_amount": 31000,
+        "refund_points_amount": 0,
+        "original_paid_amount": 184000,
+        "recalculated_paid_amount": 153000,
+        "shipping_difference": 0,
+        "discount_difference": 0,
+        "additional_payment_amount": 0,
+        "cancelled_items": [
+            {
+                "order_option_id": 1,
+                "cancel_quantity": 1,
+                "cancel_amount": 31000
+            }
+        ],
+        "refund_priority": "pg_first",
+        "remaining_pg_balance": 153000,
+        "remaining_points_balance": 0,
+        "refund_total": 31000,
+        "refund_formatted": {},
+        "restored_coupons": [],
+        "shipping_details": [],
+        "mc_refund_amount": null,
+        "mc_refund_points_amount": null,
+        "mc_refund_shipping_amount": null,
+        "original_snapshot": {},
+        "recalculated_snapshot": {},
+        "mc_original_snapshot": null,
+        "mc_recalculated_snapshot": null,
+        "original_coupons": [],
+        "recalculated_coupons": [],
+        "cancel_blocked": false,
+        "cancel_blocked_reason": null
+    }
+}
+```
 
 **에러 응답**
 
@@ -2188,7 +2731,8 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-orders.cancel`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (본인 주문 아님·취소 불가 옵션 포함) |
+| 500 | Server Error | 환불 예상금액 계산 중 오류 (`exceptions.order_estimate_refund_failed`) |
 
 <!-- @generated:end -->
 
@@ -2219,11 +2763,44 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| order | object | `{"id":1,"order_status":"confirmed","options":[…], …}` | 구매확정 반영 후 재조회한 주문 (`OrderResource` — 필드 구성은 주문 상세와 동일). 확정된 옵션의 `option_status` 가 `confirmed` 로 전이하며, 전 옵션 확정 시 주문상태도 `confirmed` 가 됩니다 |
+
+> `order` 의 세부 필드는 `GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표를 참조하세요 (동일 `OrderResource`).
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "구매확정이 완료되었습니다.",
+    "data": {
+        "order": {
+            "id": 1,
+            "order_number": "20260706-1405449337",
+            "order_status": "confirmed",
+            "order_status_label": "구매확정",
+            "confirmed_at": "2026-07-11T02:10:00+00:00",
+            "options": [
+                {
+                    "id": 1,
+                    "option_status": "confirmed",
+                    "option_status_label": "구매확정"
+                }
+            ]
+        }
+    }
+}
+```
+
+> `order` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 구매확정 관련 필드만 발췌).
 
 **에러 응답**
 
@@ -2232,6 +2809,7 @@ Authorization: Bearer {YOUR_TOKEN}
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-orders.confirm`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 구매확정 불가 — 본인 주문이 아니거나 배송완료 전 등 확정 불가 상태 (`exceptions.order_option_cannot_confirm`) |
 
 <!-- @generated:end -->
 
@@ -2261,11 +2839,38 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`CartService::reorderFromOrder()` 반환 배열)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| added_count | integer | `2` | 장바구니에 실제로 담긴 옵션 건수 |
+| skipped | array | `[{"product_name":"코튼 후드티 #12","reason":"재고가 부족합니다."}]` | 품절·단종 등으로 담지 못한 항목 목록 (`product_name` + `reason`) |
+| skipped[].product_name | string | `코튼 후드티 #12` | 담지 못한 상품명 (현재 로케일로 로컬라이즈) |
+| skipped[].reason | string | `재고가 부족합니다.` | 담지 못한 사유 (재고 부족·옵션 미존재 등) |
+| cart_count | integer | `5` | 재주문 반영 후 현재 장바구니의 총 아이템 수 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "과거 주문의 상품을 장바구니에 추가했습니다.",
+    "data": {
+        "added_count": 2,
+        "skipped": [
+            {
+                "product_name": "코튼 후드티 #12",
+                "reason": "재고가 부족합니다."
+            }
+        ],
+        "cart_count": 5
+    }
+}
+```
 
 **에러 응답**
 
@@ -2273,6 +2878,7 @@ Authorization: Bearer {YOUR_TOKEN}
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 재주문 실패 — 주문이 없거나 본인 주문이 아닌 경우 (`재주문에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -2334,19 +2940,49 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| order | object | `{"id":1,"shipping_address":{…},"recipient_name":"심채원", …}` | 배송지 변경 반영 후 주문 (`OrderResource` — 필드 구성은 주문 상세와 동일). `shipping_address` 및 플래튼된 수령인/주소 필드에 변경 내용이 반영됩니다 |
+
+> `order` 의 세부 필드는 `GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표를 참조하세요 (동일 `OrderResource`).
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "배송지가 변경되었습니다.",
+    "data": {
+        "order": {
+            "id": 1,
+            "order_number": "20260706-1405449337",
+            "recipient_name": "심채원",
+            "recipient_phone": "010-3955-6018",
+            "recipient_zipcode": "38022",
+            "recipient_address": "부산광역시 양천구 공항대로 9",
+            "recipient_detail_address": "101동 202호",
+            "delivery_memo": "parcel_box",
+            "shipping_address": {}
+        }
+    }
+}
+```
+
+> `order` 는 주문 상세와 동일한 `OrderResource` 전체 구조입니다 (위 예시는 배송지 관련 필드만 발췌).
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 404 | Not Found | 주문이 없거나 본인 주문이 아닌 경우 (`주문을 찾을 수 없습니다.`) |
+| 422 | Unprocessable Entity | 요청 파라미터 검증 실패, 또는 배송지 변경 불가 상태 — 이미 배송이 시작된 주문 등 (`배송 전 상태에서만 배송지를 변경할 수 있습니다.`) |
 
 <!-- @generated:end -->
 
@@ -2487,15 +3123,105 @@ _단건 응답: `data` 객체의 필드._
 | is_owner | boolean | `true` | 현재 인증 사용자가 이 리소스의 소유자인지 여부 (BaseApiResource 표준 메타) |
 | abilities | object | `{"can_read":true,"can_update":true,"can_cancel":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
-**응답 예시**
+비회원 응답(`GuestOrderResource`) 필드 — 회원 응답에 있는 `id`·`user`·`admin_memo`·`promotions_applied_snapshot` 등 민감/내부 필드는 포함되지 않습니다:
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| order_number | string | `20260706-1405449337` | 주문번호 (비회원 식별 기준 — 내부 `id` 는 미노출) |
+| order_status | string | `payment_complete` | 주문상태 (OrderStatusEnum) |
+| order_status_label | string | `결제완료` | `order_status` 의 사람이 읽는 라벨 |
+| order_status_variant | string | `info` | `order_status` 의 표시 변형 키 (UI 배지 색상) |
+| is_partially_cancelled | boolean | `false` | 부분취소 여부 (options 로드 시) |
+| subtotal_amount / subtotal_amount_formatted | integer / string | `184000` / `184,000원` | 상품 합계 (할인 전) |
+| total_discount_amount / total_discount_amount_formatted | integer / string | `0` / `0원` | 총 할인금액 |
+| total_shipping_amount / total_shipping_amount_formatted | integer / string | `0` / `0원` | 총 배송비 |
+| total_amount / total_amount_formatted | integer / string | `184000` / `184,000원` | 최종 주문금액 |
+| total_paid_amount / total_paid_amount_formatted | integer / string | `184000` / `184,000원` | 총 실제 결제금액 |
+| total_cancelled_amount / total_cancelled_amount_formatted | integer / string | `0` / `0원` | 총 취소금액 |
+| total_refunded_amount / total_refunded_amount_formatted | integer / string | `0` / `0원` | 총 환불금액 |
+| total_refunded_points_amount / _formatted | integer / string | `0` / `0원` | 총 환불 포인트 |
+| total_points_used_amount / _formatted | integer / string | `0` / `0원` | 총 포인트 사용액 |
+| total_deposit_used_amount / _formatted | integer / string | `0` / `0원` | 총 예치금 사용액 |
+| total_earned_points_amount / _formatted | integer / string | `1840` / `1,840원` | 총 적립 예정 포인트 |
+| mc_subtotal_amount / mc_total_discount_amount / mc_total_shipping_amount / mc_total_amount / mc_total_points_used_amount / mc_total_deposit_used_amount | object | `{"KRW":{"amount":184000,"formatted":"184,000원"}, …}` | 각 금액의 다중 통화 표기 |
+| item_count | integer | `3` | 주문 품목 수 |
+| total_quantity | integer | `4` | 주문 옵션 수량 합계 (options 로드 시) |
+| ordered_at / ordered_at_formatted | string | `2026-07-05T14:05:44+00:00` / `2026-07-05 23:05:44` | 주문 일시 |
+| paid_at / paid_at_formatted | string \| null | `2026-07-06T14:05:44+00:00` / `2026-07-06 23:05:44` | 결제 일시 |
+| confirmed_at / confirmed_at_formatted | string \| null | `null` | 구매확정 일시 |
+| cancelled_at / cancelled_at_formatted | string \| null | `null` | 취소 일시 |
+| orderer_name / orderer_phone / orderer_email | string | `유정우` / `010-5514-4949` / `ji792@mail.test` | 주문자 정보 (배송지에서 플래튼) |
+| recipient_name / recipient_phone | string | `심채원` / `010-3955-6018` | 수령인 정보 |
+| recipient_zipcode / recipient_address / recipient_detail_address | string | `38022` / `부산광역시 양천구 공항대로 9` / `101동 202호` | 수령인 주소 |
+| delivery_memo / delivery_memo_label | string \| null | `parcel_box` / `택배함에 넣어주세요` | 배송 메모 및 라벨 |
+| options | array | `[{"id":1,"option_status":"payment_complete", …}]` | 주문 옵션 목록 (OrderOptionResource) |
+| shipping_address | object | `{"recipient_name":"심채원", …}` | 배송지 상세 (OrderAddressResource) |
+| payment | object \| null | `{"payment_method":"dbank", …}` | 대표 결제 정보 (OrderPaymentResource) |
+| shippings | array | `[]` | 배송 이력 (OrderShippingResource) |
+| cancels | array | `[]` | 취소 이력 (OrderCancelResource) |
+| abilities | object | `{"can_cancel":true}` | 비회원이 이 주문에 수행 가능한 작업 (취소 가능 상태 여부) |
+
+**응답 예시** (비회원 — `GuestOrderResource`)
+
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "주문 정보를 조회했습니다.",
+    "data": {
+        "order_number": "20260706-1405449337",
+        "order_status": "payment_complete",
+        "order_status_label": "결제완료",
+        "order_status_variant": "info",
+        "is_partially_cancelled": false,
+        "subtotal_amount": 184000,
+        "subtotal_amount_formatted": "184,000원",
+        "total_discount_amount": 0,
+        "total_discount_amount_formatted": "0원",
+        "total_shipping_amount": 0,
+        "total_shipping_amount_formatted": "0원",
+        "total_amount": 184000,
+        "total_amount_formatted": "184,000원",
+        "total_paid_amount": 184000,
+        "total_paid_amount_formatted": "184,000원",
+        "item_count": 3,
+        "total_quantity": 4,
+        "ordered_at": "2026-07-05T14:05:44+00:00",
+        "ordered_at_formatted": "2026-07-05 23:05:44",
+        "paid_at": "2026-07-06T14:05:44+00:00",
+        "paid_at_formatted": "2026-07-06 23:05:44",
+        "orderer_name": "유정우",
+        "orderer_phone": "010-5514-4949",
+        "orderer_email": "ji792@mail.test",
+        "recipient_name": "심채원",
+        "recipient_phone": "010-3955-6018",
+        "recipient_zipcode": "38022",
+        "recipient_address": "부산광역시 양천구 공항대로 9",
+        "recipient_detail_address": "101동 202호",
+        "delivery_memo": "parcel_box",
+        "delivery_memo_label": "택배함에 넣어주세요",
+        "options": [],
+        "shipping_address": {},
+        "payment": null,
+        "shippings": [],
+        "cancels": [],
+        "abilities": {
+            "can_cancel": true
+        }
+    }
+}
+```
+
+> 로그인 상태의 본인 주문이면 `data` 는 주문 상세와 동일한 `OrderResource` 전체 구조로 내려갑니다 (`GET /api/modules/sirsoft-ecommerce/admin/orders/{order}` 의 응답 필드 표 참조).
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 404 | Not Found | 주문이 없거나 접근 권한이 없는 경우 — 회원: 본인 주문 아님(`errors.redirect_to = /mypage/orders`), 비회원: `X-Guest-Order-Token` 부재·만료·위조(`errors.redirect_to = /shop/guest/orders`). 정보 노출 방지를 위해 모든 실패를 동일 404 로 처리 |
 
 <!-- @generated:end -->
 

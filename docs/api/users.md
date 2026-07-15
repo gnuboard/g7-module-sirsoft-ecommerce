@@ -46,11 +46,27 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| preferred_currency | string | `KRW` | 변경 후 저장된 회원 선호 결제 통화 코드 (ISO 4217, 등록 통화 중 하나) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "결제 통화가 변경되었습니다.",
+    "data": {
+        "preferred_currency": "KRW"
+    }
+}
+```
 
 **에러 응답**
 
@@ -59,7 +75,8 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-currency.manage`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `currency` 미전달 또는 등록 통화(is_default \| exchange_rate>0)가 아닌 코드 전달 시 |
+| 500 | Internal Server Error | 통화 저장 처리 중 예외 발생 시 (`결제 통화 변경에 실패했습니다.`) |
 
 <!-- @generated:end -->
 

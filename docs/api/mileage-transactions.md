@@ -268,11 +268,94 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (성공 시 HTTP 201). 생성 직후 모델을 그대로 직렬화하므로 관계 기반 필드(`user_name`·`user_uuid`·`granted_by_name`·`granted_by_uuid`·`order_number`)는 eager load 되지 않아 응답에서 생략됩니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `529` | 생성된 거래의 기본 키 |
+| user_id | integer | `166` | 거래 대상 회원 ID (요청의 `user_id` uuid 를 내부 ID 로 해석한 값) |
+| currency | string | `KRW` | 거래 기록 통화 코드 (요청 `currency`) |
+| type | string | `admin_earn` | 거래 유형 (`action=earn` → `admin_earn`, `action=deduct` → `admin_deduct`) |
+| type_label | string | `관리자 지급` | `type` 값의 사람이 읽는 라벨 |
+| admin_badge_group | string | `amber` | 관리자 내역 화면 배지 색상 그룹 (수동/회수계=amber) |
+| user_display_category | string | `adjust` | 회원 마이페이지 표시용 4분류 (수동 지급/차감은 adjust) |
+| amount | integer | `1000` | 거래 금액 (지급=양수, 차감=음수) |
+| amount_formatted | string | `1,000원` | `amount` 의 표시용 포맷 문자열 |
+| remaining_amount | integer | `1000` | 잔여 금액 (지급 시 amount 와 동일, 차감 거래는 0) |
+| remaining_amount_formatted | string | `1,000원` | `remaining_amount` 의 표시용 포맷 문자열 |
+| balance_after | integer | `1000` | 거래 직후 해당 통화 잔액 스냅샷 |
+| order_id | null | `null` | 수동 거래이므로 연결 주문 없음 |
+| order_option_id | null | `null` | 수동 거래이므로 연결 주문 옵션 없음 |
+| order_cancel_id | null | `null` | 수동 거래이므로 연결 주문취소 없음 |
+| source_transaction_id | null | `null` | 수동 거래이므로 원본 거래 없음 |
+| granted_by | integer | `1` | 처리한 관리자 user ID (인증 사용자) |
+| description | string | `관리자 마일리지 지급 (1,000)` | 설명 (요청 `description` 미지정 시 활동로그 기본 문구) |
+| memo | string \| null | `수기 보상` | 관리자 메모 (요청 `memo`) |
+| expires_at | string \| null | `2027-07-02T15:29:30+00:00` | 만료 일시 (지급 시 정책 기본 또는 `expires_at`, 차감 거래는 null) |
+| expires_at_formatted | string \| null | `2027-07-03 00:29:30` | `expires_at` 의 표시용 포맷 문자열 |
+| expires_at_date | string \| null | `2027-07-03` | `expires_at` 의 사이트 타임존 기준 날짜 |
+| expired_at | null | `null` | 소멸 일시 (신규 거래는 항상 null) |
+| expired_at_formatted | null | `null` | `expired_at` 의 표시용 포맷 문자열 |
+| created_at | string | `2026-07-07T05:47:31+00:00` | 생성 일시 |
+| created_at_formatted | string | `2026-07-07 14:47:31` | `created_at` 의 표시용 포맷 문자열 |
+| created_at_date | string | `2026-07-07` | `created_at` 의 사이트 타임존 기준 날짜 |
+| is_earning | boolean | `true` | 적립계 여부 (`admin_earn`=true, `admin_deduct`=false) |
+| can_edit_expiry | boolean | `true` | 만료일 편집 가능 여부 (적립계 + 미소멸 + 잔여>0) |
+| expired_amount | integer | `0` | 이 적립 lot 을 source 로 소멸된 금액 합계 (단건 응답은 집계 미주입 → 0 폴백) |
+| expired_amount_formatted | string | `0원` | `expired_amount` 의 표시용 포맷 문자열 |
+| expiry_state | string | `active` | 적립건 소멸 상태 (신규 거래는 active) |
+| abilities | object | `{"can_manage":true,"can_edit":true}` | 현재 사용자가 이 거래에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "마일리지 거래가 처리되었습니다.",
+    "data": {
+        "id": 529,
+        "user_id": 166,
+        "currency": "KRW",
+        "type": "admin_earn",
+        "type_label": "관리자 지급",
+        "admin_badge_group": "amber",
+        "user_display_category": "adjust",
+        "amount": 1000,
+        "amount_formatted": "1,000원",
+        "remaining_amount": 1000,
+        "remaining_amount_formatted": "1,000원",
+        "balance_after": 1000,
+        "order_id": null,
+        "order_option_id": null,
+        "order_cancel_id": null,
+        "source_transaction_id": null,
+        "granted_by": 1,
+        "description": "관리자 마일리지 지급 (1,000)",
+        "memo": "수기 보상",
+        "expires_at": "2027-07-02T15:29:30+00:00",
+        "expires_at_formatted": "2027-07-03 00:29:30",
+        "expires_at_date": "2027-07-03",
+        "expired_at": null,
+        "expired_at_formatted": null,
+        "created_at": "2026-07-07T05:47:31+00:00",
+        "created_at_formatted": "2026-07-07 14:47:31",
+        "created_at_date": "2026-07-07",
+        "is_earning": true,
+        "can_edit_expiry": true,
+        "expired_amount": 0,
+        "expired_amount_formatted": "0원",
+        "expiry_state": "active",
+        "abilities": {
+            "can_manage": true,
+            "can_edit": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -280,7 +363,7 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.mileage.manage`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반했거나, 도메인 규칙 위반(`MileageValidationException` — 예: 차감액이 잔액 초과) 시. 후자는 `message`=`마일리지 처리에 실패했습니다.` + `error.errors.general[]` 에 사유 문장 |
 
 <!-- @generated:end -->
 
@@ -321,11 +404,27 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| extended_count | integer | `2` | 실제로 만료일이 연장된 적립 lot 수 (잔여 없는/대상 외 lot 은 제외되므로 요청한 `lot_ids` 수보다 작을 수 있음) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "마일리지 유효기간이 연장되었습니다.",
+    "data": {
+        "extended_count": 2
+    }
+}
+```
 
 **에러 응답**
 
@@ -371,11 +470,94 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (수정된 거래 전체). 관계 기반 필드(`user_name`·`user_uuid`·`granted_by_name`·`granted_by_uuid`·`order_number`)는 eager load 되지 않아 응답에서 생략됩니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `528` | 수정한 거래의 기본 키 (path `{id}`) |
+| user_id | integer | `166` | 거래 대상 회원 ID |
+| currency | string | `KRW` | 거래 기록 통화 코드 |
+| type | string | `admin_earn` | 거래 유형 (적립계만 수정 가능 — purchase_earn·admin_earn) |
+| type_label | string | `관리자 지급` | `type` 값의 사람이 읽는 라벨 |
+| admin_badge_group | string | `amber` | 관리자 내역 화면 배지 색상 그룹 |
+| user_display_category | string | `adjust` | 회원 마이페이지 표시용 4분류 |
+| amount | integer | `1000` | 거래 금액 (원장 불변 — 수정 불가) |
+| amount_formatted | string | `1,000원` | `amount` 의 표시용 포맷 문자열 |
+| remaining_amount | integer | `1000` | 잔여 금액 (FIFO 차감으로 소진) |
+| remaining_amount_formatted | string | `1,000원` | `remaining_amount` 의 표시용 포맷 문자열 |
+| balance_after | integer | `1000` | 거래 직후 잔액 스냅샷 |
+| order_id | integer \| null | `null` | 연결 주문 ID |
+| order_option_id | integer \| null | `null` | 연결 주문 옵션 ID |
+| order_cancel_id | integer \| null | `null` | 연결 주문취소 ID |
+| source_transaction_id | integer \| null | `null` | 원본 거래 ID |
+| granted_by | integer \| null | `1` | 부여 주체 user ID (NULL=시스템 자동) |
+| description | string \| null | `관리자 마일리지 지급 (1,000)` | 설명 |
+| memo | string \| null | `사유 보정` | 갱신된 관리자 메모 (요청에 `memo` 를 포함한 경우 반영, 빈 값이면 null) |
+| expires_at | string \| null | `2027-08-01T15:00:00+00:00` | 갱신된 만료 일시 (요청에 `expires_at` 을 포함한 경우 반영) |
+| expires_at_formatted | string \| null | `2027-08-02 00:00:00` | `expires_at` 의 표시용 포맷 문자열 |
+| expires_at_date | string \| null | `2027-08-02` | `expires_at` 의 사이트 타임존 기준 날짜 |
+| expired_at | null | `null` | 소멸 일시 (소멸된 lot 은 만료일 수정 불가) |
+| expired_at_formatted | null | `null` | `expired_at` 의 표시용 포맷 문자열 |
+| created_at | string | `2026-07-07T05:47:31+00:00` | 생성 일시 |
+| created_at_formatted | string | `2026-07-07 14:47:31` | `created_at` 의 표시용 포맷 문자열 |
+| created_at_date | string | `2026-07-07` | `created_at` 의 사이트 타임존 기준 날짜 |
+| is_earning | boolean | `true` | 적립계 여부 (수정 대상은 항상 true) |
+| can_edit_expiry | boolean | `true` | 만료일 편집 가능 여부 (적립계 + 미소멸 + 잔여>0) |
+| expired_amount | integer | `0` | 소멸 금액 합계 (단건 응답은 집계 미주입 → 0 폴백) |
+| expired_amount_formatted | string | `0원` | `expired_amount` 의 표시용 포맷 문자열 |
+| expiry_state | string | `active` | 적립건 소멸 상태 (active·partial_expired·fully_expired) |
+| abilities | object | `{"can_manage":true,"can_edit":true}` | 현재 사용자가 이 거래에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "마일리지 거래가 수정되었습니다.",
+    "data": {
+        "id": 528,
+        "user_id": 166,
+        "currency": "KRW",
+        "type": "admin_earn",
+        "type_label": "관리자 지급",
+        "admin_badge_group": "amber",
+        "user_display_category": "adjust",
+        "amount": 1000,
+        "amount_formatted": "1,000원",
+        "remaining_amount": 1000,
+        "remaining_amount_formatted": "1,000원",
+        "balance_after": 1000,
+        "order_id": null,
+        "order_option_id": null,
+        "order_cancel_id": null,
+        "source_transaction_id": null,
+        "granted_by": 1,
+        "description": "관리자 마일리지 지급 (1,000)",
+        "memo": "사유 보정",
+        "expires_at": "2027-08-01T15:00:00+00:00",
+        "expires_at_formatted": "2027-08-02 00:00:00",
+        "expires_at_date": "2027-08-02",
+        "expired_at": null,
+        "expired_at_formatted": null,
+        "created_at": "2026-07-07T05:47:31+00:00",
+        "created_at_formatted": "2026-07-07 14:47:31",
+        "created_at_date": "2026-07-07",
+        "is_earning": true,
+        "can_edit_expiry": true,
+        "expired_amount": 0,
+        "expired_amount_formatted": "0원",
+        "expiry_state": "active",
+        "abilities": {
+            "can_manage": true,
+            "can_edit": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -384,7 +566,7 @@ Content-Type: application/json
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.mileage.manage`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반했거나, 도메인 규칙 위반(`MileageValidationException`) 시. `message`=`마일리지 처리에 실패했습니다.` + `error.errors.general[]` 에 사유 문장 — 거래 없음(`마일리지 거래를 찾을 수 없습니다.`), 적립계 아님(`적립 거래만 수정할 수 있습니다.`), 소멸/전액 사용된 적립건(`이미 소멸되었거나 모두 사용된 적립건은 유효기간을 변경할 수 없습니다.`), 만료일이 적립일시 이전(`유효기간은 적립일시보다 이전일 수 없습니다.`) |
 
 <!-- @generated:end -->
 
@@ -414,7 +596,44 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_목록 응답: `data.data[]` 배열 항목의 필드. 페이지네이션 없는 컬렉션이라 `data.pagination` 은 없고, 컬렉션 레벨 `data.abilities`(`can_manage`)와 통화 필터 후보 `data.currencies`(이 엔드포인트는 주입하지 않아 항상 `[]`)가 함께 내려옵니다._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| number | integer | `1` | 목록에서의 순번 (HasRowNumber 파생) |
+| id | integer | `531` | 연결 거래의 기본 키 |
+| user_id | integer | `166` | 거래 대상 회원 ID |
+| currency | string | `KRW` | 거래 기록 통화 코드 |
+| type | string | `order_use` | 거래 유형 (적립건이면 이를 FIFO 로 소비한 차감 거래, 차감/복원건이면 원본 적립·취소 연결 거래) |
+| type_label | string | `주문 사용` | `type` 값의 사람이 읽는 라벨 |
+| admin_badge_group | string | `blue` | 관리자 내역 화면 배지 색상 그룹 |
+| user_display_category | string | `use` | 회원 마이페이지 표시용 4분류 |
+| amount | integer | `-500` | 거래 금액 (양수=적립, 음수=차감) |
+| amount_formatted | string | `-500원` | `amount` 의 표시용 포맷 문자열 |
+| remaining_amount | integer | `0` | 잔여 금액 (적립건만 양수) |
+| remaining_amount_formatted | string | `0원` | `remaining_amount` 의 표시용 포맷 문자열 |
+| balance_after | integer | `500` | 거래 직후 잔액 스냅샷 |
+| order_id | integer \| null | `436` | 연결 주문 ID |
+| order_option_id | integer \| null | `824` | 연결 주문 옵션 ID |
+| order_cancel_id | integer \| null | `null` | 연결 주문취소 ID |
+| source_transaction_id | integer \| null | `528` | 원본(source) 거래 ID — FIFO 소비된 적립 lot 또는 복원 원본 |
+| granted_by | integer \| null | `null` | 부여 주체 user ID (NULL=시스템 자동) |
+| description | string \| null | `주문 마일리지 사용` | 설명 |
+| memo | string \| null | `null` | 관리자 메모 |
+| expires_at | string \| null | `null` | 만료 일시 |
+| expires_at_formatted | string \| null | `null` | `expires_at` 의 표시용 포맷 문자열 |
+| expires_at_date | string \| null | `null` | `expires_at` 의 사이트 타임존 기준 날짜 |
+| expired_at | string \| null | `null` | 소멸 일시 |
+| expired_at_formatted | string \| null | `null` | `expired_at` 의 표시용 포맷 문자열 |
+| created_at | string | `2026-07-07T05:47:31+00:00` | 생성 일시 |
+| created_at_formatted | string | `2026-07-07 14:47:31` | `created_at` 의 표시용 포맷 문자열 |
+| created_at_date | string | `2026-07-07` | `created_at` 의 사이트 타임존 기준 날짜 |
+| is_earning | boolean | `false` | 적립계 여부 |
+| can_edit_expiry | boolean | `false` | 만료일 편집 가능 여부 |
+| expired_amount | integer | `0` | 소멸 금액 합계 (연결 거래 조회는 집계 미주입 → 0 폴백) |
+| expired_amount_formatted | string | `0원` | `expired_amount` 의 표시용 포맷 문자열 |
+| expiry_state | string | `active` | 적립건 소멸 상태 (적립계만 의미) |
+| abilities | object | `{"can_manage":true,"can_edit":false}` | 현재 사용자가 이 거래에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 

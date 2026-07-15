@@ -188,11 +188,58 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ShippingCarrierResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `13` | 생성된 배송사의 기본 키 (내부 식별자) |
+| code | string | `apidoc` | 배송사 고유 코드 (cj, fedex 등 시스템 식별용) |
+| name | object | `{"ko":"API 문서 샘플 배송사","en":"API Doc Sample Carrier"}` | 다국어 배송사명 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 배송사` | `name` 의 현재 로케일 해석 값 (표시용 문자열) |
+| type | string | `domestic` | 배송사 유형 (`domestic` 국내 / `international` 해외) |
+| type_label | string | `국내` | `type` 값의 사람이 읽는 라벨 (`국내` / `국제`) |
+| tracking_url | string\|null | `https://trace.cjlogistics.com/next/tracking.html?wblNo={tracking_number}` | 배송 추적 URL 템플릿 (`{tracking_number}` 치환자를 운송장 번호로 대체) |
+| is_active | boolean | `true` | 활성 여부 (true 활성 / false 비활성) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 (사용자 타임존 기준 문자열) |
+| creator | object | `{"id":1,"name":"관리자"}` | 생성자 정보 (creator 관계 로드 시에만 포함) |
+| updater | object | `{"id":1,"name":"관리자"}` | 최종 수정자 정보 (updater 관계 로드 시에만 포함) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (모두 `sirsoft-ecommerce.settings.update` 권한 기준) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "배송사가 등록되었습니다.",
+    "data": {
+        "id": 13,
+        "code": "apidoc",
+        "name": {
+            "ko": "API 문서 샘플 배송사",
+            "en": "API Doc Sample Carrier"
+        },
+        "localized_name": "API 문서 샘플 배송사",
+        "type": "domestic",
+        "type_label": "국내",
+        "tracking_url": null,
+        "is_active": true,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -477,11 +524,58 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ShippingCarrierResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `13` | 수정된 배송사의 기본 키 (내부 식별자) |
+| code | string | `apidoc` | 배송사 고유 코드 (cj, fedex 등 시스템 식별용) |
+| name | object | `{"ko":"API 문서 샘플 배송사(수정)","en":"API Doc Sample Carrier"}` | 다국어 배송사명 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 배송사(수정)` | `name` 의 현재 로케일 해석 값 (표시용 문자열) |
+| type | string | `domestic` | 배송사 유형 (`domestic` 국내 / `international` 해외) |
+| type_label | string | `국내` | `type` 값의 사람이 읽는 라벨 (`국내` / `국제`) |
+| tracking_url | string\|null | `https://trace.cjlogistics.com/next/tracking.html?wblNo={tracking_number}` | 배송 추적 URL 템플릿 (`{tracking_number}` 치환자를 운송장 번호로 대체) |
+| is_active | boolean | `true` | 활성 여부 (true 활성 / false 비활성) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 15:12:07` | 최종 수정 일시 (사용자 타임존 기준 문자열) |
+| creator | object | `{"id":1,"name":"관리자"}` | 생성자 정보 (creator 관계 로드 시에만 포함) |
+| updater | object | `{"id":1,"name":"관리자"}` | 최종 수정자 정보 (updater 관계 로드 시에만 포함) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (모두 `sirsoft-ecommerce.settings.update` 권한 기준) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "배송사가 수정되었습니다.",
+    "data": {
+        "id": 13,
+        "code": "apidoc",
+        "name": {
+            "ko": "API 문서 샘플 배송사(수정)",
+            "en": "API Doc Sample Carrier"
+        },
+        "localized_name": "API 문서 샘플 배송사(수정)",
+        "type": "domestic",
+        "type_label": "국내",
+        "tracking_url": null,
+        "is_active": true,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:12:07",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

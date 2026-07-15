@@ -192,11 +192,58 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ClaimReasonResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `8` | 생성된 클래임 사유의 기본 키 (내부 식별자) |
+| type | string | `refund` | 클래임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
+| code | string | `apidoc_sample` | 사유 식별 코드 (같은 type 내 고유) |
+| name | object | `{"ko":"API 문서 샘플 사유","en":"API Doc Sample Reason"}` | 다국어 사유명 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 사유` | `name` 의 현재 로케일 해석 값 |
+| fault_type | string | `customer` | 귀책 구분 (ClaimReasonFaultTypeEnum — `customer`(고객)/`seller`(판매자)/`carrier`(배송사)) |
+| fault_type_label | string | `고객 귀책` | `fault_type` 값의 사람이 읽는 라벨 (Enum label 파생) |
+| is_user_selectable | boolean | `true` | 회원 취소/반품 신청 화면에서 선택지로 노출할지 여부 |
+| is_active | boolean | `true` | 활성 여부 (false 면 선택지에서 제외) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (`sirsoft-ecommerce.settings.update` 권한 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유가 등록되었습니다.",
+    "data": {
+        "id": 8,
+        "type": "refund",
+        "code": "apidoc_sample",
+        "name": {
+            "ko": "API 문서 샘플 사유",
+            "en": "API Doc Sample Reason"
+        },
+        "localized_name": "API 문서 샘플 사유",
+        "fault_type": "customer",
+        "fault_type_label": "고객 귀책",
+        "is_user_selectable": true,
+        "is_active": true,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -204,7 +251,7 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.settings.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). 같은 `type` 내에 동일한 `code` 가 이미 존재하면 `code` 필드 검증 실패 |
 
 <!-- @generated:end -->
 
@@ -401,20 +448,68 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ClaimReasonResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `8` | 수정된 클래임 사유의 기본 키 (내부 식별자) |
+| type | string | `refund` | 클래임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
+| code | string | `apidoc_sample` | 사유 식별 코드 (같은 type 내 고유) |
+| name | object | `{"ko":"API 문서 샘플 사유(수정)","en":"API Doc Sample Reason (Updated)"}` | 다국어 사유명 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 사유(수정)` | `name` 의 현재 로케일 해석 값 |
+| fault_type | string | `seller` | 귀책 구분 (ClaimReasonFaultTypeEnum — `customer`(고객)/`seller`(판매자)/`carrier`(배송사)) |
+| fault_type_label | string | `판매자 귀책` | `fault_type` 값의 사람이 읽는 라벨 (Enum label 파생) |
+| is_user_selectable | boolean | `true` | 회원 취소/반품 신청 화면에서 선택지로 노출할지 여부 |
+| is_active | boolean | `true` | 활성 여부 (false 면 선택지에서 제외) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:18` | 최종 수정 일시 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (`sirsoft-ecommerce.settings.update` 권한 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "클래임 사유가 수정되었습니다.",
+    "data": {
+        "id": 8,
+        "type": "refund",
+        "code": "apidoc_sample",
+        "name": {
+            "ko": "API 문서 샘플 사유(수정)",
+            "en": "API Doc Sample Reason (Updated)"
+        },
+        "localized_name": "API 문서 샘플 사유(수정)",
+        "fault_type": "seller",
+        "fault_type_label": "판매자 귀책",
+        "is_user_selectable": true,
+        "is_active": true,
+        "sort_order": 0,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:18",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 대상 사유가 없거나 갱신에 실패한 경우 (서비스 예외 → `exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.settings.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). 같은 `type` 내 다른 사유가 동일한 `code` 를 이미 사용 중이면 `code` 필드 검증 실패 |
 
 <!-- @generated:end -->
 

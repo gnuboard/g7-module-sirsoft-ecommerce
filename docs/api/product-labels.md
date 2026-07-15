@@ -166,11 +166,50 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductLabelResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"신상품","en":"New"}` | 라벨명 (다국어 필드 — 로케일별 값 객체) |
+| color | string | `#4F46E5` | 라벨 색상 코드 (`#RRGGBB` 6자리 HEX) |
+| is_active | boolean | `true` | 활성 여부 (미지정 시 모델 기본값) |
+| sort_order | integer | `1` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 (사용자 타임존 기준 문자열) |
+| assignments_count | integer | `0` | 이 라벨이 부여된 상품 수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (권한 맵 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "라벨이 등록되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "신상품",
+            "en": "New"
+        },
+        "color": "#4F46E5",
+        "is_active": true,
+        "sort_order": 1,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "assignments_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -306,11 +345,50 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductLabelResource` — 수정 후 라벨)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"베스트","en":"Best"}` | 라벨명 (다국어 필드 — 로케일별 값 객체) |
+| color | string | `#4F46E5` | 라벨 색상 코드 (`#RRGGBB` 6자리 HEX) |
+| is_active | boolean | `true` | 활성 여부 |
+| sort_order | integer | `1` | 표시 정렬 순서 값 (작을수록 우선) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 15:00:27` | 최종 수정 일시 (수정 반영 후 값) |
+| assignments_count | integer | `0` | 이 라벨이 부여된 상품 수 (집계) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (권한 맵 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "라벨이 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "베스트",
+            "en": "Best"
+        },
+        "color": "#4F46E5",
+        "is_active": true,
+        "sort_order": 1,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:27",
+        "assignments_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
