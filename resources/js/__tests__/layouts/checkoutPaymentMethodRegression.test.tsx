@@ -77,7 +77,15 @@ describe('체크아웃 결제수단 회귀 테스트', () => {
 
         const context = (paymentMethod: string, localPaymentMethod?: string) => ({
             checkoutData: { data: { temp_order_id: 'T-1', calculation: { summary: { final_amount: 1000 } } } },
-            _computed: { selectedPaymentMethod: paymentMethod, ordererDefaults: { name: '홍길동' } },
+            // body 는 _computed.selectedCorePaymentMethod 를 싣는다(#454 S3 — 결제수단 id →
+            // core_payment_method 매핑). selectedPaymentMethod 는 선택된 결제수단 id, core 는
+            // 그 id 가 가리키는 코어 결제수단(dbank/card/vbank …)이다. 이 회귀 테스트의 관심사인
+            // "고른 결제수단이 그대로 실려 나가는가" 는 core 값으로 검증한다.
+            _computed: {
+                selectedPaymentMethod: paymentMethod,
+                selectedCorePaymentMethod: paymentMethod,
+                ordererDefaults: { name: '홍길동' },
+            },
             _local: {
                 paymentMethod: localPaymentMethod,
                 shipping: {},
