@@ -796,6 +796,12 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                 'refund_method' => $refundMethod,
             ];
 
+            // iOS 전용 노출 플래그(애플페이 등) — 정의가 SSoT. 관리자가 편집하는 값이 아니며,
+            // 체크아웃 레이아웃이 비-iOS 기기에서 해당 수단을 렌더하지 않는 데 쓰인다.
+            if (! empty($definition['requires_ios'])) {
+                $capabilities['requires_ios'] = true;
+            }
+
             if ($savedItem) {
                 $merged[] = array_merge([
                     'id' => $id,
@@ -810,6 +816,7 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                     '_cached_name' => $definition['name'],
                     '_cached_description' => $definition['description'] ?? ['ko' => '', 'en' => ''],
                     '_cached_icon' => $definition['icon'] ?? 'circle-question',
+                    '_cached_brand_mark' => $definition['brand_mark'] ?? null,
                     '_cached_source' => $definition['source'] ?? 'builtin',
                 ], $capabilities);
             } else {
@@ -825,6 +832,7 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                     '_cached_name' => $definition['name'],
                     '_cached_description' => $definition['description'] ?? ['ko' => '', 'en' => ''],
                     '_cached_icon' => $definition['icon'] ?? 'circle-question',
+                    '_cached_brand_mark' => $definition['brand_mark'] ?? null,
                     '_cached_source' => $definition['source'] ?? 'builtin',
                 ], $capabilities);
             }
@@ -874,6 +882,7 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                 $savedMethods[$index]['_cached_name'] = $def['name'] ?? $method['_cached_name'] ?? null;
                 $savedMethods[$index]['_cached_description'] = $def['description'] ?? $method['_cached_description'] ?? null;
                 $savedMethods[$index]['_cached_icon'] = $def['icon'] ?? $method['_cached_icon'] ?? null;
+                $savedMethods[$index]['_cached_brand_mark'] = $def['brand_mark'] ?? $method['_cached_brand_mark'] ?? null;
                 $savedMethods[$index]['_cached_source'] = $def['source'] ?? $method['_cached_source'] ?? 'builtin';
             }
             // 고아 항목은 기존 _cached_* 유지

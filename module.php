@@ -19,6 +19,7 @@ use Modules\Sirsoft\Ecommerce\Listeners\CouponUseListener;
 use Modules\Sirsoft\Ecommerce\Listeners\EcommerceAdminActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\EcommerceNotificationDataListener;
 use Modules\Sirsoft\Ecommerce\Listeners\EcommerceUserActivityLogListener;
+use Modules\Sirsoft\Ecommerce\Listeners\InjectAppConfigDeviceListener;
 use Modules\Sirsoft\Ecommerce\Listeners\MergeCartOnLoginListener;
 use Modules\Sirsoft\Ecommerce\Listeners\MileageTransactionListener;
 use Modules\Sirsoft\Ecommerce\Listeners\OrderActivityLogListener;
@@ -2007,6 +2008,7 @@ class Module extends AbstractModule
             UserMileageCleanupListener::class,
             EcommerceNotificationDataListener::class,
             OrderStatusNotificationListener::class,
+            InjectAppConfigDeviceListener::class,
         ];
     }
 
