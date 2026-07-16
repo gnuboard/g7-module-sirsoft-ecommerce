@@ -4,8 +4,6 @@ namespace Modules\Sirsoft\Ecommerce\Providers;
 
 use App\Extension\BaseModuleServiceProvider;
 use App\Seo\SitemapGenerator;
-use Illuminate\Contracts\Http\Kernel as HttpKernelContract;
-use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Modules\Sirsoft\Ecommerce\Console\Commands\AggregateEcommerceStatsCommand;
 use Modules\Sirsoft\Ecommerce\Console\Commands\CancelPendingPaymentOrdersCommand;
 use Modules\Sirsoft\Ecommerce\Console\Commands\EarnMileageCommand;
@@ -213,19 +211,9 @@ class EcommerceServiceProvider extends BaseModuleServiceProvider
             $this->commands($this->commands);
         }
 
-        // 요청 기기 유형(iOS) 감지 미들웨어를 web 그룹(SSR 셸 렌더 경로)에 등록.
-        // InjectAppConfigDeviceListener 가 core.frontend.filter_app_config 훅에서 이 값을 읽어
-        // appConfig.isIos 로 주입한다(체크아웃 애플페이 iOS 게이팅). DB/인증 비의존 순수 UA 판정이라
-        // 마이그레이션 이전에도 안전하다.
-        //
-        // Router::pushMiddlewareToGroup 은 Router 자체 레지스트리만 갱신해 실제 요청 파이프라인이
-        // 참조하는 HTTP Kernel 의 web 그룹에는 반영되지 않는다(미들웨어 미실행 → isIos 항상 false).
-        // sirsoft-gdpr 선례와 동일하게 HTTP Kernel::appendMiddlewareToGroup 을 사용한다
-        // (Kernel 은 중복 등록을 자체 방지하므로 매 부팅 호출돼도 1회만 등록).
-        $kernel = $this->app->make(HttpKernelContract::class);
-        if ($kernel instanceof HttpKernel) {
-            $kernel->appendMiddlewareToGroup('web', DetectDevice::class);
-        }
+        // 요청 기기 유형(iOS) 감지 미들웨어(DetectDevice)는 코어 self-gate 방식으로 이관됨.
+        // Module::getMiddleware() 가 targets=['/'](무명 User SSR 셸 URI 패턴)로 선언하고,
+        // 코어 ExtensionMiddlewareGate 가 요청 시점에 실행한다. (SP Kernel 직접 조작 제거)
 
         // Sitemap 기여자 등록
         $this->app->booted(function () {
