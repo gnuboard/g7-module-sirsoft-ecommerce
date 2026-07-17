@@ -33,6 +33,24 @@ class ProductRepository implements ProductRepositoryInterface
     }
 
     /**
+     * Sitemap 용으로 전시 중인 상품을 스트리밍 조회합니다.
+     *
+     * lazyById 는 id 기준 키셋 페이징으로 청크를 순차 조회하므로,
+     * 결과셋 전체가 메모리(및 DB 드라이버 버퍼)에 적재되지 않습니다.
+     *
+     * @param  int  $chunkSize  청크 크기
+     * @return iterable<Product> 전시 중인 상품 순회자 (id, updated_at 만 조회)
+     */
+    public function streamVisibleForSitemap(int $chunkSize = 500): iterable
+    {
+        return $this->model->newQuery()
+            ->where('display_status', ProductDisplayStatus::VISIBLE->value)
+            ->select(['id', 'updated_at'])
+            ->orderBy('id')
+            ->lazyById($chunkSize);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function findWithOptions(int $id, bool $includeInactive = false): ?Product

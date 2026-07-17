@@ -30,6 +30,16 @@ interface ProductRepositoryInterface
     public function existsAny(): bool;
 
     /**
+     * Sitemap 용으로 전시 중인 상품을 스트리밍 조회합니다.
+     *
+     * 전체 적재를 피하기 위해 id 기준으로 청크 단위 지연 조회합니다.
+     *
+     * @param  int  $chunkSize  청크 크기
+     * @return iterable<Product> 전시 중인 상품 순회자 (id, updated_at 만 조회)
+     */
+    public function streamVisibleForSitemap(int $chunkSize = 500): iterable;
+
+    /**
      * 필터링된 상품 목록 조회 (페이지네이션)
      *
      * @param  array  $filters  필터 조건

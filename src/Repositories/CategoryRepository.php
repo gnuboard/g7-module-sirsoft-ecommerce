@@ -16,6 +16,24 @@ class CategoryRepository implements CategoryRepositoryInterface
     ) {}
 
     /**
+     * Sitemap 용으로 활성 카테고리를 스트리밍 조회합니다.
+     *
+     * lazyById 는 id 기준 키셋 페이징으로 청크를 순차 조회하므로,
+     * 결과셋 전체가 메모리(및 DB 드라이버 버퍼)에 적재되지 않습니다.
+     *
+     * @param  int  $chunkSize  청크 크기
+     * @return iterable<Category> 활성 카테고리 순회자 (id, slug, updated_at 만 조회)
+     */
+    public function streamActiveForSitemap(int $chunkSize = 500): iterable
+    {
+        return $this->model->newQuery()
+            ->where('is_active', true)
+            ->select(['id', 'slug', 'updated_at'])
+            ->orderBy('id')
+            ->lazyById($chunkSize);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getHierarchical(array $filters = [], array $with = []): Collection
@@ -76,7 +94,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $query = $this->model->newQuery();
 
-        if (!empty($with)) {
+        if (! empty($with)) {
             $query->with($with);
         }
 
@@ -101,6 +119,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $category = $this->findById($id);
         $category->update($data);
+
         return $category->fresh();
     }
 
@@ -110,6 +129,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     public function delete(int $id): bool
     {
         $category = $this->findById($id);
+
         return $category->delete();
     }
 
@@ -127,6 +147,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     public function getProductCount(int $id): int
     {
         $category = $this->findById($id);
+
         return $category->products()->count();
     }
 

@@ -218,8 +218,9 @@ class EcommerceServiceProvider extends BaseModuleServiceProvider
         // Sitemap 기여자 등록
         $this->app->booted(function () {
             if ($this->app->bound(SitemapGenerator::class)) {
+                // Repository 주입을 위해 컨테이너로 해석합니다.
                 $this->app->make(SitemapGenerator::class)->registerContributor(
-                    new EcommerceSitemapContributor
+                    $this->app->make(EcommerceSitemapContributor::class)
                 );
             }
         });
