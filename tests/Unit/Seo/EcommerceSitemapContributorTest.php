@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Tests\Unit\Seo;
 
 require_once __DIR__.'/../../ModuleTestCase.php';
 
+use App\Seo\AbstractSitemapContributor;
 use App\Seo\Contracts\SitemapContributorInterface;
 use Illuminate\Support\Facades\Config;
 use Modules\Sirsoft\Ecommerce\Models\Category;
@@ -213,5 +214,21 @@ class EcommerceSitemapContributorTest extends ModuleTestCase
         $urlPaths = array_column($urls, 'url');
 
         $this->assertNotContains("/{$this->routePath}/products/{$product->id}", $urlPaths);
+    }
+
+    /**
+     * getUrlsLazy: 배열을 실체화하지 않는 지연 제너레이터로 URL 을 흘려보낸다 (⑭ 스트리밍)
+     */
+    public function test_get_urls_lazy_streams_entries(): void
+    {
+        $product = Product::factory()->create();
+
+        $this->assertInstanceOf(AbstractSitemapContributor::class, $this->contributor);
+
+        $lazy = $this->contributor->getUrlsLazy();
+        $this->assertInstanceOf(\Traversable::class, $lazy);
+
+        $urlPaths = array_column(iterator_to_array($lazy, false), 'url');
+        $this->assertContains("/{$this->routePath}/products/{$product->id}", $urlPaths);
     }
 }
