@@ -4,9 +4,12 @@ namespace Modules\Sirsoft\Ecommerce\Listeners;
 
 use App\Contracts\Extension\CacheInterface;
 use App\Contracts\Extension\HookListenerInterface;
+use App\Jobs\GenerateSitemapJob;
 use App\Seo\Contracts\SeoCacheManagerInterface;
 use App\Seo\SeoCacheRegenerator;
+use App\Seo\SitemapIndexer;
 use Illuminate\Support\Facades\Log;
+use Modules\Sirsoft\Ecommerce\Enums\ProductDisplayStatus;
 
 /**
  * 상품 변경 시 SEO 캐시 무효화 리스너
@@ -59,6 +62,7 @@ class SeoProductCacheListener implements HookListenerInterface
     {
         $this->invalidateRelatedCaches($args);
         $this->regenerateDetailCache($args);
+        $this->syncSitemapIndex($args, false);
     }
 
     /**
@@ -70,6 +74,7 @@ class SeoProductCacheListener implements HookListenerInterface
     {
         $this->invalidateRelatedCaches($args);
         $this->regenerateDetailCache($args);
+        $this->syncSitemapIndex($args, false);
     }
 
     /**
@@ -82,6 +87,7 @@ class SeoProductCacheListener implements HookListenerInterface
     public function onProductDelete(...$args): void
     {
         $this->invalidateRelatedCaches($args);
+        $this->syncSitemapIndex($args, true);
     }
 
     /**
@@ -121,6 +127,53 @@ class SeoProductCacheListener implements HookListenerInterface
             ]);
         } catch (\Throwable $e) {
             Log::warning('[SEO] Product cache invalidation failed', [
+                'error' => $e->getMessage(),
+                'product_id' => $product->id ?? null,
+            ]);
+        }
+    }
+
+    /**
+     * 상품의 사이트맵 색인을 증분 갱신합니다.
+     *
+     * 전시(display_status=VISIBLE)이며 'SEO 제공 페이지(상품 상세)' 토글이 켜져 있으면 색인(upsert),
+     * 비공개/토글 OFF/삭제이면 색인 해제(remove)한 뒤, 사이트맵 재생성 잡을 디바운스 디스패치합니다.
+     * 색인 규칙은 EcommerceSitemapContributor 의 상품 URL 규칙과 일치해야 합니다.
+     *
+     * @param  array  $args  훅 인자 배열 (첫 번째: Product 모델)
+     * @param  bool  $deleted  삭제 이벤트 여부
+     */
+    private function syncSitemapIndex(array $args, bool $deleted): void
+    {
+        $product = $args[0] ?? null;
+
+        if (! $product || ! isset($product->id)) {
+            return;
+        }
+
+        try {
+            $indexer = app(SitemapIndexer::class);
+
+            $visible = ! $deleted
+                && ($product->display_status ?? null) === ProductDisplayStatus::VISIBLE
+                && (bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_product_detail', true);
+
+            if ($visible) {
+                $routePath = g7_module_settings('sirsoft-ecommerce', 'basic_info.route_path', 'shop');
+                $indexer->indexResource('product', $product->id, 'sirsoft-ecommerce', [[
+                    'url' => "/{$routePath}/products/{$product->id}",
+                    'lastmod' => $product->updated_at?->toW3cString(),
+                    'changefreq' => 'weekly',
+                    'priority' => 0.8,
+                ]]);
+            } else {
+                $indexer->deindexResource('product', $product->id);
+            }
+
+            // 파일 재작성은 잡에 위임 (ShouldBeUnique 로 디바운스). auto 모드 → 저장소 기반 증분.
+            GenerateSitemapJob::dispatch();
+        } catch (\Throwable $e) {
+            Log::warning('[SEO] Product sitemap index sync failed', [
                 'error' => $e->getMessage(),
                 'product_id' => $product->id ?? null,
             ]);

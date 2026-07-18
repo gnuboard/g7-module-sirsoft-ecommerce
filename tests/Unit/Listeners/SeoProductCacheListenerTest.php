@@ -2,8 +2,11 @@
 
 namespace Modules\Sirsoft\Ecommerce\Tests\Unit\Listeners;
 
+use App\Jobs\GenerateSitemapJob;
 use App\Seo\Contracts\SeoCacheManagerInterface;
 use App\Seo\SeoCacheRegenerator;
+use App\Seo\SitemapIndexer;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoProductCacheListener;
@@ -35,6 +38,10 @@ class SeoProductCacheListenerTest extends TestCase
 
         $this->regeneratorMock = Mockery::mock(SeoCacheRegenerator::class);
         $this->app->instance(SeoCacheRegenerator::class, $this->regeneratorMock);
+
+        // 사이트맵 색인 경로는 이 테스트 범위 밖 — spy 로 대체하고 잡을 fake 하여 DB/큐 부작용을 차단
+        $this->app->instance(SitemapIndexer::class, Mockery::spy(SitemapIndexer::class));
+        Bus::fake([GenerateSitemapJob::class]);
 
         $this->listener = new SeoProductCacheListener;
     }

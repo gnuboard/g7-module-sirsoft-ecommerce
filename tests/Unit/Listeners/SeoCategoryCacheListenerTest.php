@@ -2,8 +2,12 @@
 
 namespace Modules\Sirsoft\Ecommerce\Tests\Unit\Listeners;
 
+use App\Jobs\GenerateSitemapJob;
 use App\Seo\Contracts\SeoCacheManagerInterface;
+use App\Seo\SitemapIndexer;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoCategoryCacheListener;
 use Tests\TestCase;
 
@@ -19,7 +23,18 @@ class SeoCategoryCacheListenerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // 사이트맵 색인 경로는 이 테스트 범위 밖 — spy 로 대체하고 잡을 fake 하여 DB/큐 부작용을 차단
+        $this->app->instance(SitemapIndexer::class, Mockery::spy(SitemapIndexer::class));
+        Bus::fake([GenerateSitemapJob::class]);
+
         $this->listener = new SeoCategoryCacheListener;
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 
     // ========================================
@@ -33,17 +48,21 @@ class SeoCategoryCacheListenerTest extends TestCase
     {
         $hooks = SeoCategoryCacheListener::getSubscribedHooks();
 
-        $expectedHooks = [
+        // create/update 는 onCategoryChange, delete 는 onCategoryDelete (모델 대신 ID 를 받으므로 분리)
+        $changeHooks = [
             'sirsoft-ecommerce.category.after_create',
             'sirsoft-ecommerce.category.after_update',
-            'sirsoft-ecommerce.category.after_delete',
         ];
 
-        foreach ($expectedHooks as $hookName) {
+        foreach ($changeHooks as $hookName) {
             $this->assertArrayHasKey($hookName, $hooks);
             $this->assertEquals('onCategoryChange', $hooks[$hookName]['method']);
             $this->assertEquals(20, $hooks[$hookName]['priority']);
         }
+
+        $this->assertArrayHasKey('sirsoft-ecommerce.category.after_delete', $hooks);
+        $this->assertEquals('onCategoryDelete', $hooks['sirsoft-ecommerce.category.after_delete']['method']);
+        $this->assertEquals(20, $hooks['sirsoft-ecommerce.category.after_delete']['priority']);
 
         $this->assertCount(3, $hooks);
     }
@@ -110,6 +129,9 @@ class SeoCategoryCacheListenerTest extends TestCase
 
         // When
         $this->listener->onCategoryChange($category);
+
+        // 검증은 Log::shouldReceive 기대치(Mockery::close)로 수행됨
+        $this->addToAssertionCount(1);
     }
 
     /**
@@ -135,6 +157,9 @@ class SeoCategoryCacheListenerTest extends TestCase
 
         // When
         $this->listener->onCategoryChange($categoryId);
+
+        // 검증은 Log::shouldReceive 기대치(Mockery::close)로 수행됨
+        $this->addToAssertionCount(1);
     }
 
     /**
@@ -188,6 +213,9 @@ class SeoCategoryCacheListenerTest extends TestCase
 
         // When & Then: 예외가 전파되지 않음
         $this->listener->onCategoryChange($category);
+
+        // 검증은 Log::shouldReceive 기대치(Mockery::close)로 수행됨
+        $this->addToAssertionCount(1);
     }
 
     // ========================================

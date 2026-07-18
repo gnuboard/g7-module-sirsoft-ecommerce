@@ -81,6 +81,8 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
                 'url' => "/{$routePath}/products",
                 'changefreq' => 'daily',
                 'priority' => 0.7,
+                'resource_type' => 'shop_index',
+                'resource_id' => null,
             ];
         }
 
@@ -92,6 +94,8 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
                     'lastmod' => $category->updated_at?->toW3cString(),
                     'changefreq' => 'weekly',
                     'priority' => 0.6,
+                    'resource_type' => 'category',
+                    'resource_id' => (string) $category->id,
                 ];
             }
         }
@@ -104,6 +108,8 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
                     'lastmod' => $product->updated_at?->toW3cString(),
                     'changefreq' => 'weekly',
                     'priority' => 0.8,
+                    'resource_type' => 'product',
+                    'resource_id' => (string) $product->id,
                 ];
             }
         }
