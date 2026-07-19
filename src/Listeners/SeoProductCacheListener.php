@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Listeners;
 
 use App\Contracts\Extension\CacheInterface;
 use App\Contracts\Extension\HookListenerInterface;
+use App\Enums\SitemapChangeFreq;
 use App\Jobs\GenerateSitemapJob;
 use App\Seo\Contracts\SeoCacheManagerInterface;
 use App\Seo\SeoCacheRegenerator;
@@ -163,7 +164,7 @@ class SeoProductCacheListener implements HookListenerInterface
                 $indexer->indexResource('product', $product->id, 'sirsoft-ecommerce', [[
                     'url' => "/{$routePath}/products/{$product->id}",
                     'lastmod' => $product->updated_at?->toW3cString(),
-                    'changefreq' => 'weekly',
+                    'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.8,
                 ]]);
             } else {

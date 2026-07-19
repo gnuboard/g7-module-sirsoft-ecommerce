@@ -2,6 +2,7 @@
 
 namespace Modules\Sirsoft\Ecommerce\Seo;
 
+use App\Enums\SitemapChangeFreq;
 use App\Seo\AbstractSitemapContributor;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CategoryRepositoryInterface;
@@ -79,7 +80,7 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
         if ((bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_shop_index', true)) {
             yield [
                 'url' => "/{$routePath}/products",
-                'changefreq' => 'daily',
+                'changefreq' => SitemapChangeFreq::Daily->value,
                 'priority' => 0.7,
                 'resource_type' => 'shop_index',
                 'resource_id' => null,
@@ -92,7 +93,7 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
                 yield [
                     'url' => "/{$routePath}/category/{$category->slug}",
                     'lastmod' => $category->updated_at?->toW3cString(),
-                    'changefreq' => 'weekly',
+                    'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.6,
                     'resource_type' => 'category',
                     'resource_id' => (string) $category->id,
@@ -106,7 +107,7 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
                 yield [
                     'url' => "/{$routePath}/products/{$product->id}",
                     'lastmod' => $product->updated_at?->toW3cString(),
-                    'changefreq' => 'weekly',
+                    'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.8,
                     'resource_type' => 'product',
                     'resource_id' => (string) $product->id,
