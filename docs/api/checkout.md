@@ -108,7 +108,7 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | item_ids | body | array | 아니오 | min 1 | item 식별자 배열 |
-| direct_items | body | array | 아니오 | min 1 | 바로 구매 항목 배열 (장바구니 미경유 — 항목별 product_id/option_values/quantity, item_ids와 택일) |
+| direct_items | body | array | 아니오 | min 1 | 바로 구매 항목 배열 (장바구니 미경유 — 항목별 product_id/product_option_id/quantity, item_ids와 택일) |
 | coupon_issue_ids | body | array | 아니오 | — | coupon issue 식별자 배열 |
 | use_points | body | integer | 아니오 | min 0 | 사용할 마일리지(적립금) 포인트 |
 

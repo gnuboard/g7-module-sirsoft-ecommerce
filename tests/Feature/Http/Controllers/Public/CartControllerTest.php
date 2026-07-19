@@ -7,6 +7,7 @@ use Modules\Sirsoft\Ecommerce\Database\Factories\CartFactory;
 use Modules\Sirsoft\Ecommerce\Database\Factories\ProductFactory;
 use Modules\Sirsoft\Ecommerce\Database\Factories\ProductOptionFactory;
 use Modules\Sirsoft\Ecommerce\Enums\ChargePolicyEnum;
+use Modules\Sirsoft\Ecommerce\Models\Cart;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Models\ProductOption;
 use Modules\Sirsoft\Ecommerce\Models\ShippingPolicy;
@@ -135,7 +136,7 @@ class CartControllerTest extends ModuleTestCase
         $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $data['product']->id,
             'items' => [
-                ['option_values' => $data['option']->getLocalizedOptionValues(), 'quantity' => 1],
+                ['product_option_id' => $data['option']->id, 'quantity' => 1],
             ],
         ], ['X-Cart-Key' => $cartKey])->assertStatus(201);
 
@@ -162,7 +163,7 @@ class CartControllerTest extends ModuleTestCase
         $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $data['product']->id,
             'items' => [
-                ['option_values' => $data['option']->getLocalizedOptionValues(), 'quantity' => 1],
+                ['product_option_id' => $data['option']->id, 'quantity' => 1],
             ],
         ], ['X-Cart-Key' => $cartKey])->assertStatus(201);
 
@@ -221,7 +222,7 @@ class CartControllerTest extends ModuleTestCase
         $addResponse = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $data['product']->id,
             'items' => [
-                ['option_values' => $data['option']->getLocalizedOptionValues(), 'quantity' => 2],
+                ['product_option_id' => $data['option']->id, 'quantity' => 2],
             ],
         ], [
             'X-Cart-Key' => $cartKey,
@@ -274,7 +275,7 @@ class CartControllerTest extends ModuleTestCase
         $addResponse = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $data['product']->id,
             'items' => [
-                ['option_values' => $data['option']->getLocalizedOptionValues(), 'quantity' => 2],
+                ['product_option_id' => $data['option']->id, 'quantity' => 2],
             ],
         ], [
             'X-Cart-Key' => $cartKey,
@@ -307,7 +308,7 @@ class CartControllerTest extends ModuleTestCase
         $addResponse = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $data['product']->id,
             'items' => [
-                ['option_values' => $data['option']->getLocalizedOptionValues(), 'quantity' => 2],
+                ['product_option_id' => $data['option']->id, 'quantity' => 2],
             ],
         ], [
             'X-Cart-Key' => $cartKey,
@@ -355,8 +356,8 @@ class CartControllerTest extends ModuleTestCase
         $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $product->id,
             'items' => [
-                ['option_values' => ['색상' => '빨강', '사이즈' => 'L'], 'quantity' => 2],
-                ['option_values' => ['색상' => '파랑', '사이즈' => 'M'], 'quantity' => 1],
+                ['product_option_id' => $option1->id, 'quantity' => 2],
+                ['product_option_id' => $option2->id, 'quantity' => 1],
             ],
         ], [
             'X-Cart-Key' => $cartKey,
@@ -384,7 +385,7 @@ class CartControllerTest extends ModuleTestCase
         $data = $this->createProductWithOption();
         $cartKey = 'ck_'.str_repeat('f', 32);
 
-        // When: option_values 없이 담기
+        // When: product_option_id 없이 담기
         $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $data['product']->id,
             'items' => [
@@ -397,6 +398,35 @@ class CartControllerTest extends ModuleTestCase
         // Then: 201 Created
         $response->assertStatus(201);
         $this->assertEquals(1, $response->json('data.cart_count'));
+    }
+
+    /**
+     * 다른 상품에 속한 product_option_id 를 주입하면 담기가 거부되고 장바구니에 반영되지 않습니다.
+     *
+     * 회귀: 옵션 식별을 product_option_id 기반으로 전환하면서, 요청한 상품(product_id)의 옵션
+     * 집합(getByProductId) 안에서만 옵션 ID 를 조회해야 한다. 타 상품 옵션 ID 주입 시 거부되어야
+     * 서버가 임의 옵션(다른 상품/가격/재고)을 장바구니에 담는 위변조를 차단한다.
+     */
+    public function test_bulk_add_rejects_option_id_from_another_product(): void
+    {
+        // Given: 각각 옵션을 가진 두 상품
+        $target = $this->createProductWithOption();
+        $foreign = $this->createProductWithOption();
+        $cartKey = 'ck_'.str_repeat('h', 32);
+
+        // When: target 상품에 foreign 상품의 옵션 ID 를 실어 담기 시도
+        $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
+            'product_id' => $target['product']->id,
+            'items' => [
+                ['product_option_id' => $foreign['option']->id, 'quantity' => 1],
+            ],
+        ], [
+            'X-Cart-Key' => $cartKey,
+        ]);
+
+        // Then: 담기 실패(비-201) + 장바구니에 어떤 행도 생성되지 않음
+        $this->assertNotSame(201, $response->getStatusCode());
+        $this->assertSame(0, Cart::where('cart_key', $cartKey)->count());
     }
 
     /**
@@ -513,7 +543,7 @@ class CartControllerTest extends ModuleTestCase
         $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $product->id,
             'items' => [
-                ['option_values' => $option->getLocalizedOptionValues(), 'quantity' => 1],
+                ['product_option_id' => $option->id, 'quantity' => 1],
             ],
         ], [
             'X-Cart-Key' => $cartKey,
@@ -553,7 +583,7 @@ class CartControllerTest extends ModuleTestCase
         $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $product->id,
             'items' => [
-                ['option_values' => $option->getLocalizedOptionValues(), 'quantity' => 6],
+                ['product_option_id' => $option->id, 'quantity' => 6],
             ],
         ], [
             'X-Cart-Key' => $cartKey,
@@ -591,7 +621,7 @@ class CartControllerTest extends ModuleTestCase
         $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $product->id,
             'items' => [
-                ['option_values' => $option->getLocalizedOptionValues(), 'quantity' => 1],
+                ['product_option_id' => $option->id, 'quantity' => 1],
             ],
         ], ['X-Cart-Key' => $cartKey]);
 
@@ -620,7 +650,7 @@ class CartControllerTest extends ModuleTestCase
         $response = $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
             'product_id' => $product->id,
             'items' => [
-                ['option_values' => $option->getLocalizedOptionValues(), 'quantity' => 5],
+                ['product_option_id' => $option->id, 'quantity' => 5],
             ],
         ], ['X-Cart-Key' => $cartKey]);
 
