@@ -34,7 +34,8 @@ class BulkAddToCartRequest extends FormRequest
         $rules = [
             'product_id' => ['required', 'integer', Rule::exists(Product::class, 'id')],
             'items' => 'required|array|min:1',
-            'items.*.option_values' => 'nullable|array',
+            // 메인 옵션 식별자 (옵션 ID 기반). 옵션 없는 상품은 미전송 → 서버가 기본 옵션 자동 해석
+            'items.*.product_option_id' => ['nullable', 'integer'],
             'items.*.quantity' => 'required|integer|min:1|max:9999',
             // 추가옵션 선택 (서버에서 value_id 기준 가격 재조회·검증 — 클라 가격 신뢰 금지)
             'items.*.additional_option_selections' => 'nullable|array',

@@ -247,9 +247,9 @@ class CartService
      * 장바구니 일괄 담기
      *
      * 하나의 상품에 대해 여러 옵션 조합을 한 번에 장바구니에 담습니다.
-     * option_values가 없는 경우(옵션 없는 상품)는 기본 옵션을 자동 조회합니다.
+     * product_option_id가 없는 경우(옵션 없는 상품)는 기본 옵션을 자동 조회합니다.
      *
-     * @param  array  $data  {product_id, items: [{option_values?, quantity}], user_id?, cart_key?}
+     * @param  array  $data  {product_id, items: [{product_option_id?, quantity}], user_id?, cart_key?}
      * @return array{items: array<Cart>, cart_count: int} 추가된 아이템 목록과 장바구니 총 수량
      */
     public function bulkAddToCart(array $data): array
@@ -272,17 +272,15 @@ class CartService
         $addedItems = [];
 
         foreach ($data['items'] as $item) {
-            $optionValues = $item['option_values'] ?? null;
+            $requestedOptionId = $item['product_option_id'] ?? null;
             $quantity = $item['quantity'] ?? 1;
 
-            // option_values로 product_option_id 조회 (로케일 기준 값으로 매칭)
-            if (! empty($optionValues)) {
-                $matchedOption = $productOptions->first(function ($option) use ($optionValues) {
-                    return $option->getLocalizedOptionValues() == $optionValues;
-                });
+            // 옵션 ID 기반 식별. 상품 소속 옵션 집합 내에서만 조회해 임의 옵션 주입을 차단
+            if (! empty($requestedOptionId)) {
+                $matchedOption = $productOptions->firstWhere('id', (int) $requestedOptionId);
 
                 if (! $matchedOption) {
-                    throw new \Exception(__('sirsoft-ecommerce::validation.cart.option_values_not_found'));
+                    throw new \Exception(__('sirsoft-ecommerce::validation.cart.option_not_found'));
                 }
 
                 $productOptionId = $matchedOption->id;

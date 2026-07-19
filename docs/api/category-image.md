@@ -55,4 +55,6 @@ Accept: application/json
 
 **설명** 공개 API로, 해시(`hash`)로 식별되는 카테고리 이미지 원본 파일을 스트리밍 서빙합니다. 인증이 필요 없으며(`PublicBaseController`), `CategoryImageController@download`가 `CategoryImageService::download()`를 호출해 리포지토리에서 해시로 이미지를 찾고 `StorageInterface::response()`로 `StreamedResponse`를 반환합니다. 응답에는 저장된 `mime_type`과 `Cache-Control: public, max-age=31536000`(1년) 헤더가 부여되어 브라우저/CDN 캐싱에 최적화됩니다. 해시에 해당하는 레코드가 없거나 스토리지에 실제 파일이 없으면 404를, 그 외 처리 오류 시 400 에러 응답을 반환합니다.
 
+> **서빙 방식**: 이미지 본문은 `StorageInterface::response()`(내부 `readStream`) 로 청크 스트리밍되며 파일 전체를 메모리에 적재하지 않습니다. 관리자용 카테고리 이미지 서빙(`CategoryController::downloadImage`)도 동일하게 `CategoryImageService::download()` 스트리밍 경로를 공유합니다(전체 메모리 적재 `Storage::get()` 미사용).
+
 

@@ -942,7 +942,6 @@ return [
         'quantity_max' => 'Quantity cannot exceed 9,999.',
         'items_required' => 'Please select items to add to cart.',
         'items_min' => 'Please select at least one item.',
-        'option_values_not_found' => 'Matching option combination not found.',
     ],
 
     // Wishlist validation messages

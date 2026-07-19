@@ -942,7 +942,6 @@ return [
         'quantity_max' => '수량은 최대 9,999개까지 가능합니다.',
         'items_required' => '장바구니에 담을 상품을 선택해주세요.',
         'items_min' => '최소 1개 이상의 상품을 선택해주세요.',
-        'option_values_not_found' => '해당 옵션 조합을 찾을 수 없습니다.',
     ],
 
     // 찜 검증 메시지

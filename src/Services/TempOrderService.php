@@ -169,7 +169,7 @@ class TempOrderService
      * 생성합니다. 판매상태·재고·구매수량 한도·구매대상제한 검증은 장바구니 담기와 동일하게
      * 적용하되, 구매수량 한도는 장바구니 기존 수량과 합산하지 않고 이번 선택 수량만으로 판정합니다.
      *
-     * @param  array  $items  직접 항목 배열 [{product_id, option_values?, quantity}]
+     * @param  array  $items  직접 항목 배열 [{product_id, product_option_id?, quantity}]
      * @param  int|null  $userId  회원 ID
      * @param  string|null  $cartKey  비회원 장바구니 키
      * @param  int  $usePoints  사용할 마일리지
@@ -196,10 +196,10 @@ class TempOrderService
     /**
      * 직접 항목 배열을 미저장 Cart 모델 컬렉션으로 변환합니다.
      *
-     * option_values 로 옵션을 매칭하고(없으면 기본 옵션), product/productOption 관계를
+     * product_option_id 로 옵션을 매칭하고(없으면 기본 옵션), product/productOption 관계를
      * set 한 미저장 Cart 모델을 만들어 기존 검증/계산/직렬화 로직을 그대로 재사용합니다.
      *
-     * @param  array  $items  직접 항목 배열 [{product_id, option_values?, quantity}]
+     * @param  array  $items  직접 항목 배열 [{product_id, product_option_id?, quantity}]
      * @param  int|null  $userId  회원 ID
      * @param  string|null  $cartKey  비회원 장바구니 키
      * @return Collection<int, Cart> 미저장 Cart 컬렉션
@@ -212,19 +212,17 @@ class TempOrderService
 
         foreach ($items as $item) {
             $productId = (int) ($item['product_id'] ?? 0);
-            $optionValues = $item['option_values'] ?? null;
+            $requestedOptionId = $item['product_option_id'] ?? null;
             $quantity = max(1, (int) ($item['quantity'] ?? 1));
 
-            // 상품 옵션 매칭 (option_values 기준, 없으면 기본 옵션)
+            // 상품 옵션 매칭 (옵션 ID 기준, 없으면 기본 옵션)
             $productOptions = $this->productOptionRepository->getByProductId($productId);
 
-            if (! empty($optionValues)) {
-                $matchedOption = $productOptions->first(
-                    fn ($option) => $option->getLocalizedOptionValues() == $optionValues
-                );
+            if (! empty($requestedOptionId)) {
+                $matchedOption = $productOptions->firstWhere('id', (int) $requestedOptionId);
 
                 if (! $matchedOption) {
-                    throw new \Exception(__('sirsoft-ecommerce::validation.cart.option_values_not_found'));
+                    throw new \Exception(__('sirsoft-ecommerce::validation.cart.option_not_found'));
                 }
 
                 $optionId = $matchedOption->id;
