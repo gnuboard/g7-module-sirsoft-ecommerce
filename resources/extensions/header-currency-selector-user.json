@@ -205,7 +205,16 @@
                                         "params": {
                                           "method": "PUT",
                                           "body": { "currency": "{{currency.code}}" }
-                                        }
+                                        },
+                                        "onError": [
+                                          {
+                                            "handler": "toast",
+                                            "params": {
+                                              "type": "error",
+                                              "message": "{{error.message}}"
+                                            }
+                                          }
+                                        ]
                                       }
                                     }
                                   ]
@@ -310,7 +319,16 @@
                                         "params": {
                                           "method": "PUT",
                                           "body": { "shipping_country": "{{shipCountry.code}}" }
-                                        }
+                                        },
+                                        "onError": [
+                                          {
+                                            "handler": "toast",
+                                            "params": {
+                                              "type": "error",
+                                              "message": "{{error.message}}"
+                                            }
+                                          }
+                                        ]
                                       }
                                     }
                                   ]

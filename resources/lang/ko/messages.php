@@ -20,9 +20,6 @@ return [
         // 자동 취소
         'auto_cancel_expired_reason' => '입금 기한 만료로 인한 자동 취소',
 
-        // 주문 취소
-        'cancelled' => '주문이 취소되었습니다.',
-
         // 결제
         'payment_cancelled' => '결제 취소가 기록되었습니다.',
         'payment_pending' => '입금 대기 중입니다.',

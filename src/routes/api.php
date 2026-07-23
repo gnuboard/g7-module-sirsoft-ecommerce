@@ -738,7 +738,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
             ->name('admin.shipping-carriers.toggle-status');
     });
 
-    // 클래임 사유 관리 API
+    // 클레임 사유 관리 API
     // GET    /api/modules/sirsoft-ecommerce/admin/claim-reasons           - 사유 목록 조회
     // POST   /api/modules/sirsoft-ecommerce/admin/claim-reasons           - 사유 생성
     // GET    /api/modules/sirsoft-ecommerce/admin/claim-reasons/active    - 활성 사유 목록 (Select용)

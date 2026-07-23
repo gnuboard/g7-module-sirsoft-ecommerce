@@ -4,7 +4,6 @@ namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Http\Controllers\Public;
 
 use App\Extension\HookManager;
 use Modules\Sirsoft\Ecommerce\Models\Product;
-use Modules\Sirsoft\Ecommerce\Models\ProductInquiry;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -99,24 +98,21 @@ class PublicProductInquiryControllerTest extends ModuleTestCase
             ]);
     }
 
+    /**
+     * 존재하지 않는 상품은 404 를 반환한다.
+     *
+     * 상품 파라미터는 라우트 모델 바인딩(product_code 또는 id)으로 해석되므로, 없는 상품은
+     * 컨트롤러에 진입하기 전에 404 가 된다 (#450 상품코드 라우팅 전환). 문의 게시판 설정 여부와
+     * 무관하다 — 설정 미비로 빈 목록을 주는 경우는 **존재하는 상품**에 한하며 그 계약은
+     * `board_slug_미설정_시_빈_목록과_inquiry_available_false를_반환한다` 가 담당한다.
+     */
     #[Test]
-    public function 존재하지_않는_상품_조회_시_빈_목록을_반환한다(): void
+    public function 존재하지_않는_상품_조회_시_404를_반환한다(): void
     {
-        // board_slug 없으면 상품 존재 여부와 무관하게 빈 목록 반환
         app(EcommerceSettingsService::class)->setSetting('inquiry.board_slug', null);
 
-        $response = $this->getJson(
-            '/api/modules/sirsoft-ecommerce/products/99999/inquiries'
-        );
-
-        $response->assertOk()
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'items' => [],
-                    'meta' => ['inquiry_available' => false],
-                ],
-            ]);
+        $this->getJson('/api/modules/sirsoft-ecommerce/products/99999/inquiries')
+            ->assertNotFound();
     }
 
     // ========================================
@@ -161,7 +157,7 @@ class PublicProductInquiryControllerTest extends ModuleTestCase
 
         $this->assertDatabaseHas('ecommerce_product_inquiries', [
             'product_id' => $this->product->id,
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
         ]);
     }
 
