@@ -228,6 +228,7 @@ return [
             'array' => '배송국가는 배열 형태여야 합니다.',
             'string' => '배송국가는 문자열이어야 합니다.',
             'in' => '올바른 배송국가를 선택해주세요.',
+            'max' => '배송국가 코드는 최대 :max자까지 입력 가능합니다.',
         ],
     ],
 
@@ -773,6 +774,19 @@ return [
             'integer' => '최대 금액은 숫자여야 합니다.',
             'min' => '최대 금액은 0 이상이어야 합니다.',
         ],
+        // 배송비 범위
+        'min_shipping_amount' => [
+            'integer' => '최소 배송비는 숫자여야 합니다.',
+            'min' => '최소 배송비는 0 이상이어야 합니다.',
+        ],
+        'max_shipping_amount' => [
+            'integer' => '최대 배송비는 숫자여야 합니다.',
+            'min' => '최대 배송비는 0 이상이어야 합니다.',
+        ],
+        // 배송정책
+        'shipping_policy_id' => [
+            'integer' => '배송정책 ID는 숫자여야 합니다.',
+        ],
         // 배송국가 코드
         'country_codes' => [
             'array' => '국가 코드는 배열 형태여야 합니다.',
@@ -808,9 +822,6 @@ return [
         'page' => [
             'integer' => '페이지 번호는 숫자여야 합니다.',
             'min' => '페이지 번호는 1 이상이어야 합니다.',
-        ],
-        'admin_memo' => [
-            'max' => '관리자 메모는 최대 1000자까지 입력 가능합니다.',
         ],
     ],
 
@@ -922,13 +933,6 @@ return [
 
     // 장바구니 검증 메시지
     'cart' => [
-        'product_id_required' => '상품을 선택해주세요.',
-        'product_not_found' => '존재하지 않는 상품입니다.',
-        'option_id_required' => '상품 옵션을 선택해주세요.',
-        'option_not_found' => '존재하지 않는 상품 옵션입니다.',
-        'quantity_required' => '수량을 입력해주세요.',
-        'quantity_min' => '수량은 1개 이상이어야 합니다.',
-        'quantity_max' => '수량은 9999개 이하여야 합니다.',
         'ids_required' => '삭제할 상품을 선택해주세요.',
         'ids_array' => '상품 ID는 배열 형태여야 합니다.',
         'ids_min' => '최소 1개 이상의 상품을 선택해주세요.',
@@ -942,6 +946,12 @@ return [
         'quantity_max' => '수량은 최대 9,999개까지 가능합니다.',
         'items_required' => '장바구니에 담을 상품을 선택해주세요.',
         'items_min' => '최소 1개 이상의 상품을 선택해주세요.',
+        'selected_ids_array' => '선택된 장바구니 상품 ID는 배열 형태여야 합니다.',
+        'selected_ids_integer' => '선택된 장바구니 상품 ID는 숫자여야 합니다.',
+        'selected_ids_min' => '선택된 장바구니 상품 ID는 1 이상이어야 합니다.',
+        'cart_key_required' => '비회원 장바구니 키가 필요합니다.',
+        'invalid_cart_key' => '잘못된 장바구니 키 형식입니다.',
+        'login_required' => '로그인이 필요합니다.',
     ],
 
     // 찜 검증 메시지
@@ -965,6 +975,14 @@ return [
         'use_points_min' => '마일리지는 0 이상이어야 합니다.',
         'coupon_issue_ids_array' => '쿠폰 ID는 배열 형태여야 합니다.',
         'coupon_issue_id_integer' => '쿠폰 ID는 숫자여야 합니다.',
+        'item_coupons_array' => '상품별 쿠폰은 배열 형태여야 합니다.',
+        'item_coupons_max' => '상품당 쿠폰은 최대 :max개까지 적용할 수 있습니다.',
+        'item_coupon_integer' => '상품 쿠폰 ID는 숫자여야 합니다.',
+        'item_coupon_not_found' => '존재하지 않는 상품 쿠폰입니다.',
+        'order_coupon_integer' => '주문 쿠폰 ID는 숫자여야 합니다.',
+        'order_coupon_not_found' => '존재하지 않는 주문 쿠폰입니다.',
+        'shipping_coupon_integer' => '배송비 쿠폰 ID는 숫자여야 합니다.',
+        'shipping_coupon_not_found' => '존재하지 않는 배송비 쿠폰입니다.',
         'country_code_size' => '국가 코드는 2자리여야 합니다.',
         'zipcode_max' => '우편번호는 최대 20자까지 입력 가능합니다.',
         'region_max' => '지역은 최대 100자까지 입력 가능합니다.',
@@ -1112,6 +1130,10 @@ return [
         ],
         'rating' => [
             'in' => '올바른 평점을 선택해주세요.',
+            'required' => '평점을 선택해주세요.',
+            'integer' => '평점은 숫자여야 합니다.',
+            'min' => '평점은 :min점 이상이어야 합니다.',
+            'max' => '평점은 :max점 이하여야 합니다.',
         ],
         'reply_status' => [
             'in' => '올바른 답글 상태를 선택해주세요.',
@@ -1121,6 +1143,8 @@ return [
         ],
         'status' => [
             'in' => '올바른 리뷰 상태를 선택해주세요.',
+            'required' => '리뷰 상태를 선택해주세요.',
+            'required_if' => '상태 변경을 선택한 경우 리뷰 상태를 함께 선택해주세요.',
         ],
         'start_date' => [
             'date' => '시작일은 날짜 형식이어야 합니다.',
@@ -1143,6 +1167,44 @@ return [
         'page' => [
             'integer' => '페이지 번호는 숫자여야 합니다.',
             'min' => '페이지 번호는 1 이상이어야 합니다.',
+        ],
+        // 리뷰 작성 (사용자)
+        'product_id' => [
+            'required' => '상품을 선택해주세요.',
+            'exists' => '존재하지 않는 상품입니다.',
+        ],
+        'order_option_id' => [
+            'required' => '리뷰를 작성할 주문 상품을 선택해주세요.',
+            'exists' => '존재하지 않는 주문 상품입니다.',
+        ],
+        'content' => [
+            'required' => '리뷰 내용을 입력해주세요.',
+            'min' => '리뷰 내용은 최소 :min자 이상 입력해주세요.',
+            'max' => '리뷰 내용은 최대 :max자까지 입력 가능합니다.',
+        ],
+        'content_mode' => [
+            'in' => '올바른 리뷰 내용 형식을 선택해주세요.',
+        ],
+        // 리뷰 답글 (관리자)
+        'reply_content' => [
+            'required' => '답글 내용을 입력해주세요.',
+            'min' => '답글 내용은 최소 :min자 이상 입력해주세요.',
+            'max' => '답글 내용은 최대 :max자까지 입력 가능합니다.',
+        ],
+        'reply_content_mode' => [
+            'in' => '올바른 답글 내용 형식을 선택해주세요.',
+        ],
+        // 리뷰 일괄 처리 (관리자)
+        'ids' => [
+            'required' => '처리할 리뷰를 선택해주세요.',
+            'array' => '리뷰 ID는 배열 형태여야 합니다.',
+            'min' => '최소 1개 이상의 리뷰를 선택해주세요.',
+            'integer' => '리뷰 ID는 숫자여야 합니다.',
+            'exists' => '존재하지 않는 리뷰입니다.',
+        ],
+        'action' => [
+            'required' => '처리 방식을 선택해주세요.',
+            'in' => '올바른 처리 방식을 선택해주세요.',
         ],
     ],
 
@@ -1388,6 +1450,16 @@ return [
         'label_color' => '라벨 색상',
         'is_active' => '사용여부',
         'sort_order' => '정렬순서',
+
+        // 클레임 사유
+        'claim_reason_type' => '클레임 유형',
+        'claim_reason_code' => '클레임 사유 코드',
+        'claim_reason_name' => '클레임 사유명',
+        'claim_reason_fault_type' => '귀책 구분',
+        'claim_reason_is_user_selectable' => '사용자 선택 가능 여부',
+        'claim_reason_is_active' => '사용여부',
+        'claim_reason_sort_order' => '정렬순서',
+        'claim_reason_search' => '검색어',
     ],
 
     // 필드별 커스텀 검증 메시지
@@ -1675,10 +1747,17 @@ return [
                 'boolean' => '취소 시 재고 복구 여부는 참/거짓 값이어야 합니다.',
             ],
         ],
+        'claim' => [
+            'refund_reasons' => [
+                'duplicate_code' => '중복된 환불 사유 코드가 있습니다.',
+                'name_required' => '환불 사유명은 필수 항목입니다.',
+            ],
+        ],
         'shipping' => [
             'default_country' => [
                 'string' => '기본 배송국가는 문자열이어야 합니다.',
                 'max' => '기본 배송국가는 최대 10자까지 입력 가능합니다.',
+                'must_exist_in_countries' => '기본 배송국가는 배송가능국가 목록에 존재해야 합니다.',
             ],
             'available_countries' => [
                 'array' => '배송가능국가는 배열 형태여야 합니다.',
@@ -1698,9 +1777,6 @@ return [
                 'is_active' => [
                     'boolean' => '국가 사용여부는 참/거짓 값이어야 합니다.',
                 ],
-            ],
-            'default_country' => [
-                'must_exist_in_countries' => '기본 배송국가는 배송가능국가 목록에 존재해야 합니다.',
             ],
             'international_shipping_enabled' => [
                 'boolean' => '해외배송 사용여부는 참/거짓 값이어야 합니다.',

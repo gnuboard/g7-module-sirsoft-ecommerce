@@ -6,7 +6,7 @@
     "language_currency": "언어/통화",
     "seo": "SEO 설정",
     "order_settings": "주문설정",
-    "claim": "클래임",
+    "claim": "클레임",
     "shipping": "배송설정",
     "review_settings": "리뷰 설정",
     "notification_definitions": "알림 설정",
@@ -222,7 +222,7 @@
     }
   },
   "claim": {
-    "title": "클래임 설정",
+    "title": "클레임 설정",
     "refund_reasons": {
       "section_title": "환불 사유 관리",
       "add_button": "사유 추가",

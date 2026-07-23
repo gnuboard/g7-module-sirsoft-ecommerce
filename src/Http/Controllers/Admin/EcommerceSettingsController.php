@@ -434,7 +434,7 @@ class EcommerceSettingsController extends AdminBaseController
     }
 
     /**
-     * 설정 응답에 클래임 사유 목록을 추가합니다.
+     * 설정 응답에 클레임 사유 목록을 추가합니다.
      *
      * DB 관리 대상인 claim reasons를 claim 섹션에 포함시킵니다.
      *

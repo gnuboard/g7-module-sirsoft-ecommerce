@@ -44,7 +44,7 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- |
 | number | integer | `8` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
 | id | integer | `1` | 기본 키 (내부 식별자) |
-| type | string | `refund` | 클래임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
+| type | string | `refund` | 클레임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
 | code | string | `order_mistake` | 사유 식별 코드 (같은 type 내 고유, 영문 소문자/숫자/`_`) |
 | name | object | `{"ko":"주문 실수","en":"Order Mistake","ja":"注文ミス"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
 | localized_name | string | `주문 실수` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
@@ -68,7 +68,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "클래임 사유 목록을 조회했습니다.",
+    "message": "클레임 사유 목록을 조회했습니다.",
     "data": {
         "data": [
             {
@@ -141,7 +141,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 관리자가 클래임(반품/교환/환불) 사유 마스터 목록을 조회합니다. `permission:sirsoft-ecommerce.settings.read` 권한이 필요하며, `type`(기본 refund)·`is_active`·`fault_type`·`search` 쿼리로 필터링할 수 있습니다. `ClaimReasonService::getAllReasons()`가 조회하고 `ClaimReasonCollection`으로 반환하며, 각 항목은 다국어 사유명(`name`)과 귀책 구분(`fault_type`: customer·seller·carrier), 사용자 노출 여부(`is_user_selectable`)를 포함합니다. 환경설정의 클래임 사유 관리 화면에서 사용됩니다.
+**설명** 관리자가 클레임(반품/교환/환불) 사유 마스터 목록을 조회합니다. `permission:sirsoft-ecommerce.settings.read` 권한이 필요하며, `type`(기본 refund)·`is_active`·`fault_type`·`search` 쿼리로 필터링할 수 있습니다. `ClaimReasonService::getAllReasons()`가 조회하고 `ClaimReasonCollection`으로 반환하며, 각 항목은 다국어 사유명(`name`)과 귀책 구분(`fault_type`: customer·seller·carrier), 사용자 노출 여부(`is_user_selectable`)를 포함합니다. 환경설정의 클레임 사유 관리 화면에서 사용됩니다.
 
 
 ### POST /api/modules/sirsoft-ecommerce/admin/claim-reasons
@@ -154,7 +154,7 @@ HTTP/1.1 200
 
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
-| type | body | string | 예 | — | 클래임 사유 유형 (ClaimReasonTypeEnum — 현재 `refund`(환불/취소)) |
+| type | body | string | 예 | — | 클레임 사유 유형 (ClaimReasonTypeEnum — 현재 `refund`(환불/취소)) |
 | code | body | string | 예 | max 50 | 사유 식별 코드 (영문 소문자/숫자/`_`, 같은 type 내에서 고유) |
 | name | body | array | 예 | — | 대상의 이름/명칭 |
 | fault_type | body | string | 예 | — | 귀책 구분 (ClaimReasonFaultTypeEnum — `customer`(고객)/`seller`(판매자)/`carrier`(배송사)) |
@@ -202,7 +202,7 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 관리자가 새 클래임 사유를 생성합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, 유형(`type`)·고유 코드(`code`)·다국어 사유명(`name`)·귀책 구분(`fault_type`)을 필수로 받고 사용자 노출 여부·활성 여부·정렬 순서를 선택 입력합니다. `ClaimReasonService::createReason()`이 저장하고 생성된 사유를 201로 반환합니다. `code` 는 유형 내에서 고유해야 하며 회원 취소/반품 화면의 사유 선택지로 활용됩니다.
+**설명** 관리자가 새 클레임 사유를 생성합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, 유형(`type`)·고유 코드(`code`)·다국어 사유명(`name`)·귀책 구분(`fault_type`)을 필수로 받고 사용자 노출 여부·활성 여부·정렬 순서를 선택 입력합니다. `ClaimReasonService::createReason()`이 저장하고 생성된 사유를 201로 반환합니다. `code` 는 유형 내에서 고유해야 하며 회원 취소/반품 화면의 사유 선택지로 활용됩니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/admin/claim-reasons/active
@@ -232,7 +232,7 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- |
 | number | integer | `8` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
 | id | integer | `1` | 기본 키 (내부 식별자) |
-| type | string | `refund` | 클래임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
+| type | string | `refund` | 클레임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
 | code | string | `order_mistake` | 사유 식별 코드 (같은 type 내 고유, 영문 소문자/숫자/`_`) |
 | name | object | `{"ko":"주문 실수","en":"Order Mistake","ja":"注文ミス"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
 | localized_name | string | `주문 실수` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
@@ -256,7 +256,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "클래임 사유 목록을 조회했습니다.",
+    "message": "클레임 사유 목록을 조회했습니다.",
     "data": {
         "data": [
             {
@@ -329,7 +329,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 활성화된 클래임 사유만 추려 Select 옵션용으로 조회합니다. `permission:sirsoft-ecommerce.settings.read` 권한이 필요하며, `type` 쿼리(기본 refund)로 유형을 지정하면 `ClaimReasonService::getActiveReasons()`가 `is_active=true` 인 사유만 반환합니다. 관리자 화면에서 환불/취소 처리 시 사유 드롭다운을 채우는 용도로, 목록(index)과 달리 필터 없이 활성 사유만 내려주는 점이 다릅니다.
+**설명** 활성화된 클레임 사유만 추려 Select 옵션용으로 조회합니다. `permission:sirsoft-ecommerce.settings.read` 권한이 필요하며, `type` 쿼리(기본 refund)로 유형을 지정하면 `ClaimReasonService::getActiveReasons()`가 `is_active=true` 인 사유만 반환합니다. 관리자 화면에서 환불/취소 처리 시 사유 드롭다운을 채우는 용도로, 목록(index)과 달리 필터 없이 활성 사유만 내려주는 점이 다릅니다.
 
 
 ### DELETE /api/modules/sirsoft-ecommerce/admin/claim-reasons/{id}
@@ -370,7 +370,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "클래임 사유가 삭제되었습니다.",
+    "message": "클레임 사유가 삭제되었습니다.",
     "data": {
         "reason_id": 8
     }
@@ -387,7 +387,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 관리자가 클래임 사유 1건을 삭제합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, 대상이 없으면 404 를 반환하고 존재하면 `ClaimReasonService::deleteReason()`이 삭제합니다. 이미 사용 중인 사유 등 삭제 불가 상황에서는 서비스가 던진 예외 메시지를 그대로 사용해 400 으로 응답하므로, 관리자에게 삭제 실패 사유가 노출됩니다.
+**설명** 관리자가 클레임 사유 1건을 삭제합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, 대상이 없으면 404 를 반환하고 존재하면 `ClaimReasonService::deleteReason()`이 삭제합니다. 이미 사용 중인 사유 등 삭제 불가 상황에서는 서비스가 던진 예외 메시지를 그대로 사용해 400 으로 응답하므로, 관리자에게 삭제 실패 사유가 노출됩니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/admin/claim-reasons/{id}
@@ -440,7 +440,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "클래임 사유 정보를 조회했습니다.",
+    "message": "클레임 사유 정보를 조회했습니다.",
     "data": {
         "id": 8,
         "type": "refund",
@@ -476,7 +476,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 관리자가 클래임 사유 1건의 상세 정보를 조회합니다. `permission:sirsoft-ecommerce.settings.read` 권한이 필요하며, `ClaimReasonService::getReason()`이 대상을 조회해 `ClaimReasonResource`로 반환합니다. 사유 편집 폼을 열 때 기존 값(다국어 사유명·코드·귀책 구분·활성/노출 설정 등)을 채우는 용도로 사용되며, 해당 사유가 없으면 404 를 반환합니다.
+**설명** 관리자가 클레임 사유 1건의 상세 정보를 조회합니다. `permission:sirsoft-ecommerce.settings.read` 권한이 필요하며, `ClaimReasonService::getReason()`이 대상을 조회해 `ClaimReasonResource`로 반환합니다. 사유 편집 폼을 열 때 기존 값(다국어 사유명·코드·귀책 구분·활성/노출 설정 등)을 채우는 용도로 사용되며, 해당 사유가 없으면 404 를 반환합니다.
 
 
 ### PUT /api/modules/sirsoft-ecommerce/admin/claim-reasons/{id}
@@ -490,7 +490,7 @@ HTTP/1.1 200
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
-| type | body | string | 예 | — | 클래임 사유 유형 (ClaimReasonTypeEnum — 현재 `refund`(환불/취소)) |
+| type | body | string | 예 | — | 클레임 사유 유형 (ClaimReasonTypeEnum — 현재 `refund`(환불/취소)) |
 | code | body | string | 예 | max 50 | 사유 식별 코드 (영문 소문자/숫자/`_`, 같은 type 내에서 고유) |
 | name | body | array | 예 | — | 대상의 이름/명칭 |
 | fault_type | body | string | 예 | — | 귀책 구분 (ClaimReasonFaultTypeEnum — `customer`(고객)/`seller`(판매자)/`carrier`(배송사)) |
@@ -539,7 +539,7 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 관리자가 기존 클래임 사유를 수정합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하고 대상은 경로 `id` 로 지정하며, 생성과 동일한 필드(유형·코드·다국어 사유명·귀책 구분·노출/활성/정렬)를 받아 `ClaimReasonService::updateReason()`이 갱신하고 갱신된 사유를 반환합니다. 대상이 없거나 갱신 실패 시 400 오류로 응답합니다.
+**설명** 관리자가 기존 클레임 사유를 수정합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하고 대상은 경로 `id` 로 지정하며, 생성과 동일한 필드(유형·코드·다국어 사유명·귀책 구분·노출/활성/정렬)를 받아 `ClaimReasonService::updateReason()`이 갱신하고 갱신된 사유를 반환합니다. 대상이 없거나 갱신 실패 시 400 오류로 응답합니다.
 
 
 ### PATCH /api/modules/sirsoft-ecommerce/admin/claim-reasons/{id}/toggle-status
@@ -592,7 +592,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "클래임 사유 상태가 변경되었습니다.",
+    "message": "클레임 사유 상태가 변경되었습니다.",
     "data": {
         "id": 8,
         "type": "refund",
@@ -628,7 +628,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 관리자가 클래임 사유의 활성 상태를 켜고 끄는 토글을 수행합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, `ClaimReasonService::toggleStatus()`가 대상 사유의 `is_active` 값을 반전시켜 저장하고 갱신된 사유를 반환합니다. 사유를 삭제하지 않고 일시적으로 회원 선택지에서 감추거나 다시 노출할 때 사용합니다.
+**설명** 관리자가 클레임 사유의 활성 상태를 켜고 끄는 토글을 수행합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, `ClaimReasonService::toggleStatus()`가 대상 사유의 `is_active` 값을 반전시켜 저장하고 갱신된 사유를 반환합니다. 사유를 삭제하지 않고 일시적으로 회원 선택지에서 감추거나 다시 노출할 때 사용합니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/user/claim-reasons
@@ -658,7 +658,7 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | --- | --- | --- | --- |
 | number | integer | `7` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
 | id | integer | `1` | 기본 키 (내부 식별자) |
-| type | string | `refund` | 클래임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
+| type | string | `refund` | 클레임 사유 유형 (ClaimReasonTypeEnum — `refund`(환불/취소)) |
 | code | string | `order_mistake` | 사유 식별 코드 (같은 type 내 고유, 영문 소문자/숫자/`_`) |
 | name | object | `{"ko":"주문 실수","en":"Order Mistake","ja":"注文ミス"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
 | localized_name | string | `주문 실수` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
@@ -682,7 +682,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "클래임 사유 목록을 조회했습니다.",
+    "message": "클레임 사유 목록을 조회했습니다.",
     "data": {
         "data": [
             {
@@ -754,6 +754,6 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 회원(및 선택적으로 비회원)이 주문 취소/반품 신청 화면에서 선택할 수 있는 클래임 사유 목록을 조회합니다. `optional.sanctum`(회원/비회원 모두 접근)과 `permission:sirsoft-ecommerce.user-orders.cancel` 권한이 적용되며, `ClaimReasonService::getUserSelectableReasons()`가 활성이면서 `is_user_selectable=true` 인 사유만 반환합니다. 관리 전용 목록과 달리 사용자에게 공개 가능한 사유만 내려주는 사용자향 엔드포인트입니다.
+**설명** 회원(및 선택적으로 비회원)이 주문 취소/반품 신청 화면에서 선택할 수 있는 클레임 사유 목록을 조회합니다. `optional.sanctum`(회원/비회원 모두 접근)과 `permission:sirsoft-ecommerce.user-orders.cancel` 권한이 적용되며, `ClaimReasonService::getUserSelectableReasons()`가 활성이면서 `is_user_selectable=true` 인 사유만 반환합니다. 관리 전용 목록과 달리 사용자에게 공개 가능한 사유만 내려주는 사용자향 엔드포인트입니다.
 
 

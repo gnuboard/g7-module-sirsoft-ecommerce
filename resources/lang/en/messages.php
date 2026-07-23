@@ -20,9 +20,6 @@ return [
         // Auto cancel
         'auto_cancel_expired_reason' => 'Automatically cancelled due to payment deadline expiration',
 
-        // Order cancellation
-        'cancelled' => 'Order has been cancelled.',
-
         // Payment
         'payment_cancelled' => 'Payment cancellation has been recorded.',
         'payment_pending' => 'Awaiting payment.',

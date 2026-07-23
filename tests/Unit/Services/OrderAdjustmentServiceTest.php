@@ -4786,8 +4786,10 @@ class OrderAdjustmentServiceTest extends ModuleTestCase
             ],
         );
 
-        // currency_snapshot 미설정 (기본값 null)
-        $order = $this->createOrderFromCalculation($input);
+        // OrderFactory 는 currency_snapshot 을 항상 채운다 (등록된 통화 설정 기준).
+        // 통화 설정이 비어 있을 때만 우연히 falsy 가 되므로, 앞선 테스트가 통화 설정을 남기면
+        // 이 테스트가 간헐 실패한다. "스냅샷 없는 주문" 이라는 전제를 명시적으로 못박는다.
+        $order = $this->createOrderFromCalculation($input, ['currency_snapshot' => null]);
         $optA = $order->options->first();
         $cancellation = $this->buildCancellation([
             ['order_option_id' => $optA->id, 'cancel_quantity' => 1],
