@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Sirsoft\Ecommerce\Enums\ProductImageCollection;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductImageUploadLimitException;
+use Modules\Sirsoft\Ecommerce\Exceptions\ResourceScopeMismatchException;
 use Modules\Sirsoft\Ecommerce\Models\ProductImage;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductImageRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
@@ -306,11 +307,19 @@ class ProductImageService
      * @param  int  $productId  상품 ID
      * @param  int  $imageId  이미지 ID
      * @return bool 성공 여부
+     *
+     * @throws ResourceScopeMismatchException 이미지가 해당 상품에 속하지 않는 경우
      */
     public function setThumbnail(int $productId, int $imageId): bool
     {
-        // 기존 대표 이미지 해제
         $images = $this->repository->getByProductId($productId);
+
+        // 대상 이미지가 이 상품에 속하는지 먼저 확인 (교차 상품 오염 차단)
+        if ($images->firstWhere('id', $imageId) === null) {
+            throw new ResourceScopeMismatchException('sirsoft-ecommerce::exceptions.product_image_not_in_product');
+        }
+
+        // 기존 대표 이미지 해제
         foreach ($images as $image) {
             if ($image->is_thumbnail) {
                 $this->repository->update($image->id, ['is_thumbnail' => false]);

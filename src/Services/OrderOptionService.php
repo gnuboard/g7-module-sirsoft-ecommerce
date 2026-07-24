@@ -8,6 +8,7 @@ use Modules\Sirsoft\Ecommerce\Enums\OrderOptionSourceTypeEnum;
 use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
+use Modules\Sirsoft\Ecommerce\Exceptions\ResourceScopeMismatchException;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderOption;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\MileageTransactionRepositoryInterface;
@@ -295,17 +296,25 @@ class OrderOptionService
      *
      * @param  array  $items  [{option_id, quantity}] 변경 대상
      * @param  OrderStatusEnum  $newStatus  변경할 상태
+     * @param  int  $orderId  상위 주문 ID (옵션 소속 검증에 사용)
      * @param  array  $metadata  추가 정보
      * @return array 변경 결과
+     *
+     * @throws ResourceScopeMismatchException 옵션이 상위 주문에 속하지 않는 경우
      */
     public function bulkChangeStatusWithQuantity(
         array $items,
         OrderStatusEnum $newStatus,
+        int $orderId,
         array $metadata = []
     ): array {
         // 스냅샷 캡처 (ChangeDetector용)
         $optionIds = collect($items)->pluck('option_id')->filter()->unique()->toArray();
         $snapshots = $this->orderOptionRepository->getSnapshotsByIds($optionIds);
+
+        // 상위 주문 스코프 2차 방어 — FormRequest 를 우회한 내부/훅 호출도 차단.
+        // 선택 파라미터로 두면 신규 호출처가 빠뜨렸을 때 방어가 조용히 꺼지므로 필수로 받는다.
+        $this->assertOptionsBelongToOrder($optionIds, $orderId);
 
         // 결제완료(payment_complete) 목표 전이 시 본인인증(IDV) 정책 가드 (A8 / N4).
         // 관리자 주문상세 "주문상태 변경"(옵션 일괄변경)이 결제완료로 부모 주문을 전이시키는,
@@ -351,8 +360,8 @@ class OrderOptionService
 
         // 부모 주문 상태 동기화
         $orderIds = $this->orderOptionRepository->getOrderIdsByOptionIds($optionIds);
-        foreach ($orderIds as $orderId) {
-            $this->syncParentOrderStatus($orderId);
+        foreach ($orderIds as $parentOrderId) {
+            $this->syncParentOrderStatus($parentOrderId);
         }
 
         // after 훅 (스냅샷 전달)
@@ -363,6 +372,29 @@ class OrderOptionService
             'split_count' => $splitCount,
             'results' => $results,
         ];
+    }
+
+    /**
+     * 주어진 옵션들이 모두 지정 주문에 속하는지 검증합니다.
+     *
+     * @param  array<int, int>  $optionIds  검증할 주문 옵션 ID 목록
+     * @param  int  $orderId  상위 주문 ID
+     *
+     * @throws ResourceScopeMismatchException 하나라도 다른 주문에 속하는 경우
+     */
+    private function assertOptionsBelongToOrder(array $optionIds, int $orderId): void
+    {
+        if ($optionIds === []) {
+            return;
+        }
+
+        $orderIds = $this->orderOptionRepository->getOrderIdsByOptionIds($optionIds);
+
+        foreach ($orderIds as $foundOrderId) {
+            if ((int) $foundOrderId !== $orderId) {
+                throw new ResourceScopeMismatchException('sirsoft-ecommerce::exceptions.order_option_not_in_order');
+            }
+        }
     }
 
     /**

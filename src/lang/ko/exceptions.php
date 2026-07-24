@@ -60,6 +60,8 @@ return [
     'order_already_cancelled' => '이미 취소된 주문입니다.',
     'order_already_paid' => '이미 결제가 완료된 주문입니다.',
     'order_option_not_found' => '주문 옵션을 찾을 수 없습니다.',
+    'order_option_not_in_order' => '해당 주문에 속하지 않는 주문 옵션입니다.',
+    'product_image_not_in_product' => '해당 상품에 속하지 않는 이미지입니다.',
     'order_option_already_cancelled' => '이미 취소된 주문 옵션입니다.',
     'order_option_already_confirmed' => '이미 구매확정된 주문 옵션입니다.',
     'order_option_cannot_confirm' => '현재 상태에서는 구매확정할 수 없습니다.',

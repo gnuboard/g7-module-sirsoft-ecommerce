@@ -1708,7 +1708,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 <!-- @generated:end -->
 
-**설명** 상품의 대표(썸네일) 이미지를 지정합니다. `auth:sanctum` + `sirsoft-ecommerce.products.update` 권한이 필요하며, `ProductImageService::setThumbnail()`가 같은 상품의 기존 대표 이미지의 `is_thumbnail`을 해제하고 `imageId` 이미지에 대표 플래그를 부여합니다. 목록·상세에서 노출될 기본 이미지를 교체할 때 사용하며, 지정 대상 상품/이미지가 없으면 404를 반환합니다.
+**설명** 상품의 대표(썸네일) 이미지를 지정합니다. `auth:sanctum` + `sirsoft-ecommerce.products.update` 권한이 필요하며, `ProductImageService::setThumbnail()`가 같은 상품의 기존 대표 이미지의 `is_thumbnail`을 해제하고 `imageId` 이미지에 대표 플래그를 부여합니다. 목록·상세에서 노출될 기본 이미지를 교체할 때 사용하며, 지정 대상 상품/이미지가 없으면 404를 반환합니다. `{imageId}`는 경로의 `{productId}`에 속한 이미지여야 합니다. 다른 상품의 이미지 ID를 지정하면 400을 반환하며, 두 상품의 대표 이미지 상태는 모두 그대로 유지됩니다.
 
 
 ### DELETE /api/modules/sirsoft-ecommerce/admin/products/{product}
