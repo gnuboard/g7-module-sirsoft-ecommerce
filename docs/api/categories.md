@@ -413,7 +413,7 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 카테고리 트리 전체의 배치(부모-자식 관계와 정렬 순서)를 일괄 갱신합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.update` 권한이 필요하며, SortableMenuList 컴포넌트가 보내는 `parent_menus`/`child_menus` 형식을 컨트롤러가 `{id, parent_id, sort_order}` 목록으로 변환해 `CategoryService::reorder()`(트랜잭션)에 전달합니다. `parent_id`가 바뀐 항목은 depth와 materialized path가 함께 재계산됩니다. 관리자 카테고리 관리 화면에서 드래그 앤 드롭으로 계층 구조를 재정렬할 때 사용합니다.
+**설명** 카테고리 트리 전체의 배치(부모-자식 관계와 정렬 순서)를 일괄 갱신합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.update` 권한이 필요하며, SortableMenuList 컴포넌트가 보내는 `parent_menus`/`child_menus` 형식을 컨트롤러가 `{id, parent_id, sort_order}` 목록으로 변환해 `CategoryService::reorder()`(트랜잭션)에 전달합니다. `parent_id`가 바뀐 항목은 depth와 materialized path가 함께 재계산됩니다. 관리자 카테고리 관리 화면에서 드래그 앤 드롭으로 계층 구조를 재정렬할 때 사용합니다. `child_menus`의 각 항목은 지정한 부모의 조상이 될 수 없습니다 — 순환이 만들어지는 이동은 422(`child_menus.{parentId}.{index}.id`)로 거절됩니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/admin/categories/tree
@@ -722,7 +722,7 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 기존 카테고리(path의 `category`)를 수정합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.update` 권한이 필요하며, `CategoryService::updateCategory()`가 검증된 데이터로 갱신한 뒤 `CategoryResource`를 반환합니다. `name`과 `slug`는 필수이고, `parent_id`를 변경하면 계층 위치(path/depth)가 재계산됩니다. `temp_key`로 임시 업로드한 이미지를 이 시점에 연결할 수 있으며, 대상이 없거나 처리 중 예외가 발생하면 404 또는 400을 반환합니다. `sirsoft-ecommerce.category.update_validation_rules` 필터로 확장이 검증 규칙을 추가할 수 있습니다.
+**설명** 기존 카테고리(path의 `category`)를 수정합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.update` 권한이 필요하며, `CategoryService::updateCategory()`가 검증된 데이터로 갱신한 뒤 `CategoryResource`를 반환합니다. `name`과 `slug`는 필수이고, `parent_id`를 변경하면 계층 위치(path/depth)가 재계산됩니다. `temp_key`로 임시 업로드한 이미지를 이 시점에 연결할 수 있으며, 대상이 없거나 처리 중 예외가 발생하면 404 또는 400을 반환합니다. `sirsoft-ecommerce.category.update_validation_rules` 필터로 확장이 검증 규칙을 추가할 수 있습니다. `parent_id`에는 자기 자신이나 자신의 하위 카테고리를 지정할 수 없습니다 — 순환이 만들어지는 요청은 422(`parent_id`)로 거절됩니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/admin/categories/{id}

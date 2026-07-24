@@ -1039,7 +1039,7 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 관리자가 특정 주문(`order`)의 여러 주문 옵션 상태를 수량 분할까지 지원해 일괄 변경합니다. `auth:sanctum` + `sirsoft-ecommerce.orders.update` 권한이 필요하며, `Admin\OrderController@bulkChangeOptionStatus`가 `status`를 `OrderStatusEnum`으로 변환한 뒤 `OrderOptionService::bulkChangeStatusWithQuantity()`로 처리합니다. 배송중으로 전환 시 `carrier_id`·`tracking_number`(택배사·송장번호)를 함께 넘길 수 있습니다. 한 옵션의 일부 수량만 상태 전환(부분 배송 등)하는 시나리오를 지원합니다.
+**설명** 관리자가 특정 주문(`order`)의 여러 주문 옵션 상태를 수량 분할까지 지원해 일괄 변경합니다. `auth:sanctum` + `sirsoft-ecommerce.orders.update` 권한이 필요하며, `Admin\OrderController@bulkChangeOptionStatus`가 `status`를 `OrderStatusEnum`으로 변환한 뒤 `OrderOptionService::bulkChangeStatusWithQuantity()`로 처리합니다. 배송중으로 전환 시 `carrier_id`·`tracking_number`(택배사·송장번호)를 함께 넘길 수 있습니다. 한 옵션의 일부 수량만 상태 전환(부분 배송 등)하는 시나리오를 지원합니다. `items[].option_id`는 경로의 `{order}`에 속한 옵션이어야 합니다. 다른 주문의 옵션 ID를 포함하면 422(`items.N.option_id`)로 거절되며, 요청 전체가 반영되지 않습니다. 검증을 거치지 않는 내부·훅 호출 경로에서 같은 불일치가 감지되면 400으로 응답합니다.
 
 
 ### POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/reset-guest-lookup-password

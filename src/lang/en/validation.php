@@ -454,6 +454,10 @@ return [
         'slug_unique' => 'This slug is already in use.',
         'slug_format' => 'The slug must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens (-).',
         'parent_not_found' => 'Parent category not found.',
+        'parent_id' => [
+            'self' => 'A category cannot be its own parent.',
+            'circular' => 'A descendant category cannot be set as the parent.',
+        ],
     ],
 
     // Product image validation messages

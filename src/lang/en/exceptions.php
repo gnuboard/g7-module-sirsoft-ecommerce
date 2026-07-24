@@ -60,6 +60,8 @@ return [
     'order_already_cancelled' => 'This order has already been cancelled.',
     'order_already_paid' => 'This order has already been paid.',
     'order_option_not_found' => 'Order option not found.',
+    'order_option_not_in_order' => 'This order option does not belong to the specified order.',
+    'product_image_not_in_product' => 'This image does not belong to the specified product.',
     'order_option_already_cancelled' => 'This order option has already been cancelled.',
     'order_option_already_confirmed' => 'This order option has already been confirmed.',
     'order_option_cannot_confirm' => 'Cannot confirm purchase in current status.',
