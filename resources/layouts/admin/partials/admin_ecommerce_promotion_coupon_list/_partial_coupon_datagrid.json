@@ -163,13 +163,13 @@
                   "handler": "navigate",
                   "params": {
                     "path": "/admin/ecommerce/promotion-coupons",
-                    "replace": true,
                     "mergeQuery": true,
                     "query": {
                       "sort_by": "{{$event.target.value.split('_').slice(0, -1).join('_')}}",
                       "sort_order": "{{$event.target.value.split('_').pop()}}",
                       "page": 1
                     },
+                    "replace": true,
                     "transition_overlay_target": "pc_data_table__body"
                   }
                 }
@@ -207,12 +207,12 @@
                   "handler": "navigate",
                   "params": {
                     "path": "/admin/ecommerce/promotion-coupons",
-                    "replace": true,
                     "mergeQuery": true,
                     "query": {
                       "per_page": "{{$event.target.value}}",
                       "page": 1
                     },
+                    "replace": true,
                     "transition_overlay_target": "pc_data_table__body"
                   }
                 }
@@ -311,7 +311,9 @@
                     "type": "click",
                     "handler": "navigate",
                     "params": {
-                      "path": "/admin/ecommerce/promotion-coupons/{{row.id}}/edit"
+                      "path": "/admin/ecommerce/promotion-coupons/{{row.id}}/edit",
+                      "mergeQuery": true,
+                      "query": {}
                     }
                   }
                 ]
@@ -563,11 +565,12 @@
                             "handler": "navigate",
                             "params": {
                               "path": "/admin/ecommerce/promotion-coupons",
-                              "replace": true,
+                              "mergeQuery": true,
                               "query": {
                                 "created_by": "{{row.created_by}}",
                                 "page": 1
                               },
+                              "replace": true,
                               "transition_overlay_target": "pc_data_table__body"
                             }
                           }
@@ -588,11 +591,11 @@
           "handler": "navigate",
           "params": {
             "path": "/admin/ecommerce/promotion-coupons",
-            "replace": true,
             "mergeQuery": true,
             "query": {
               "page": "{{$args[0]}}"
             },
+            "replace": true,
             "transition_overlay_target": "pc_data_table__body"
           }
         },
@@ -611,7 +614,9 @@
             "edit": {
               "handler": "navigate",
               "params": {
-                "path": "/admin/ecommerce/promotion-coupons/{{$args[1].id}}/edit"
+                "path": "/admin/ecommerce/promotion-coupons/{{$args[1].id}}/edit",
+                "mergeQuery": true,
+                "query": {}
               }
             },
             "issue_history": {
@@ -817,7 +822,9 @@
                                 "edit": {
                                   "handler": "navigate",
                                   "params": {
-                                    "path": "/admin/ecommerce/promotion-coupons/{{coupon.id}}/edit"
+                                    "path": "/admin/ecommerce/promotion-coupons/{{coupon.id}}/edit",
+                                    "mergeQuery": true,
+                                    "query": {}
                                   }
                                 },
                                 "issue_history": {

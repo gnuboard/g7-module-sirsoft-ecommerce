@@ -135,12 +135,13 @@
                         "handler": "navigate",
                         "params": {
                           "path": "/admin/ecommerce/mileage-transactions",
-                          "replace": true,
+                          "mergeQuery": true,
                           "query": {
                             "search_field": "member_id",
                             "search_keyword": "{{row.user_id}}",
                             "page": 1
                           },
+                          "replace": true,
                           "transition_overlay_target": "mileage_transactions_datagrid__body"
                         }
                       }
@@ -581,11 +582,11 @@
           "handler": "navigate",
           "params": {
             "path": "/admin/ecommerce/mileage-transactions",
-            "replace": true,
             "mergeQuery": true,
             "query": {
               "page": "{{$args[0]}}"
             },
+            "replace": true,
             "transition_overlay_target": "mileage_transactions_datagrid__body"
           }
         },
@@ -595,12 +596,12 @@
           "handler": "navigate",
           "params": {
             "path": "/admin/ecommerce/mileage-transactions",
-            "replace": true,
             "mergeQuery": true,
             "query": {
               "sort": "{{$args[0]}}",
               "page": 1
             },
+            "replace": true,
             "transition_overlay_target": "mileage_transactions_datagrid__body"
           }
         },

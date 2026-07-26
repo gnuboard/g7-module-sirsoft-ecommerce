@@ -346,7 +346,9 @@
         "edit": {
           "handler": "navigate",
           "params": {
-            "path": "/admin/ecommerce/shipping-policies/{{$args[1].id}}/edit"
+            "path": "/admin/ecommerce/shipping-policies/{{$args[1].id}}/edit",
+            "mergeQuery": true,
+            "query": {}
           }
         },
         "copy": {
