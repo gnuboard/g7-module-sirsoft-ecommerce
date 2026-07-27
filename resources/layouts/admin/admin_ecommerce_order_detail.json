@@ -318,7 +318,9 @@
                             "type": "click",
                             "handler": "navigate",
                             "params": {
-                              "path": "/admin/ecommerce/orders"
+                              "path": "/admin/ecommerce/orders",
+                              "mergeQuery": true,
+                              "query": {}
                             }
                           }
                         ]

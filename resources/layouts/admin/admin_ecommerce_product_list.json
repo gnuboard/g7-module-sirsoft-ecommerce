@@ -424,7 +424,9 @@
                                                 "type": "click",
                                                 "handler": "navigate",
                                                 "params": {
-                                                    "path": "/admin/ecommerce/products/create"
+                                                    "path": "/admin/ecommerce/products/create",
+                                                    "mergeQuery": true,
+                                                    "query": {}
                                                 }
                                             }
                                         ]

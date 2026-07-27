@@ -1702,6 +1702,7 @@
                   }
                 },
                 {
+                  "comment": "audit:allow layout-list-context-navigate-merge-query 프리셋 적용 — 프리셋은 조건 세트를 통째로 갈아끼우는 것이므로 병합하면 직전 조건이 섞인다. 주문 목록의 프리셋 규약과 동일.",
                   "handler": "navigate",
                   "params": {
                     "path": "/admin/ecommerce/products",
@@ -2287,6 +2288,7 @@
                           }
                         },
                         {
+                          "comment": "audit:allow layout-list-context-navigate-merge-query 필터 초기화 — 걸려 있던 조건을 전부 비우는 것이 이 버튼의 목적이므로 병합하지 않는다.",
                           "handler": "navigate",
                           "params": {
                             "path": "/admin/ecommerce/products",
