@@ -1,5 +1,5 @@
 /**
- * 이커머스 알림 채널 토글 저장 upsert + 하단 서브탭 필터 회귀 가드 (#28)
+ * 이커머스 알림 채널 토글 저장 upsert + 하단 서브탭 필터 회귀 가드
  *
  * @description
  * 회귀 시나리오 (코어 admin 템플릿과 동일 구조):
@@ -20,7 +20,7 @@ import tab from '../../../layouts/admin/partials/admin_ecommerce_settings/_tab_n
 
 const tabJson = JSON.stringify(tab);
 
-describe('이커머스 알림 채널 토글 저장 upsert (#28)', () => {
+describe('이커머스 알림 채널 토글 저장 upsert', () => {
     it('토글 저장이 upsert 형태다 (미저장 채널은 새 엔트리로 추가)', () => {
         // 엔트리 존재 판별용 .some(...) — 있으면 map 으로 토글, 없으면 spread 로 새 엔트리 추가
         expect(/\.some\(c => c\.id === ch\.id\)/.test(tabJson)).toBe(true);
@@ -35,7 +35,7 @@ describe('이커머스 알림 채널 토글 저장 upsert (#28)', () => {
     });
 });
 
-describe('이커머스 하단 서브탭 필터 source 분기 (#28)', () => {
+describe('이커머스 하단 서브탭 필터 source 분기', () => {
     it('코어기본 채널은 미저장 노출 유지, 확장 채널은 명시적 활성만 노출', () => {
         expect(/c\.source === 'core'/.test(tabJson)).toBe(true);
         expect(/is_active !== false/.test(tabJson)).toBe(true);
