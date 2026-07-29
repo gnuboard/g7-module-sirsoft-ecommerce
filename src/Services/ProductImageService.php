@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Services;
 
 use App\Contracts\Extension\StorageInterface;
 use App\Extension\HookManager;
+use App\Support\ImageResizer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -84,6 +85,9 @@ class ProductImageService
         }
 
         // 스토리지에 파일 저장 (category: 'images')
+        // 환경설정 > 업로드의 최대 가로/세로·품질 적용 (코어 설정이 모든 업로드 경로에 동일 적용)
+        app(ImageResizer::class)->resizeInPlace($file->getRealPath(), $file->getMimeType());
+
         $this->storage->put('images', $path, file_get_contents($file->getRealPath()));
 
         // Disk 정보는 스토리지 드라이버에서 가져옴

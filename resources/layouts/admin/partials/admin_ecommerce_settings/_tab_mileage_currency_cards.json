@@ -223,9 +223,20 @@
                         "name": "{{'mileage.currency_rules.' + rule._idx + '.max_use_type'}}",
                         "value": "percent",
                         "checked": "{{rule.max_use_type === 'percent'}}",
-                        "disabled": "{{_computed.isReadOnly}}",
-                        "className": "pointer-events-none"
-                      }
+                        "disabled": "{{_computed.isReadOnly}}"
+                      },
+                      "actions": [
+                        {
+                          "type": "change",
+                          "handler": "setState",
+                          "if": "{{!_computed.isReadOnly}}",
+                          "params": {
+                            "target": "local",
+                            "form.mileage.currency_rules": "{{(_local.form?.mileage?.currency_rules ?? []).map((c, i) => i === rule._idx ? { ...c, max_use_type: 'percent' } : c)}}",
+                            "hasChanges": true
+                          }
+                        }
+                      ]
                     },
                     {
                       "type": "basic",
@@ -285,9 +296,20 @@
                         "name": "{{'mileage.currency_rules.' + rule._idx + '.max_use_type'}}",
                         "value": "fixed",
                         "checked": "{{rule.max_use_type === 'fixed'}}",
-                        "disabled": "{{_computed.isReadOnly}}",
-                        "className": "pointer-events-none"
-                      }
+                        "disabled": "{{_computed.isReadOnly}}"
+                      },
+                      "actions": [
+                        {
+                          "type": "change",
+                          "handler": "setState",
+                          "if": "{{!_computed.isReadOnly}}",
+                          "params": {
+                            "target": "local",
+                            "form.mileage.currency_rules": "{{(_local.form?.mileage?.currency_rules ?? []).map((c, i) => i === rule._idx ? { ...c, max_use_type: 'fixed' } : c)}}",
+                            "hasChanges": true
+                          }
+                        }
+                      ]
                     },
                     {
                       "type": "basic",
@@ -485,9 +507,19 @@
                         "name": "newMileageCurrency.max_use_type",
                         "value": "percent",
                         "checked": "{{(_local.form?.newMileageCurrency?.max_use_type ?? 'percent') === 'percent'}}",
-                        "disabled": "{{_computed.isReadOnly}}",
-                        "className": "pointer-events-none"
-                      }
+                        "disabled": "{{_computed.isReadOnly}}"
+                      },
+                      "actions": [
+                        {
+                          "type": "change",
+                          "handler": "setState",
+                          "if": "{{!_computed.isReadOnly}}",
+                          "params": {
+                            "target": "local",
+                            "form.newMileageCurrency.max_use_type": "percent"
+                          }
+                        }
+                      ]
                     },
                     {
                       "type": "basic",
@@ -546,9 +578,19 @@
                         "name": "newMileageCurrency.max_use_type",
                         "value": "fixed",
                         "checked": "{{(_local.form?.newMileageCurrency?.max_use_type ?? 'percent') === 'fixed'}}",
-                        "disabled": "{{_computed.isReadOnly}}",
-                        "className": "pointer-events-none"
-                      }
+                        "disabled": "{{_computed.isReadOnly}}"
+                      },
+                      "actions": [
+                        {
+                          "type": "change",
+                          "handler": "setState",
+                          "if": "{{!_computed.isReadOnly}}",
+                          "params": {
+                            "target": "local",
+                            "form.newMileageCurrency.max_use_type": "fixed"
+                          }
+                        }
+                      ]
                     },
                     {
                       "type": "basic",
