@@ -184,7 +184,7 @@
                   "name": "Icon",
                   "props": {
                     "name": "arrow-down-tray",
-                    "className": "w-4 h-4"
+                    "className": "text-base"
                   }
                 },
                 {
@@ -610,6 +610,7 @@
                                     "search_keyword": "",
                                     "page": 1
                                   },
+                                  "replace": true,
                                   "transition_overlay_target": "order_datagrid__body"
                                 }
                               }
@@ -639,6 +640,7 @@
                                     "orderer_uuid": "",
                                     "page": 1
                                   },
+                                  "replace": true,
                                   "transition_overlay_target": "order_datagrid__body"
                                 }
                               }
