@@ -211,7 +211,76 @@ class UserMileageService
             $cap = intdiv($cap, $unit) * $unit;
         }
 
+        // 최소 사용 금액 미만이면 애초에 사용이 불가하므로 안내값도 0 이어야 한다.
+        // (안내값이 하한을 모르면 "화면이 허용한 값인데 결제에서 거부" 가 된다)
+        $minUse = (int) ($rule['min_use_amount'] ?? 0);
+        if ($cap < $minUse) {
+            return 0;
+        }
+
         return max(0, $cap);
+    }
+
+    /**
+     * 마일리지 사용 정책(하한/단위/상한)을 반환합니다 (주문서 안내용).
+     *
+     * 검증(validateUsage)이 실제로 적용하는 값과 동일한 출처(통화 규칙)를 사용해,
+     * 화면 안내와 서버 판정이 어긋나지 않도록 합니다.
+     *
+     * @param  int  $paymentAmount  결제 금액 (정률 상한 계산 기준, 마일리지 차감 전)
+     * @param  string|null  $currency  통화 코드 (null 시 기본통화)
+     * @return array{min_use_amount: int, use_unit: int, max_use_amount: int} 사용 정책
+     */
+    public function getUsagePolicy(int $paymentAmount, ?string $currency = null): array
+    {
+        if (! $this->isMileageUsable()) {
+            return ['min_use_amount' => 0, 'use_unit' => 1, 'max_use_amount' => 0];
+        }
+
+        $rule = $this->currencyRule($currency ?? $this->defaultCurrency());
+
+        return [
+            'min_use_amount' => (int) ($rule['min_use_amount'] ?? 0),
+            'use_unit' => max(1, (int) ($rule['use_unit'] ?? 1)),
+            'max_use_amount' => $this->resolveAllowedUseAmount($rule, $paymentAmount),
+        ];
+    }
+
+    /**
+     * 주문 시점 마일리지 사용 정책 스냅샷을 생성합니다.
+     *
+     * 통화/프로모션/배송정책과 동일하게, 주문을 지배한 정책을 주문 행에 고정합니다.
+     * 관리자가 이후 한도를 바꿔도 그 주문이 어떤 정책 아래 성립했는지 재현 가능해야
+     * 합니다(정산·감사·분쟁 대응). 사용액 자체는 원장(MileageTransaction)이 SSoT 이며,
+     * 이 스냅샷은 판정 근거를 보존하는 용도입니다.
+     *
+     * @param  int  $paymentAmount  판정 기준 결제금액 (마일리지 차감 전)
+     * @param  int  $usedPoints  실제 사용된 마일리지
+     * @param  string|null  $currency  정산 통화 (null 시 기본통화)
+     * @return array 사용 정책 스냅샷
+     */
+    public function buildUsagePolicySnapshot(int $paymentAmount, int $usedPoints, ?string $currency = null): array
+    {
+        $currency = $currency ?? $this->defaultCurrency();
+        $usable = $this->isMileageUsable();
+        $rule = $usable ? $this->currencyRule($currency) : [];
+
+        return [
+            'usable' => $usable,
+            'currency' => $currency,
+            'rule' => [
+                'point_value' => (float) ($rule['point_value'] ?? 1),
+                'min_use_amount' => (int) ($rule['min_use_amount'] ?? 0),
+                'use_unit' => max(1, (int) ($rule['use_unit'] ?? 1)),
+                'max_use_type' => (string) ($rule['max_use_type'] ?? 'percent'),
+                'max_use_percent' => (float) ($rule['max_use_percent'] ?? 100),
+                'max_use_value' => (int) ($rule['max_use_value'] ?? 0),
+            ],
+            // 판정 근거 — 이 결제금액에 이 정책을 적용해 아래 상한이 나왔고, 그 안에서 사용됐다.
+            'payment_amount_basis' => $paymentAmount,
+            'max_use_amount' => $usable ? $this->resolveAllowedUseAmount($rule, $paymentAmount) : 0,
+            'used_points' => $usedPoints,
+        ];
     }
 
     /**
@@ -219,13 +288,13 @@ class UserMileageService
      *
      * @param  int  $userId  사용자 ID
      * @param  int  $usePoints  사용 요청 마일리지
-     * @param  int  $paymentAmount  결제 금액
-     * @param  string  $currency  통화 코드
+     * @param  int  $paymentAmount  결제 금액 (마일리지 차감 전)
+     * @param  string|null  $currency  통화 코드 (null 시 기본통화 — canUse/getMaxUsable 과 동일 기준)
      * @return int 검증/보정된 사용 마일리지
      *
      * @throws MileageValidationException 검증 실패 시
      */
-    public function validateUsage(int $userId, int $usePoints, int $paymentAmount, string $currency): int
+    public function validateUsage(int $userId, int $usePoints, int $paymentAmount, ?string $currency = null): int
     {
         if ($usePoints <= 0) {
             return 0;
@@ -238,6 +307,7 @@ class UserMileageService
             );
         }
 
+        $currency = $currency ?? $this->defaultCurrency();
         $rule = $this->currencyRule($currency);
 
         $minUse = (int) ($rule['min_use_amount'] ?? 0);
@@ -256,8 +326,12 @@ class UserMileageService
 
         $maxByLimit = $this->resolveMaxUseLimit($rule, $paymentAmount);
         if ($usePoints > $maxByLimit || $usePoints > $paymentAmount) {
+            // 사용 가능한 최대 금액을 함께 안내 — 얼마로 줄여야 결제되는지 알 수 없으면
+            // 사용자는 값을 낮춰가며 재시도할 수밖에 없다.
             throw new MileageValidationException(
-                __('sirsoft-ecommerce::exceptions.mileage.exceeds_max_use')
+                __('sirsoft-ecommerce::exceptions.mileage.exceeds_max_use', [
+                    'amount' => $this->resolveAllowedUseAmount($rule, $paymentAmount),
+                ])
             );
         }
 
@@ -969,6 +1043,27 @@ class UserMileageService
         }
 
         return (int) ($rule['max_use_value'] ?? PHP_INT_MAX);
+    }
+
+    /**
+     * 실제로 사용 가능한 최대 금액을 계산합니다 (한도 · 결제금액 · 사용단위 반영).
+     *
+     * 잔액은 반영하지 않습니다 — 정책상 허용 한도이며, 잔액 부족은 별도 사유로 구분됩니다.
+     *
+     * @param  array  $rule  통화 규칙
+     * @param  int  $paymentAmount  결제 금액 (마일리지 차감 전)
+     * @return int 정책상 사용 가능한 최대 금액
+     */
+    private function resolveAllowedUseAmount(array $rule, int $paymentAmount): int
+    {
+        $allowed = min($this->resolveMaxUseLimit($rule, $paymentAmount), $paymentAmount);
+
+        $unit = (int) ($rule['use_unit'] ?? 1);
+        if ($unit > 1) {
+            $allowed = intdiv($allowed, $unit) * $unit;
+        }
+
+        return max(0, $allowed);
     }
 
     /**

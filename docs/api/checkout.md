@@ -96,6 +96,8 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **설명** 현재 유효한 임시 주문을 조회하면서 최신 가격으로 실시간 재계산해 주문서 페이지 데이터를 반환합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CheckoutController@show`가 `TempOrderService::getTempOrderWithCalculation()`으로 재계산하고 `CheckoutDataService::buildResponseData()`가 쿠폰·마일리지·상품·구매불가 상품 정보를 포함해 응답을 구성합니다. 쿼리로 `country_code`/`zipcode`/`region` 등 배송 주소를 전달하면 해당 주소 기준 배송비가 계산되며, 우편번호 없이 배송국가만으로도 미리보기 배송비를 산출합니다. 임시 주문이 만료·미존재면 404를 반환합니다.
 
+응답의 `mileage_info` 에는 잔액(`available`)·사용 가능 최대(`max_usable`)·사용 가능 여부(`usable`)와 함께 사용 정책 `usage_policy`(`min_use_amount`, `use_unit`, `max_use_amount`)가 포함됩니다. `max_usable` 과 `usage_policy.max_use_amount` 는 저장 API 가 판정하는 기준(마일리지 차감 전 결제금액)과 동일한 기준으로 산출되므로, 입력 UI 는 이 값을 그대로 상·하한으로 사용하면 됩니다. 조회는 사용 한도를 초과한 임시 주문이 있어도 200 을 반환합니다(차단은 저장 시점에서만).
+
 
 ### POST /api/modules/sirsoft-ecommerce/checkout
 <!-- @generated:start:api.modules.sirsoft-ecommerce.checkout.store -->
@@ -153,7 +155,9 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 장바구니에서 선택한 아이템으로 임시 주문을 생성해 주문서 작성 단계로 진입합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CheckoutController@store`가 `direct_items`가 있으면 `TempOrderService::createTempOrderFromDirectItems()`(바로 구매, 장바구니 미경유), 없으면 `item_ids`로 `createTempOrderFromSelectedItems()`(장바구니 경유)를 호출합니다. 응답에는 임시 주문 ID·계산 결과·만료 시각(`expires_at`)이 포함됩니다. 재고 부족·판매 중지·구매 제한 상품이 있으면 400(cart_unavailable), 보유 잔액을 넘는 마일리지 사용은 422, 빈 장바구니는 400을 반환합니다.
+**설명** 장바구니에서 선택한 아이템으로 임시 주문을 생성해 주문서 작성 단계로 진입합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CheckoutController@store`가 `direct_items`가 있으면 `TempOrderService::createTempOrderFromDirectItems()`(바로 구매, 장바구니 미경유), 없으면 `item_ids`로 `createTempOrderFromSelectedItems()`(장바구니 경유)를 호출합니다. 응답에는 임시 주문 ID·계산 결과·만료 시각(`expires_at`)이 포함됩니다. 재고 부족·판매 중지·구매 제한 상품이 있으면 400(cart_unavailable), 빈 장바구니는 400을 반환합니다.
+
+마일리지 사용은 보유 잔액뿐 아니라 관리자 설정 사용 정책(최소 사용액 `min_use_amount`, 사용 단위 `use_unit`, 최대 한도 `max_use_percent`/`max_use_value`)까지 서버에서 강제하며, 위반 시 422 를 반환합니다. 한도 초과 응답 메시지에는 사용 가능한 최대 금액이 함께 안내됩니다. 판정 기준 금액은 마일리지 차감 전 결제금액이며, 비회원의 `use_points` 는 예외 없이 0 으로 처리됩니다.
 
 
 ### PUT /api/modules/sirsoft-ecommerce/checkout
@@ -214,7 +218,7 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 주문서 작성 중 쿠폰·마일리지·배송 주소가 변경될 때 임시 주문 금액을 재계산합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CheckoutController@update`가 전송된 프로모션 필드(`item_coupons`·`order_coupon_issue_id`·`shipping_coupon_issue_id`)와 `use_points`만 반영하고 미전송 필드는 `TempOrderService::updateTempOrder()`에서 기존 값을 유지합니다. `zipcode`/`country_code`로 배송 주소를 함께 넘기면 배송비가 다시 계산됩니다. 임시 주문이 만료·미존재면 404, 보유 잔액 초과 마일리지는 422를 반환합니다.
+**설명** 주문서 작성 중 쿠폰·마일리지·배송 주소가 변경될 때 임시 주문 금액을 재계산합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CheckoutController@update`가 전송된 프로모션 필드(`item_coupons`·`order_coupon_issue_id`·`shipping_coupon_issue_id`)와 `use_points`만 반영하고 미전송 필드는 `TempOrderService::updateTempOrder()`에서 기존 값을 유지합니다. `zipcode`/`country_code`로 배송 주소를 함께 넘기면 배송비가 다시 계산됩니다. 임시 주문이 만료·미존재면 404, 보유 잔액 초과 또는 사용 정책(최소 사용액·사용 단위·최대 한도) 위반 마일리지는 422를 반환합니다.
 
 
 ### POST /api/modules/sirsoft-ecommerce/checkout/extend

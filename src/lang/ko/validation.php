@@ -38,6 +38,7 @@ return [
 
     // 목록 조회 공통 검증 메시지
     'list' => [
+        'per_page_max' => '한 번에 조회할 수 있는 최대 개수는 :max개입니다.',
         // 페이지네이션
         'page' => [
             'integer' => '페이지 번호는 숫자여야 합니다.',
@@ -243,6 +244,9 @@ return [
 
     // 상품 검증 메시지
     'product' => [
+        'mileage_percent_max' => '정률 적립률은 100% 를 초과할 수 없습니다.',
+        'selling_price_lte_list' => '판매가는 정가보다 클 수 없습니다.',
+        'price_min' => '가격은 0보다 커야 합니다.',
         // 에러 메시지에 노출되는 한글 필드명 (StoreProductRequest::attributes())
         'attributes' => [
             'name' => '상품명',
@@ -937,6 +941,7 @@ return [
 
     // 장바구니 검증 메시지
     'cart' => [
+        'quantity_limit_exceeded' => '장바구니에는 상품당 최대 :limit개까지 담을 수 있습니다. (요청: :attempted개)',
         'ids_required' => '삭제할 상품을 선택해주세요.',
         'ids_array' => '상품 ID는 배열 형태여야 합니다.',
         'ids_min' => '최소 1개 이상의 상품을 선택해주세요.',
@@ -947,7 +952,7 @@ return [
         'option_not_found' => '존재하지 않는 옵션입니다.',
         'quantity_required' => '수량을 입력해주세요.',
         'quantity_min' => '수량은 1개 이상이어야 합니다.',
-        'quantity_max' => '수량은 최대 9,999개까지 가능합니다.',
+        'quantity_max' => '수량은 최대 :max개까지 가능합니다.',
         'items_required' => '장바구니에 담을 상품을 선택해주세요.',
         'items_min' => '최소 1개 이상의 상품을 선택해주세요.',
         'selected_ids_array' => '선택된 장바구니 상품 ID는 배열 형태여야 합니다.',

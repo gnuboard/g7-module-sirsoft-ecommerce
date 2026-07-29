@@ -7318,4 +7318,68 @@ class OrderAdjustmentServiceTest extends ModuleTestCase
             $resultPoints->refundAmount + $resultPoints->refundPointsAmount,
         );
     }
+
+    // ================================================================
+    // 부분취소 부가세 재산출 (#493 E5)
+    // ================================================================
+
+    /**
+     * 부분취소 재계산이 잔여 금액 기준 부가세를 다시 계산하는지 테스트합니다.
+     *
+     * 부가세를 재산출하지 않으면 취소 후에도 취소 전 부가세가 남아 세금 표기가 실제 결제
+     * 금액과 어긋난다.
+     */
+    public function test_partial_cancel_recalculates_vat(): void
+    {
+        [$productA, $optionA] = $this->createProductWithOption(price: 11000);
+        [$productB, $optionB] = $this->createProductWithOption(price: 22000);
+
+        $input = new CalculationInput(items: [
+            new CalculationItem(productId: $productA->id, productOptionId: $optionA->id, quantity: 1),
+            new CalculationItem(productId: $productB->id, productOptionId: $optionB->id, quantity: 1),
+        ]);
+
+        $order = $this->createOrderFromCalculation($input);
+        $cancelTarget = $order->options->firstWhere('product_option_id', $optionB->id);
+
+        $result = $this->adjustmentService->calculate(
+            $order,
+            $this->buildCancellation([['order_option_id' => $cancelTarget->id, 'cancel_quantity' => 1]])
+        );
+
+        // 잔여 11,000 (10%) → 1,000. 취소 전 전체(33,000)의 3,000 이 남으면 안 된다.
+        $this->assertSame(1000, (int) $result->orderUpdates['total_vat_amount']);
+    }
+
+    /**
+     * 부분취소 재계산이 주문 당시 스냅샷 세율을 쓰는지 테스트합니다.
+     *
+     * 상품의 현재 세율을 읽으면, 주문 이후 세율이 바뀐 상품에서 과거 주문의 세금 표기가
+     * 소급해 바뀐다.
+     */
+    public function test_partial_cancel_uses_snapshot_tax_rate_not_current_product_rate(): void
+    {
+        [$productA, $optionA] = $this->createProductWithOption(price: 11000);
+        [$productB, $optionB] = $this->createProductWithOption(price: 22000);
+
+        $input = new CalculationInput(items: [
+            new CalculationItem(productId: $productA->id, productOptionId: $optionA->id, quantity: 1),
+            new CalculationItem(productId: $productB->id, productOptionId: $optionB->id, quantity: 1),
+        ]);
+
+        $order = $this->createOrderFromCalculation($input);
+
+        // 주문 이후 상품 세율 변경 — 과거 주문의 재계산에 영향을 주면 안 된다
+        $productA->update(['tax_rate' => 25.0]);
+
+        $cancelTarget = $order->options->firstWhere('product_option_id', $optionB->id);
+
+        $result = $this->adjustmentService->calculate(
+            $order,
+            $this->buildCancellation([['order_option_id' => $cancelTarget->id, 'cancel_quantity' => 1]])
+        );
+
+        // 스냅샷 세율 10% 기준 1,000 (현재 세율 25% 였다면 2,200)
+        $this->assertSame(1000, (int) $result->orderUpdates['total_vat_amount']);
+    }
 }

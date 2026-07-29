@@ -387,8 +387,9 @@
                     "type": "number",
                     "name": "order_settings.auto_cancel_days",
                     "value": "{{_local.form?.order_settings?.auto_cancel_days ?? 3}}",
-                    "min": 1,
-                    "max": 30,
+                    "min": "{{_local?.form?._meta?.limits?.auto_cancel_days_min ?? 1}}",
+                    "max": "{{_local?.form?._meta?.limits?.auto_cancel_days_max ?? 30}}",
+                    "step": "1",
                     "className": "{{_local.errors?.['order_settings.auto_cancel_days'] ? 'input input-error w-20' : 'input w-20'}}",
                     "disabled": "{{_computed.isReadOnly}}"
                   }
@@ -679,8 +680,9 @@
                 "type": "number",
                 "name": "order_settings.cart_expiry_days",
                 "value": "{{_local.form?.order_settings?.cart_expiry_days ?? 30}}",
-                "min": 1,
-                "max": 365,
+                "min": "{{_local?.form?._meta?.limits?.cart_expiry_days_min ?? 1}}",
+                "max": "{{_local?.form?._meta?.limits?.cart_expiry_days_max ?? 365}}",
+                "step": "1",
                 "className": "{{_local.errors?.['order_settings.cart_expiry_days'] ? 'input input-error w-20' : 'input w-20'}}",
                 "disabled": "{{_computed.isReadOnly}}"
               }

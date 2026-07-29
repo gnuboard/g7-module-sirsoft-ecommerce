@@ -38,6 +38,7 @@ return [
 
     // List query common validation messages
     'list' => [
+        'per_page_max' => 'You can retrieve up to :max items at a time.',
         // Pagination
         'page' => [
             'integer' => 'Page number must be an integer.',
@@ -243,6 +244,9 @@ return [
 
     // Product validation messages
     'product' => [
+        'mileage_percent_max' => 'The percentage earn rate cannot exceed 100%.',
+        'selling_price_lte_list' => 'The selling price cannot be greater than the list price.',
+        'price_min' => 'The price must be greater than 0.',
         // Human-readable field names shown in error messages (StoreProductRequest::attributes())
         'attributes' => [
             'name' => 'product name',
@@ -937,6 +941,7 @@ return [
 
     // Cart validation messages
     'cart' => [
+        'quantity_limit_exceeded' => 'You can add up to :limit item(s) per product to the cart. (requested: :attempted)',
         'ids_required' => 'Please select items to delete.',
         'ids_array' => 'Item IDs must be an array.',
         'ids_min' => 'Please select at least one item.',
@@ -947,7 +952,7 @@ return [
         'option_not_found' => 'Option not found.',
         'quantity_required' => 'Please enter a quantity.',
         'quantity_min' => 'Quantity must be at least 1.',
-        'quantity_max' => 'Quantity cannot exceed 9,999.',
+        'quantity_max' => 'Quantity cannot exceed :max.',
         'items_required' => 'Please select items to add to cart.',
         'items_min' => 'Please select at least one item.',
         'selected_ids_array' => 'Selected cart item IDs must be an array.',

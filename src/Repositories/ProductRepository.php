@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Helpers\PermissionHelper;
+use App\Models\ActivityLog;
 use App\Search\Engines\DatabaseFulltextEngine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,7 @@ use Modules\Sirsoft\Ecommerce\Enums\ProductDisplayStatus;
 use Modules\Sirsoft\Ecommerce\Models\Category;
 use Modules\Sirsoft\Ecommerce\Models\OrderOption;
 use Modules\Sirsoft\Ecommerce\Models\Product;
+use Modules\Sirsoft\Ecommerce\Models\ProductOption;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
 
 /**
@@ -741,5 +743,32 @@ class ProductRepository implements ProductRepositoryInterface
     public function updateStockQuantity(int $productId, int $stock): int
     {
         return $this->model->where('id', $productId)->update(['stock_quantity' => $stock]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getActivityLogsForProduct(Product $product, array $filters = []): LengthAwarePaginator
+    {
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $sortOrder = ($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        $optionIds = $product->options()->pluck('id')->toArray();
+
+        return ActivityLog::where(function (Builder $q) use ($product, $optionIds) {
+            // 상품 자체 로그
+            $q->where(function (Builder $sub) use ($product) {
+                $sub->where('loggable_type', $product->getMorphClass())
+                    ->where('loggable_id', $product->getKey());
+            });
+
+            // 해당 상품의 옵션 로그
+            if (! empty($optionIds)) {
+                $q->orWhere(function (Builder $sub) use ($optionIds) {
+                    $sub->where('loggable_type', (new ProductOption)->getMorphClass())
+                        ->whereIn('loggable_id', $optionIds);
+                });
+            }
+        })->orderBy('created_at', $sortOrder)->paginate($perPage);
     }
 }

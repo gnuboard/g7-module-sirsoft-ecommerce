@@ -20,6 +20,7 @@ use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\SequenceType;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingStatusEnum;
 use Modules\Sirsoft\Ecommerce\Exceptions\CartUnavailableException;
+use Modules\Sirsoft\Ecommerce\Exceptions\MileageValidationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderAmountChangedException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
 use Modules\Sirsoft\Ecommerce\Exceptions\PaymentAmountMismatchException;
@@ -35,6 +36,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ShippingTypeRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
 
 /**
  * 주문 처리 서비스
@@ -123,6 +125,10 @@ class OrderProcessingService
 
         // ⚠️ 프론트엔드 전달 금액과 서버 재계산 금액 검증
         $this->validateOrderAmount($calculationResult, $expectedTotalAmount);
+
+        // 마일리지 사용 정책 최종 재검증 (임시주문 생성 이후의 설정 변경·임시주문 조작 차단).
+        // 임시주문 단계에서 이미 통과한 값이라도 결제 확정 직전 한 번 더 판정한다.
+        $this->validateMileageUsagePolicy($tempOrder, $calculationResult);
 
         // 통화 스냅샷 생성
         $currencySnapshot = $this->buildCurrencySnapshot();
@@ -529,6 +535,9 @@ class OrderProcessingService
             'total_amount' => $summary->finalAmount ?? 0,
             'total_tax_amount' => $summary->taxableAmount ?? 0,
             'total_tax_free_amount' => $summary->taxFreeAmount ?? 0,
+            // 부가세는 주문 생성 시점에 기록한다. 기존에는 부분취소 재계산에서만 갱신되어
+            // 부분취소를 겪은 주문만 값이 정상화되고 나머지는 영구 0 이었다.
+            'total_vat_amount' => $this->resolveVatAmount($calculationResult),
             'total_points_used_amount' => $summary->pointsUsed ?? 0,
             'total_deposit_used_amount' => 0,
             'total_paid_amount' => 0,
@@ -546,6 +555,11 @@ class OrderProcessingService
             'ordered_at' => Carbon::now(),
             'promotions_applied_snapshot' => $this->buildPromotionsAppliedSnapshot($calculationResult),
             'shipping_policy_applied_snapshot' => $this->buildShippingPolicyAppliedSnapshot($calculationResult, $shippingInfo),
+            // 주문 시점 마일리지 사용 정책 고정 — 이후 관리자가 한도를 바꿔도 이 주문의 판정 근거는 불변
+            'mileage_policy_snapshot' => $this->userMileageService->buildUsagePolicySnapshot(
+                (int) ($summary->paymentAmount ?? 0),
+                (int) ($summary->pointsUsed ?? 0)
+            ),
             'order_meta' => $this->buildOrderMeta($tempOrder),
             // 다중 통화 필드
             'mc_subtotal_amount' => $mcAmounts['mc_subtotal_amount'],
@@ -878,9 +892,7 @@ class OrderProcessingService
         // 결제 디바이스/UA 가 영구 NULL 로 남지 않는다. PG 결제 수단은 콜백이 더 정확한 값으로 덮어쓴다.
         $userAgent = request()->userAgent() ?? '';
 
-        // 부가세(VAT): 과세표준(taxableAmount)에 내재된 부가세 = 과세표준 / 11 (공급가액의 10%).
-        $taxableAmount = (int) ($calculationResult->summary->taxableAmount ?? 0);
-        $vatAmount = $taxableAmount > 0 ? (int) round($taxableAmount / 11) : 0;
+        $vatAmount = $this->resolveVatAmount($calculationResult);
 
         $paymentData = [
             'payment_method' => $paymentMethod,
@@ -939,9 +951,11 @@ class OrderProcessingService
             $paymentData['dbank_account'] = $dbankInfo['account_number'] ?? null;
             $paymentData['dbank_holder'] = $dbankInfo['account_holder'] ?? null;
             $paymentData['depositor_name'] = $depositorName ?? $dbankInfo['depositor_name'] ?? null;
-            // 주문별 명시 due_days(클라이언트 입력) 우선, 미지정 시 단일 SSoT auto_cancel_days
+            // 입금기한 단일 SSoT: auto_cancel_days (VBANK 와 동일 기준).
+            // 클라이언트가 보낸 due_days 는 무시한다 — 기한은 서버 정책이며, 이를 받아들이면
+            // 미입금 자동취소 스케줄러와 안내 기한이 어긋난다.
             $paymentData['deposit_due_at'] = Carbon::now()->addDays(
-                $dbankInfo['due_days'] ?? module_setting('sirsoft-ecommerce', 'order_settings.auto_cancel_days', 3)
+                module_setting('sirsoft-ecommerce', 'order_settings.auto_cancel_days', 3)
             );
         }
 
@@ -1248,6 +1262,63 @@ class OrderProcessingService
         }
 
         return ! $this->orderRepository->hasOrderByUser($userId);
+    }
+
+    /**
+     * 주문/결제 레코드에 기록할 부가세를 결정합니다.
+     *
+     * 계산 단계에서 옵션별 세율로 산출한 합계를 그대로 사용합니다 — 여기서 다시 단일 세율로
+     * 계산하면 세율이 섞인 주문에서 주문과 결제 값이 어긋납니다.
+     *
+     * 다만 부가세 합산 도입 이전에 만들어진 임시주문이 도입 이후에 결제되면 합계가 비어 있어
+     * 부가세가 0 으로 굳습니다. 이 경우에 한해 과세표준에 기본 세율을 적용해 채웁니다
+     * (기존 주문 백필과 동일한 기준).
+     *
+     * @param  OrderCalculationResult  $calculationResult  주문 계산 결과
+     * @return int 부가세 금액
+     */
+    protected function resolveVatAmount(OrderCalculationResult $calculationResult): int
+    {
+        $summary = $calculationResult->summary;
+        $vatAmount = (int) ($summary->vatAmount ?? 0);
+
+        if ($vatAmount > 0) {
+            return $vatAmount;
+        }
+
+        $taxableAmount = (int) ($summary->taxableAmount ?? 0);
+
+        return $taxableAmount > 0
+            ? VatCalculator::fromTaxableAmount($taxableAmount, VatCalculator::DEFAULT_RATE)
+            : 0;
+    }
+
+    /**
+     * 마일리지 사용 정책을 주문 확정 직전에 재검증합니다.
+     *
+     * 임시주문 단계 검증 이후에 관리자가 한도 설정을 바꾸거나 임시주문이 조작된 경우를
+     * 차단하는 2차 방어선입니다. 판정 기준 금액은 마일리지 차감 전 결제금액입니다.
+     *
+     * @param  TempOrder  $tempOrder  임시 주문
+     * @param  OrderCalculationResult  $calculationResult  재계산 결과
+     *
+     * @throws MileageValidationException 정책 위반 시
+     */
+    protected function validateMileageUsagePolicy(TempOrder $tempOrder, OrderCalculationResult $calculationResult): void
+    {
+        $userId = $tempOrder->user_id;
+        $usePoints = (int) $tempOrder->getUsedPoints();
+
+        // 비회원은 마일리지 사용 불가 (임시주문 단계에서 이미 0)
+        if ($userId === null || $usePoints <= 0) {
+            return;
+        }
+
+        $this->userMileageService->validateUsage(
+            $userId,
+            $usePoints,
+            (int) ($calculationResult->summary->paymentAmount ?? 0)
+        );
     }
 
     /**

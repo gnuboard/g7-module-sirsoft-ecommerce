@@ -72,6 +72,40 @@ class OrderProcessingServiceTest extends ModuleTestCase
     }
 
     /**
+     * 마일리지 사용 정책을 무제한으로 완화합니다.
+     *
+     * 주문 확정 시점에 사용 정책(min_use_amount / use_unit / max_use_*)이 강제되므로(#493 E1),
+     * 마일리지가 주제가 아닌 테스트는 배포 기본값(최소 1,000 / 상한 50,000)에 걸린다.
+     * 이 테스트들의 관심사는 주문 메타·결제 상태이므로 정책을 열어 두고 본래 대상만 검증한다.
+     * 정책 강제 자체는 MileageUsageLimitTest 가 다룬다.
+     */
+    private function allowAnyMileageUsage(): void
+    {
+        $dir = storage_path('framework/testing/modules/sirsoft-ecommerce/settings');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+
+        file_put_contents($dir.'/mileage.json', json_encode([
+            'enabled' => true,
+            'default_earn_rate' => 0,
+            'earn_trigger' => 'confirmed',
+            'earn_delay_days' => 0,
+            'currency_rules' => [[
+                'currency_code' => 'KRW',
+                'point_value' => 1,
+                'min_use_amount' => 0,
+                'use_unit' => 1,
+                'max_use_type' => 'percent',
+                'max_use_percent' => 100,
+                'max_use_value' => 0,
+            ]],
+            'expiry_enabled' => false,
+            'expiry_days' => 365,
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
      * 카드(card) 결제수단의 마일리지 차감 시점을 설정합니다. (마일리지/MP06)
      *
      * 차감 시점은 결제수단별(order_settings.payment_methods.*.mileage_deduction_timing)로 관리되므로,
@@ -604,6 +638,8 @@ class OrderProcessingServiceTest extends ModuleTestCase
 
     public function test_create_from_temp_order_saves_order_meta_with_calculation_input(): void
     {
+        $this->allowAnyMileageUsage();
+
         $user = User::factory()->create();
 
         // 마일리지 사용 훅이 실제 FIFO 차감을 수행하므로 사용액(500) 이상 잔액 시드
@@ -2648,6 +2684,8 @@ class OrderProcessingServiceTest extends ModuleTestCase
 
     public function test_create_from_temp_order_full_mileage_payment_marks_payment_complete(): void
     {
+        $this->allowAnyMileageUsage();
+
         $user = User::factory()->create();
 
         // 결제액 전액(100,000)을 마일리지로 충당 — FIFO 차감용 잔액 시드

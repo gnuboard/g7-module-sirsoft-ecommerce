@@ -2003,6 +2003,17 @@ HTTP/1.1 200
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
+| copy_images | query | boolean | 아니오 | true/false (기본 true) | 상품 이미지 복사 여부 |
+| copy_options | query | boolean | 아니오 | true/false (기본 true) | 옵션 복사 여부 |
+| copy_categories | query | boolean | 아니오 | true/false (기본 true) | 카테고리 연결 복사 여부 |
+| copy_sales_info | query | boolean | 아니오 | true/false (기본 true) | 판매 정보(가격·재고·상태) 복사 여부 |
+| copy_description | query | boolean | 아니오 | true/false (기본 true) | 상세 설명 복사 여부 |
+| copy_notice | query | boolean | 아니오 | true/false (기본 true) | 상품 공지 복사 여부 |
+| copy_common_info | query | boolean | 아니오 | true/false (기본 true) | 상품 공통정보 복사 여부 |
+| copy_other_info | query | boolean | 아니오 | true/false (기본 true) | 기타 정보 복사 여부 |
+| copy_shipping | query | boolean | 아니오 | true/false (기본 true) | 배송 정책 복사 여부 |
+| copy_seo | query | boolean | 아니오 | true/false (기본 **false**) | SEO 메타 복사 여부 — 메타 제목·설명은 상품마다 달라야 검색 결과에서 구분되므로 기본 제외 |
+| copy_identification | query | boolean | 아니오 | true/false (기본 true) | 식별 정보(SKU·상품코드 등) 복사 여부 |
 
 **요청 예시**
 
@@ -2280,6 +2291,8 @@ HTTP/1.1 200
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | product | path | string | 예 | — | 대상 product의 식별자 |
+| per_page | query | integer | 아니오 | 1~100 (기본 10) | 페이지당 로그 수 |
+| sort_order | query | string | 아니오 | `asc` / `desc` (기본 `desc`) | 작성 시각 정렬 방향 |
 
 **요청 예시**
 

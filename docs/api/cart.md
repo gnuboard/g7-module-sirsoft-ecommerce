@@ -415,15 +415,48 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+| 필드 | 타입 | 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| merged_count | integer | `2` | 회원 장바구니로 옮겨진 비회원 아이템 수 |
+| adjustments | array | `[]` | 병합 과정에서 수량이 상한으로 줄어든 항목 목록 (조정이 없으면 빈 배열) |
+| adjustments[].product_id | integer | `12` | 조정된 상품 ID |
+| adjustments[].product_option_id | integer | `34` | 조정된 상품 옵션 ID |
+| adjustments[].requested | integer | `10` | 병합 시 합산된 수량 |
+| adjustments[].applied | integer | `5` | 상한 적용 후 실제 저장된 수량 |
+
+> 병합은 로그인 흐름에서 자동 수행되므로 수량 상한을 넘겨도 예외를 던지지 않고 상한까지 줄입니다.
+> 줄어든 사실을 사용자에게 알릴 수 있도록 `adjustments` 를 확인해 안내하세요.
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "장바구니를 병합했습니다.",
+    "data": {
+        "merged_count": 2,
+        "adjustments": [
+            {
+                "product_id": 12,
+                "product_option_id": 34,
+                "requested": 10,
+                "applied": 5
+            }
+        ]
+    }
+}
+```
 
 **에러 응답**
 
-_대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있으면 보강 -->_
+| 상태 | 조건 | 응답 |
+| --- | --- | --- |
+| 422 | 미로그인 상태이거나 `X-Cart-Key` 헤더가 없음/형식 불일치 | `errors.auth` 또는 `errors.cart_key` |
+| 500 | 병합 처리 실패 | `messages.cart.merge_failed` |
 
 <!-- @generated:end -->
 
@@ -611,7 +644,7 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 | product_option_id | body | integer | 예 | — | product option 식별자 |
-| quantity | body | integer | 예 | min 1, max 9999 | 변경할 구매 수량 (1~9999) |
+| quantity | body | integer | 예 | min 1, max: 장바구니 수량 상한 설정 | 변경할 구매 수량 (1 ~ 관리자 설정 상한, 기본 99) |
 | additional_option_selections | body | array | 아니오 | — | 추가 옵션 재선택 목록 (항목별 additional_option_id/value_id, 직접입력 custom_text — 미전달 시 기존 선택 유지) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.change_option_validation_rules`).
@@ -665,7 +698,7 @@ Content-Type: application/json
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
-| quantity | body | integer | 예 | min 1, max 9999 | 변경할 구매 수량 (1~9999) |
+| quantity | body | integer | 예 | min 1, max: 장바구니 수량 상한 설정 | 변경할 구매 수량 (1 ~ 관리자 설정 상한, 기본 99) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.update_quantity_validation_rules`).
 
@@ -700,6 +733,6 @@ Content-Type: application/json
 
 <!-- @generated:end -->
 
-**설명** 장바구니 아이템(`id`)의 수량만 변경합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CartController@updateQuantity`가 `CartService::updateQuantity()`로 수량을 반영한 뒤 프론트가 별도 refetch 없이 화면을 갱신할 수 있도록 `index`와 동일한 전체 목록·계산 결과(`items`·`calculation`)를 함께 반환합니다. 수량은 1~9999 범위이며, 재고 부족·판매 중지·구매수량 한도 위반은 사유별 422, 항목/권한 문제는 404/403으로 매핑됩니다. 장바구니의 수량 증감(+/-) 컨트롤에 사용합니다.
+**설명** 장바구니 아이템(`id`)의 수량만 변경합니다. `optional.sanctum`으로 회원/비회원 모두 접근하며, `CartController@updateQuantity`가 `CartService::updateQuantity()`로 수량을 반영한 뒤 프론트가 별도 refetch 없이 화면을 갱신할 수 있도록 `index`와 동일한 전체 목록·계산 결과(`items`·`calculation`)를 함께 반환합니다. 수량 상한은 관리자 환경설정의 장바구니 수량 상한(기본 99)을 따르며, 재고 부족·판매 중지·구매수량 한도 위반은 사유별 422, 항목/권한 문제는 404/403으로 매핑됩니다. 장바구니의 수량 증감(+/-) 컨트롤에 사용합니다.
 
 

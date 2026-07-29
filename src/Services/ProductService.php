@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Enums\SequenceType;
 use Modules\Sirsoft\Ecommerce\Exceptions\OptionHasOrderHistoryException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductHasOrderHistoryException;
+use Modules\Sirsoft\Ecommerce\Exceptions\ProductPriceRelationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\StockMismatchException;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Models\ProductAdditionalOption;
@@ -587,6 +588,7 @@ class ProductService
                     if (! empty($updateData)) {
                         $product = $this->repository->find($productId);
                         if ($product) {
+                            $this->assertPriceRelation($product, $updateData);
                             $updateData['updated_by'] = Auth::id();
                             $this->repository->update($product, $updateData);
                             $productsUpdated++;
@@ -616,6 +618,54 @@ class ProductService
         HookManager::doAction('sirsoft-ecommerce.product.after_bulk_update', $result, $data, $snapshots);
 
         return $result;
+    }
+
+    /**
+     * 상품과 그 옵션의 활동 로그를 합쳐 조회합니다.
+     *
+     * @param  Product  $product  대상 상품
+     * @param  array  $filters  조회 필터 (per_page, sort_order)
+     * @return LengthAwarePaginator 활동 로그 페이지네이터
+     */
+    public function getActivityLogs(Product $product, array $filters = []): LengthAwarePaginator
+    {
+        return $this->repository->getActivityLogsForProduct($product, $filters);
+    }
+
+    /**
+     * 실제로 적용될 가격 조합이 판매가 ≤ 정가를 지키는지 확인합니다.
+     *
+     * 일괄 수정은 정가/판매가 중 한쪽만 보내는 부분 전송이 흔해 FormRequest 는 두 값이 모두
+     * 전송된 경우에만 비교합니다. 한쪽만 온 경우 나머지 한쪽은 DB 에 남아 있던 값이 그대로
+     * 적용되므로, 단일 필드 전송으로 판매가를 정가 위로 올리는 우회로가 열립니다.
+     * 저장 직전에 DB 기존값과 합쳐 확정된 조합으로 다시 판정합니다.
+     *
+     * @param  Product  $product  대상 상품 (DB 기존값)
+     * @param  array  $updateData  적용될 수정 데이터
+     *
+     * @throws ProductPriceRelationException 판매가가 정가를 초과하는 경우
+     */
+    protected function assertPriceRelation(Product $product, array $updateData): void
+    {
+        $incoming = static fn (string $key) => array_key_exists($key, $updateData)
+            && $updateData[$key] !== null
+            && $updateData[$key] !== '';
+
+        if (! $incoming('list_price') && ! $incoming('selling_price')) {
+            return;
+        }
+
+        $listPrice = $incoming('list_price')
+            ? (float) $updateData['list_price']
+            : (float) $product->list_price;
+
+        $sellingPrice = $incoming('selling_price')
+            ? (float) $updateData['selling_price']
+            : (float) $product->selling_price;
+
+        if ($sellingPrice > $listPrice) {
+            throw new ProductPriceRelationException((int) $product->id);
+        }
     }
 
     /**
