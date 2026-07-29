@@ -29,7 +29,7 @@
 | --- | --- | --- | --- | --- | --- |
 | search | query | string | 아니오 | max 200 | 검색어 (지정한 검색 대상 필드에서 부분 일치) |
 | active_only | query | boolean | 아니오 | — | true 시 활성(is_active) 템플릿만 조회 |
-| per_page | query | string | 아니오 | — | 페이지당 항목 수 |
+| per_page | query | string | 아니오 | 정수 1~100 또는 `all` | 페이지당 항목 수 (`all` 은 전체 조회, 숫자는 최대 100) |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 
 **요청 예시**

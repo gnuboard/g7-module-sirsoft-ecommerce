@@ -10,6 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Exceptions\CartUnavailableException;
 use Modules\Sirsoft\Ecommerce\Exceptions\InsufficientStockException;
+use Modules\Sirsoft\Ecommerce\Exceptions\MileageValidationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
 use Modules\Sirsoft\Ecommerce\Exceptions\PaymentAmountMismatchException;
 use Modules\Sirsoft\Ecommerce\Exceptions\UnsupportedPaymentCurrencyException;
@@ -163,6 +164,19 @@ trait HandlesOrderCreation
                 'has_status_issue' => $e->hasStatusIssue(),
                 'has_restriction_issue' => $e->hasRestrictionIssue(),
             ]);
+
+        } catch (MileageValidationException $e) {
+            // 마일리지 사용 정책 위반(한도/단위/최소사용액/잔액) — generic 500 이 아닌 422 명시 차단.
+            // 임시주문 생성 이후 설정이 바뀌었거나 임시주문이 조작된 경우 여기로 떨어진다.
+            Log::warning('Order create: mileage usage policy violation', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return ResponseHelper::error(
+                'sirsoft-ecommerce::exceptions.order_create_failed',
+                422,
+                ['code' => 'mileage_usage_not_allowed', 'detail' => $e->getMessage()]
+            );
 
         } catch (OrderProcessingException $e) {
             // 주문 확정 재계산 검증 실패(쿠폰 만료/min_amount/per_user_limit/not_combinable 등)

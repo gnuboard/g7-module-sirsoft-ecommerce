@@ -1394,6 +1394,8 @@ Content-Type: application/json
 
 **설명** 주문서 작성을 마치고 실제 주문을 생성(결제하기)하는 회원/비회원 공용 엔드포인트입니다. PG 플러그인의 fetch 인터셉터가 이 한 경로만 매칭하므로 회원/비회원이 동일 URL로 진입하고, `Public\OrderController@store`가 `Auth::id()`로 분기합니다(회원은 `OrderResource`, 비회원은 민감 필드를 가린 `GuestOrderResource`). `optional.sanctum` + `sirsoft-ecommerce.user-orders.create` 권한이 필요하며, `expected_total_amount`로 금액 위변조를 검증하고 비회원은 `guest_lookup_password`로 이후 조회 비밀번호를 설정합니다. 회원이 `save_shipping_address`를 켜면 배송지가 자동 저장(PG 결제는 결제완료 시점) 됩니다.
 
+주문 확정 시점에는 재고·구매대상제한·배송국가·쿠폰 유효성과 함께 **마일리지 사용 정책**도 현재 설정 기준으로 재검증합니다. 임시 주문을 만든 뒤 관리자가 한도를 강화했거나 임시 주문이 조작된 경우 `422`(`errors.code = mileage_usage_not_allowed`)로 차단되며 주문은 생성되지 않습니다. 반대로 정상 생성된 주문에는 그 시점의 사용 정책이 `mileage_policy_snapshot` 으로 고정되어, 이후 설정이 바뀌어도 해당 주문의 판정 근거를 재현할 수 있습니다(통화·프로모션·배송정책 스냅샷과 동일 취지).
+
 
 ### GET /api/modules/sirsoft-ecommerce/user/orders/{id}
 <!-- @generated:start:api.modules.sirsoft-ecommerce.user.orders.show-by-id -->
@@ -1851,7 +1853,7 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | added_count | integer | `0` | added 개수 (집계) |
-| skipped | array | `[]` | 장바구니에 담지 못한 항목 목록 (품절·단종 등으로 재주문에서 건너뛴 옵션) |
+| skipped | array | `[]` | 장바구니에 담지 못한 항목 목록 (품절·단종·구매수량 한도 초과 등으로 재주문에서 건너뛴 옵션) |
 | cart_count | integer | `0` | cart 개수 (집계) |
 
 **응답 예시**
@@ -1881,7 +1883,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 회원이 과거 주문(`id`)의 옵션들을 현재 장바구니에 다시 담는 재주문 기능입니다. `auth:sanctum` 인증이 필요하며, `User\OrderController@reorder`가 `CartService::reorderFromOrder()`로 처리해 담긴 수량(`added_count`), 담지 못한 항목(`skipped[]`), 현재 장바구니 총 개수(`cart_count`)를 반환합니다. 취소된 주문도 재주문 대상이 되며, 품절·단종 등으로 추가 불가한 항목은 건너뛰어 `skipped` 배열로 안내합니다. 마이페이지 주문내역의 "재주문" 버튼에 사용합니다.
+**설명** 회원이 과거 주문(`id`)의 옵션들을 현재 장바구니에 다시 담는 재주문 기능입니다. `auth:sanctum` 인증이 필요하며, `User\OrderController@reorder`가 `CartService::reorderFromOrder()`로 처리해 담긴 수량(`added_count`), 담지 못한 항목(`skipped[]`), 현재 장바구니 총 개수(`cart_count`)를 반환합니다. 취소된 주문도 재주문 대상이 되며, 품절·단종·상품별 구매수량 한도 초과 등으로 추가 불가한 항목은 건너뛰어 `skipped` 배열로 안내합니다. 한 항목이 담기지 못해도 나머지 항목은 그대로 담기며, 응답은 200 입니다(항목 하나 때문에 재주문 전체를 실패시키지 않습니다). 마이페이지 주문내역의 "재주문" 버튼에 사용합니다.
 
 
 ### PUT /api/modules/sirsoft-ecommerce/user/orders/{id}/shipping-address

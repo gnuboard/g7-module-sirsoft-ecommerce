@@ -253,4 +253,13 @@ interface ProductRepositoryInterface
      * @return bool 성공 여부
      */
     public function syncStockFromOptions(int $productId): bool;
+
+    /**
+     * 상품과 그 옵션의 활동 로그를 합쳐 페이지네이션으로 조회
+     *
+     * @param  Product  $product  대상 상품
+     * @param  array  $filters  조회 필터 (per_page, sort_order)
+     * @return LengthAwarePaginator 활동 로그 페이지네이터
+     */
+    public function getActivityLogsForProduct(Product $product, array $filters = []): LengthAwarePaginator;
 }

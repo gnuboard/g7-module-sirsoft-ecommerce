@@ -113,6 +113,7 @@ class Order extends Model
         'promotions_applied_snapshot',
         'shipping_policy_applied_snapshot',
         'promotions_available_snapshot',
+        'mileage_policy_snapshot',
         'order_meta',
         // 다중 통화 컬럼 (JSON)
         'mc_subtotal_amount',
@@ -180,6 +181,7 @@ class Order extends Model
         'promotions_applied_snapshot' => 'array',
         'shipping_policy_applied_snapshot' => 'array',
         'promotions_available_snapshot' => 'array',
+        'mileage_policy_snapshot' => 'array',
         'order_meta' => 'array',
         'order_status' => OrderStatusEnum::class,
         'order_device' => DeviceTypeEnum::class,

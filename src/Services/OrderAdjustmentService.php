@@ -15,6 +15,7 @@ use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\RefundPriorityEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
 
 /**
  * 주문 변경 금액 계산 서비스
@@ -646,7 +647,8 @@ class OrderAdjustmentService
             'total_deposit_used_amount' => 0,
             'total_tax_amount' => $taxableAmount,
             'total_tax_free_amount' => (float) $result->summary->taxFreeAmount,
-            'total_vat_amount' => $taxableAmount > 0 ? round($taxableAmount * 10 / 110) : 0,
+            // 재계산 결과의 옵션별 세율 반영 부가세를 그대로 사용 (주문 생성 시점과 동일 산식)
+            'total_vat_amount' => (float) ($result->summary->vatAmount ?? VatCalculator::fromTaxableAmount((int) $taxableAmount)),
             'total_earned_points_amount' => (float) ($result->summary->pointsEarning ?? 0),
             'item_count' => $itemCount,
         ];
@@ -791,6 +793,12 @@ class OrderAdjustmentService
             'total_points_used_amount' => (float) $recalcResult->summary->pointsUsed,
             'total_tax_amount' => (float) $recalcResult->summary->taxableAmount,
             'total_tax_free_amount' => (float) $recalcResult->summary->taxFreeAmount,
+            // 과세표준을 갱신하면서 부가세를 그대로 두면 둘이 어긋나, 주문 화면의 공급가액
+            // (과세표준 - 부가세)이 음수까지 갈 수 있다. 같은 재계산 결과에서 함께 쓴다.
+            'total_vat_amount' => (float) (
+                $recalcResult->summary->vatAmount
+                ?? VatCalculator::fromTaxableAmount((int) $recalcResult->summary->taxableAmount)
+            ),
             'promotions_applied_snapshot' => $promotionsSnapshot,
         ];
     }

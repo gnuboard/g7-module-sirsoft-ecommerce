@@ -5,20 +5,21 @@ namespace Modules\Sirsoft\Ecommerce\Http\Controllers\Admin;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
 use App\Http\Resources\ActivityLogResource;
-use App\Models\ActivityLog;
 use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductHasOrderHistoryException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductImageUploadLimitException;
+use Modules\Sirsoft\Ecommerce\Exceptions\ProductPriceRelationException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdatePriceRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateProductsRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStatusRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStockRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductListRequest;
+use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductLogsRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ReorderProductImagesRequest;
+use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ShowProductForCopyRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\StoreProductRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\UpdateProductRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\UploadProductImageRequest;
@@ -26,7 +27,6 @@ use Modules\Sirsoft\Ecommerce\Http\Resources\ProductCollection;
 use Modules\Sirsoft\Ecommerce\Http\Resources\ProductOptionResource;
 use Modules\Sirsoft\Ecommerce\Http\Resources\ProductResource;
 use Modules\Sirsoft\Ecommerce\Models\Product;
-use Modules\Sirsoft\Ecommerce\Models\ProductOption;
 use Modules\Sirsoft\Ecommerce\Services\ProductImageService;
 use Modules\Sirsoft\Ecommerce\Services\ProductService;
 
@@ -407,6 +407,15 @@ class ProductController extends AdminBaseController
                 200,
                 ['count' => ($result['products_updated'] ?? 0) + ($result['options_updated'] ?? 0)]
             );
+        } catch (ProductPriceRelationException $e) {
+            // 판매가 > 정가 조합은 도메인 검증 실패 → generic 500 이 아닌 422
+            return ResponseHelper::error(
+                'validation.product.selling_price_lte_list',
+                422,
+                null,
+                [],
+                'sirsoft-ecommerce'
+            );
         } catch (ValidationException $e) {
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
@@ -557,28 +566,14 @@ class ProductController extends AdminBaseController
     /**
      * 상품 복사용 데이터를 조회합니다.
      *
-     * @param  Request  $request  HTTP 요청 (복사 옵션 포함)
+     * @param  ShowProductForCopyRequest  $request  복사 옵션 요청 데이터
      * @param  Product  $product  복사할 상품 모델
      * @return JsonResponse 복사용 데이터 JSON 응답
      */
-    public function showForCopy(Request $request, Product $product): JsonResponse
+    public function showForCopy(ShowProductForCopyRequest $request, Product $product): JsonResponse
     {
         try {
-            $copyOptions = [
-                'images' => $request->boolean('copy_images', true),
-                'options' => $request->boolean('copy_options', true),
-                'categories' => $request->boolean('copy_categories', true),
-                'sales_info' => $request->boolean('copy_sales_info', true),
-                'description' => $request->boolean('copy_description', true),
-                'notice' => $request->boolean('copy_notice', true),
-                'common_info' => $request->boolean('copy_common_info', true),
-                'other_info' => $request->boolean('copy_other_info', true),
-                'shipping' => $request->boolean('copy_shipping', true),
-                'seo' => $request->boolean('copy_seo', false),
-                'identification' => $request->boolean('copy_identification', true),
-            ];
-
-            $copyData = $this->productService->getDetailForCopy($product->id, $copyOptions);
+            $copyData = $this->productService->getDetailForCopy($product->id, $request->getCopyOptions());
 
             if (! $copyData) {
                 return ResponseHelper::notFound(
@@ -802,36 +797,15 @@ class ProductController extends AdminBaseController
     /**
      * 상품 처리로그(활동 로그) 목록을 조회합니다.
      *
-     * @param  Request  $request  요청
+     * @param  ProductLogsRequest  $request  활동 로그 조회 요청 데이터
      * @param  Product  $product  상품
      * @return JsonResponse 활동 로그 목록
      */
-    public function logs(Request $request, Product $product): JsonResponse
+    public function logs(ProductLogsRequest $request, Product $product): JsonResponse
     {
         try {
-            $perPage = (int) ($request->query('per_page', 10));
-            $sortOrder = $request->query('sort_order', 'desc');
-
-            // 상품 + 상품옵션 로그를 합쳐서 조회
-            $optionIds = $product->options()->pluck('id')->toArray();
-
-            $query = ActivityLog::where(function ($q) use ($product, $optionIds) {
-                // 상품 자체 로그
-                $q->where(function ($sub) use ($product) {
-                    $sub->where('loggable_type', $product->getMorphClass())
-                        ->where('loggable_id', $product->getKey());
-                });
-
-                // 해당 상품의 옵션 로그
-                if (! empty($optionIds)) {
-                    $q->orWhere(function ($sub) use ($optionIds) {
-                        $sub->where('loggable_type', (new ProductOption)->getMorphClass())
-                            ->whereIn('loggable_id', $optionIds);
-                    });
-                }
-            })->orderBy('created_at', $sortOrder);
-
-            $logs = $query->paginate($perPage);
+            // 상품 + 상품옵션 로그 합산 조회는 Repository 위임 (Service 경유)
+            $logs = $this->productService->getActivityLogs($product, $request->getFilters());
 
             return ResponseHelper::moduleSuccess(
                 'sirsoft-ecommerce',

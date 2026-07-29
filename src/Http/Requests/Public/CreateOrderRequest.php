@@ -78,7 +78,6 @@ class CreateOrderRequest extends FormRequest
             'dbank.bank_name' => 'nullable|string|max:50',
             'dbank.account_number' => 'required_if:payment_method,dbank|nullable|string|max:50',
             'dbank.account_holder' => 'required_if:payment_method,dbank|nullable|string|max:50',
-            'dbank.due_days' => 'nullable|integer|min:1|max:30',
 
             // 배송지 저장
             'save_shipping_address' => 'nullable|boolean',

@@ -57,6 +57,10 @@ class EcommerceSettingsController extends AdminBaseController
                 'can_update' => PermissionHelper::check('sirsoft-ecommerce.settings.update', request()->user()),
             ];
 
+            // 화면의 숫자 입력 경계값 — 저장 규칙과 같은 출처를 내려준다.
+            // 화면이 리터럴을 들면 규칙이 바뀔 때 따라오지 못해 "화면은 받는데 저장은 422" 가 된다.
+            $settings['_meta'] = ['limits' => config('sirsoft-ecommerce.limits', [])];
+
             return ResponseHelper::moduleSuccess(
                 'sirsoft-ecommerce',
                 'messages.settings.fetch_success',

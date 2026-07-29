@@ -100,7 +100,7 @@
                     "type": "number",
                     "name": "mileage.expiry_notification_days_before",
                     "value": "{{_local.form?.mileage?.expiry_notification_days_before ?? 7}}",
-                    "min": "1",
+                    "min": "{{_local?.form?._meta?.limits?.expiry_notification_days_before_min ?? 1}}",
                     "className": "input w-20 text-center",
                     "disabled": "{{_computed.isReadOnly}}"
                   }
@@ -142,7 +142,7 @@
               },
               "children": [
                 {
-                  "id": "template_status_row",
+                  "id": "template_status_row_{{tplIndex}}",
                   "type": "basic",
                   "name": "Div",
                   "iteration": {

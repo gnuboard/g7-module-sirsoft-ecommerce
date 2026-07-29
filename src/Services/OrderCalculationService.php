@@ -37,6 +37,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterf
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductAdditionalOptionValueRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ShippingPolicyRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
 
 /**
  * 주문 계산 서비스
@@ -924,9 +925,18 @@ class OrderCalculationService
 
             $isTaxable = $product->tax_status === ProductTaxStatus::TAXABLE;
 
+            // 세율은 상품별로 다를 수 있다. 스냅샷 모드에서는 주문 시점 세율이 그대로 쓰여
+            // 관리자가 이후 상품 세율을 바꿔도 기존 주문의 부가세가 소급 변경되지 않는다.
+            $taxRate = $isTaxable
+                ? (float) ($product->tax_rate ?? VatCalculator::DEFAULT_RATE)
+                : null;
+            $taxableAmount = $isTaxable ? $amount : 0;
+
             $classification[$optionId] = [
-                'taxable_amount' => $isTaxable ? $amount : 0,
+                'taxable_amount' => $taxableAmount,
                 'tax_free_amount' => $isTaxable ? 0 : $amount,
+                'tax_rate' => $taxRate,
+                'vat_amount' => VatCalculator::fromTaxableAmount((int) $taxableAmount, $taxRate),
             ];
         }
 
@@ -1444,6 +1454,10 @@ class OrderCalculationService
             $totalTaxFree += $tax['tax_free_amount'];
         }
 
+        // 부가세는 옵션별 부가세의 합 — 세율이 섞인 주문에서는 이것만이 정확하다
+        // (전체 과세표준에 단일 세율을 적용하면 면세·영세·다른 세율 상품이 섞였을 때 어긋난다)
+        $totalVat = VatCalculator::sumFromClassification($taxClassification);
+
         $summary = new Summary(
             subtotal: $paymentCalculation['subtotal'],
             productCouponDiscount: $paymentCalculation['coupon_discount'],
@@ -1456,6 +1470,7 @@ class OrderCalculationService
             shippingDiscount: $paymentCalculation['shipping_discount'],
             taxableAmount: $totalTaxable,
             taxFreeAmount: $totalTaxFree,
+            vatAmount: $totalVat,
             pointsEarning: $totalPointsEarning,
             pointsUsed: $pointsUsageResult['actual_points'],
             paymentAmount: $paymentCalculation['payment_amount'],

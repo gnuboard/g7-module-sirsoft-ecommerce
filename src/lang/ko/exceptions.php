@@ -13,7 +13,7 @@ return [
         'deduct_exceeds_balance' => '차감하려는 마일리지가 잔액을 초과합니다.',
         'below_min_use_amount' => '최소 사용 금액은 :amount점입니다.',
         'invalid_use_unit' => '마일리지는 :unit점 단위로 사용할 수 있습니다.',
-        'exceeds_max_use' => '최대 사용 한도를 초과했습니다.',
+        'exceeds_max_use' => '최대 사용 한도를 초과했습니다. (사용 가능 최대 :amount점)',
         'base_currency_rule_missing' => '기본 통화에 대한 마일리지 사용 단위가 설정되지 않아 마일리지를 사용할 수 없습니다.',
     ],
 
