@@ -2,10 +2,14 @@
 
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Enums\ReviewStatus;
+use Modules\Sirsoft\Ecommerce\Models\OrderOption;
+use Modules\Sirsoft\Ecommerce\Models\ProductOption;
 use Modules\Sirsoft\Ecommerce\Models\ProductReview;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewRepositoryInterface;
 
@@ -14,6 +18,8 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewRepositoryInte
  */
 class ProductReviewRepository implements ProductReviewRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+
     public function __construct(
         protected ProductReview $model
     ) {}
@@ -96,24 +102,31 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             $query->where('status', $filters['status']);
         }
 
-        // 기간 필터
+        // 기간 필터 — whereDate 는 컬럼에 DATE() 를 씌워 인덱스를 못 쓰게 만든다.
+        // 같은 결과를 내는 범위 조건으로 바꿔 created_at 인덱스를 살린다
+        // (종료일은 그날 23:59:59.999999 까지 포함해야 whereDate 와 동일한 경계를 갖는다).
         if (! empty($filters['start_date'])) {
-            $query->whereDate('created_at', '>=', $filters['start_date']);
+            $query->where('created_at', '>=', Carbon::parse($filters['start_date'])->startOfDay());
         }
         if (! empty($filters['end_date'])) {
-            $query->whereDate('created_at', '<=', $filters['end_date']);
+            $query->where('created_at', '<=', Carbon::parse($filters['end_date'])->endOfDay());
         }
 
-        // 정렬
-        $sort = $filters['sort'] ?? 'created_at_desc';
-        match ($sort) {
-            'created_at_asc' => $query->orderBy('created_at'),
-            'rating_desc' => $query->orderByDesc('rating'),
-            'rating_asc' => $query->orderBy('rating'),
-            default => $query->orderByDesc('created_at'),
+        // 정렬 — 선택지가 닫힌 집합이라 match 로 충분하다
+        $sort = match ($filters['sort'] ?? 'created_at_desc') {
+            'created_at_asc' => [['column' => 'created_at', 'direction' => 'asc']],
+            'rating_desc' => [['column' => 'rating', 'direction' => 'desc']],
+            'rating_asc' => [['column' => 'rating', 'direction' => 'asc']],
+            default => [['column' => 'created_at', 'direction' => 'desc']],
         };
 
-        return $query->paginate($perPage);
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: $sort,
+            perPage: $perPage,
+            relations: ['user', 'product', 'images', 'orderOption.order', 'replyAdmin'],
+        );
     }
 
     /**
@@ -143,7 +156,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 if ($value === '' || $value === null) {
                     continue;
                 }
-                $optionIds = DB::table('ecommerce_product_options')
+                $optionIds = DB::table((new ProductOption)->getTable())
                     ->where('product_id', $productId)
                     ->whereRaw(
                         "JSON_CONTAINS(option_values, JSON_OBJECT('key', JSON_OBJECT('ko', ?), 'value', JSON_OBJECT('ko', ?)))",
@@ -153,7 +166,8 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                     ->toArray();
 
                 if (empty($optionIds)) {
-                    $query->whereRaw('0 = 1');
+                    // 일치 옵션 없음 → 빈 결과. 빈 whereIn 은 `0 = 1` 로 컴파일된다
+                    $query->whereIn($query->getModel()->getKeyName(), []);
                     break;
                 }
 
@@ -163,15 +177,20 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             }
         }
 
-        // 정렬
-        $sort = $filters['sort'] ?? 'created_at_desc';
-        match ($sort) {
-            'rating_desc' => $query->orderByDesc('rating'),
-            'rating_asc' => $query->orderBy('rating'),
-            default => $query->orderByDesc('created_at'),
+        // 정렬 — 선택지가 닫힌 집합이라 match 로 충분하다
+        $sort = match ($filters['sort'] ?? 'created_at_desc') {
+            'rating_desc' => [['column' => 'rating', 'direction' => 'desc']],
+            'rating_asc' => [['column' => 'rating', 'direction' => 'asc']],
+            default => [['column' => 'created_at', 'direction' => 'desc']],
         };
 
-        return $query->paginate($perPage);
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: $sort,
+            perPage: $perPage,
+            relations: ['user', 'images'],
+        );
     }
 
     /**
@@ -222,7 +241,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
     public function getOptionFilters(int $productId): array
     {
         // 상품의 모든 옵션 조회 (기준: product_options 전체)
-        $options = DB::table('ecommerce_product_options')
+        $options = DB::table((new ProductOption)->getTable())
             ->where('product_id', $productId)
             ->orderBy('sort_order')
             ->pluck('option_values', 'id')
@@ -233,8 +252,9 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
         }
 
         // 옵션별 리뷰 건수 집계 (option_id → review count)
-        $reviewCounts = DB::table('ecommerce_product_reviews as r')
-            ->join('ecommerce_order_options as oo', 'r.order_option_id', '=', 'oo.id')
+        // 테이블명은 모델에서 얻는다 (문자열 하드코딩 금지)
+        $reviewCounts = DB::table((new ProductReview)->getTable().' as r')
+            ->join((new OrderOption)->getTable().' as oo', 'r.order_option_id', '=', 'oo.id')
             ->where('r.product_id', $productId)
             ->where('r.status', ReviewStatus::VISIBLE->value)
             ->whereNull('r.deleted_at')

@@ -18,8 +18,8 @@ use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStatusRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStockRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductListRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductLogsRequest;
+use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductShowForCopyRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ReorderProductImagesRequest;
-use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ShowProductForCopyRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\StoreProductRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\UpdateProductRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\UploadProductImageRequest;
@@ -566,11 +566,11 @@ class ProductController extends AdminBaseController
     /**
      * 상품 복사용 데이터를 조회합니다.
      *
-     * @param  ShowProductForCopyRequest  $request  복사 옵션 요청 데이터
+     * @param  ProductShowForCopyRequest  $request  검증된 복사 옵션 요청
      * @param  Product  $product  복사할 상품 모델
      * @return JsonResponse 복사용 데이터 JSON 응답
      */
-    public function showForCopy(ShowProductForCopyRequest $request, Product $product): JsonResponse
+    public function showForCopy(ProductShowForCopyRequest $request, Product $product): JsonResponse
     {
         try {
             $copyData = $this->productService->getDetailForCopy($product->id, $request->getCopyOptions());
@@ -797,14 +797,14 @@ class ProductController extends AdminBaseController
     /**
      * 상품 처리로그(활동 로그) 목록을 조회합니다.
      *
-     * @param  ProductLogsRequest  $request  활동 로그 조회 요청 데이터
+     * @param  ProductLogsRequest  $request  검증된 조회 요청
      * @param  Product  $product  상품
      * @return JsonResponse 활동 로그 목록
      */
     public function logs(ProductLogsRequest $request, Product $product): JsonResponse
     {
         try {
-            // 상품 + 상품옵션 로그 합산 조회는 Repository 위임 (Service 경유)
+            // 상품 + 상품옵션 로그 합산 조회는 Service → Repository 경유 (컨트롤러 직접 조회 금지)
             $logs = $this->productService->getActivityLogs($product, $request->getFilters());
 
             return ResponseHelper::moduleSuccess(

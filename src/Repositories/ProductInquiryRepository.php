@@ -2,8 +2,10 @@
 
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Modules\Sirsoft\Ecommerce\Models\ProductInquiry;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductInquiryRepositoryInterface;
 
@@ -12,6 +14,8 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductInquiryRepositoryInt
  */
 class ProductInquiryRepository implements ProductInquiryRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+
     public function __construct(
         protected ProductInquiry $model
     ) {}
@@ -43,6 +47,8 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
         return $this->model->newQuery()
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
+            // audit:allow repository-paginate-column-pruning reason: 상품 1건에 종속된 문의 목록 —
+            // where(product_id) 로 이미 좁혀져 OFFSET 이 깊어질 수 없고, 목록이 본문을 그대로 쓴다
             ->paginate($perPage);
     }
 
@@ -86,6 +92,8 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
             });
         }
 
+        // audit:allow repository-paginate-column-pruning reason: 사용자 1명에 종속된 내 문의 목록 —
+        // where(user_id) 로 이미 좁혀져 OFFSET 이 깊어질 수 없다
         return $query->paginate($perPage);
     }
 
@@ -94,9 +102,7 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
      */
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()
-            ->with(['product', 'user'])
-            ->orderBy('created_at', 'desc');
+        $query = $this->model->newQuery();
 
         // 상품명 검색
         if (! empty($filters['search_keyword'])) {
@@ -116,15 +122,23 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
             $query->where('is_answered', (bool) $filters['is_answered']);
         }
 
-        // 기간 필터
+        // 기간 필터 — whereDate 는 컬럼에 함수를 씌워 인덱스를 무력화하므로 범위 조건으로 준다
         if (! empty($filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['date_from']);
+            $query->where('created_at', '>=', Carbon::parse($filters['date_from'])->startOfDay());
         }
         if (! empty($filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['date_to']);
+            $query->where('created_at', '<=', Carbon::parse($filters['date_to'])->endOfDay());
         }
 
-        return $query->paginate($perPage);
+        // 지연 조인: 전역 문의 목록은 무제한 성장하고 content(text)가 있어
+        // OFFSET 이 훑는 구간에서 넓은 컬럼까지 읽힌다. inner 는 id 만 훑는다.
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: [['column' => 'created_at', 'direction' => 'desc']],
+            perPage: $perPage,
+            relations: ['product', 'user'],
+        );
     }
 
     /**

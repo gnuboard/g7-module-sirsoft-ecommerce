@@ -2,8 +2,10 @@
 
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Modules\Sirsoft\Ecommerce\Enums\CouponIssueRecordStatus;
 use Modules\Sirsoft\Ecommerce\Models\CouponIssue;
 use Modules\Sirsoft\Ecommerce\Models\Product;
@@ -14,6 +16,8 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterf
  */
 class CouponIssueRepository implements CouponIssueRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+
     public function __construct(
         protected CouponIssue $model
     ) {}
@@ -161,14 +165,19 @@ class CouponIssueRepository implements CouponIssueRepositoryInterface
             }
         }
 
-        return $query->orderByDesc('created_at')
-            ->paginate($perPage);
+        // 쿠폰 발급 내역은 발급량에 비례해 계속 늘어난다
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: [['column' => 'created_at', 'direction' => 'desc']],
+            perPage: $perPage,
+        );
     }
 
     /**
      * {@inheritDoc}
      */
-    public function findByIdsForUser(array $couponIssueIds, int $userId): \Illuminate\Support\Collection
+    public function findByIdsForUser(array $couponIssueIds, int $userId): Collection
     {
         if (empty($couponIssueIds)) {
             return collect();

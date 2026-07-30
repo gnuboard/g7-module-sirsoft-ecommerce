@@ -5,6 +5,8 @@ namespace Modules\Sirsoft\Ecommerce\Repositories;
 use App\Helpers\PermissionHelper;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Repositories\Concerns\ResolvesSortSpec;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -23,6 +25,63 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
  */
 class OrderRepository implements OrderRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+    use ResolvesSortSpec;
+
+    /**
+     * 주문 목록이 실제로 사용하는 컬럼
+     *
+     * `ecommerce_orders` 는 스냅샷 mediumText 5종 + 관리자 메모 + 통화별 금액 text 16종을 갖는다.
+     * 목록에서 쓰지 않는 이 컬럼들까지 읽으면 뒤쪽 페이지에서 건너뛸 행의 넓은 컬럼까지 함께
+     * 읽혀 비용이 선형으로 커진다. 관리자 목록(OrderListResource)과 회원 주문내역
+     * (UserOrderListResource)이 참조하는 컬럼의 합집합만 남긴다.
+     *
+     * @var array<int, string>
+     */
+    private const LIST_COLUMNS = [
+        'id',
+        'user_id',
+        'order_number',
+        'order_status',
+        'order_device',
+        'is_first_order',
+        'currency',
+        'currency_snapshot',
+        'total_amount',
+        'total_shipping_amount',
+        'total_paid_amount',
+        'total_cancelled_amount',
+        'total_refunded_amount',
+        'total_points_used_amount',
+        'total_earned_points_amount',
+        'mc_total_amount',
+        'mc_total_shipping_amount',
+        'ordered_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    /**
+     * 주문 목록 정렬 허용 컬럼
+     *
+     * 요청 값을 그대로 orderBy 에 넘기면 없는 컬럼으로 SQL 오류가 나거나 인덱스 없는 넓은
+     * 컬럼 정렬을 강제할 수 있다.
+     *
+     * @var array<int, string>
+     */
+    private const SORTABLE_COLUMNS = [
+        'id',
+        'order_number',
+        'order_status',
+        'total_amount',
+        'total_shipping_amount',
+        'total_paid_amount',
+        'ordered_at',
+        'paid_at',
+        'created_at',
+    ];
+
     public function __construct(
         protected Order $model
     ) {}
@@ -90,14 +149,9 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()
-            ->with([
-                'user',
-                'options',
-                'shippingAddress',
-                'payment',
-                'shippings',
-            ]);
+        // 관계는 지연 조인의 outer 에서만 로드한다 (inner 에 붙으면 관계 쿼리가 두 번 실행되고,
+        // inner 는 키 컬럼만 조회하므로 eager load 가 성립하지도 않는다).
+        $query = $this->model->newQuery();
 
         // 권한 스코프 필터링
         PermissionHelper::applyPermissionScope($query, 'sirsoft-ecommerce.orders.read');
@@ -119,8 +173,8 @@ class OrderRepository implements OrderRepositoryInterface
             if ($ordererUser) {
                 $query->where('user_id', $ordererUser->id);
             } else {
-                // UUID에 해당하는 회원이 없으면 결과 없음
-                $query->whereRaw('1 = 0');
+                // UUID에 해당하는 회원이 없으면 결과 없음. 빈 whereIn 은 `0 = 1` 로 컴파일된다
+                $query->whereIn($query->getModel()->getKeyName(), []);
             }
         }
 
@@ -285,12 +339,22 @@ class OrderRepository implements OrderRepositoryInterface
             $query->whereIn('order_device', $devices);
         }
 
-        // 정렬
-        $sortBy = $filters['sort_by'] ?? 'ordered_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder);
+        // 정렬 — 요청 값은 허용 목록으로만 해석한다
+        $sort = $this->resolveSortSpec($filters, self::SORTABLE_COLUMNS, 'ordered_at');
 
-        return $query->paginate($perPage);
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: self::LIST_COLUMNS,
+            sort: $sort,
+            perPage: $perPage,
+            relations: [
+                'user',
+                'options',
+                'shippingAddress',
+                'payment',
+                'shippings',
+            ],
+        );
     }
 
     /**
@@ -496,10 +560,10 @@ class OrderRepository implements OrderRepositoryInterface
             $this->applyFiltersToQuery($query, $filters);
         }
 
-        // 정렬
-        $sortBy = $filters['sort_by'] ?? 'ordered_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder);
+        // 정렬 (목록 조회와 동일한 허용 컬럼 화이트리스트)
+        foreach ($this->resolveSortSpec($filters, self::SORTABLE_COLUMNS, 'ordered_at') as $sort) {
+            $query->orderBy($sort['column'], $sort['direction']);
+        }
 
         return $query->get();
     }
@@ -639,7 +703,7 @@ class OrderRepository implements OrderRepositoryInterface
         $optionIds = $order->options()->pluck('id')->toArray();
         $addressIds = $order->addresses()->pluck('id')->toArray();
 
-        return ActivityLog::where(function (Builder $q) use ($order, $optionIds, $addressIds) {
+        $query = ActivityLog::where(function (Builder $q) use ($order, $optionIds, $addressIds) {
             // 주문 자체 로그
             $q->where(function (Builder $sub) use ($order) {
                 $sub->where('loggable_type', $order->getMorphClass())
@@ -661,6 +725,15 @@ class OrderRepository implements OrderRepositoryInterface
                         ->whereIn('loggable_id', $addressIds);
                 });
             }
-        })->orderBy('created_at', $sortOrder)->paginate($perPage);
+        });
+
+        // 활동 로그는 변경 내역(mediumText)을 리소스가 그대로 노출하므로 컬럼은 좁히지 않고
+        // 지연 조인으로 넓은 컬럼을 읽는 행 수만 이번 페이지 분량으로 고정한다.
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: [['column' => 'created_at', 'direction' => $sortOrder]],
+            perPage: $perPage,
+        );
     }
 }

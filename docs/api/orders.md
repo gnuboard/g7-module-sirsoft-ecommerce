@@ -47,7 +47,7 @@
 | user_id | query | integer | 아니오 | — | user 식별자 |
 | orderer_uuid | query | uuid | 아니오 | — | 특정 회원의 주문만 조회하는 주문자 UUID 필터 (회원 검색 연동용) |
 | member_type | query | string | 아니오 | `member`, `guest` | 회원 구분 필터 (member 회원 주문 / guest 비회원 주문) |
-| sort_by | query | string | 아니오 | `ordered_at`, `paid_at`, `total_amount` | 정렬 기준 필드명 |
+| sort_by | query | string | 아니오 | `ordered_at`, `paid_at`, `total_amount` | 정렬 기준 필드명 (그 외 값은 422) |
 | sort_order | query | string | 아니오 | `asc`, `desc` | 정렬 방향 (asc 오름차순 / desc 내림차순) |
 | per_page | query | integer | 아니오 | min 10, max 100 | 페이지당 항목 수 |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |

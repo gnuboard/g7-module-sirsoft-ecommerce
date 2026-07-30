@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Models\User;
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Enums\MileageTransactionTypeEnum;
 use Modules\Sirsoft\Ecommerce\Models\MileageTransaction;
+use Modules\Sirsoft\Ecommerce\Models\Order;
+use Modules\Sirsoft\Ecommerce\Models\OrderOption;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\MileageTransactionRepositoryInterface;
 
 /**
@@ -17,6 +20,8 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\MileageTransactionRepositor
  */
 class MileageTransactionRepository implements MileageTransactionRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+
     /**
      * 적립(잔액 증가) 유형 목록
      *
@@ -170,17 +175,20 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
     public function paginateWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator
     {
         // 적립 lot 의 소멸 합 eager 집계 (N+1 회피) — 이 lot 을 source 로 하는 expired 거래 amount 합(음수).
-        // 상관 서브쿼리는 self-reference + alias 가 빌더 prefix 처리와 충돌하므로 raw 로 일관 작성한다
-        // (prefix 는 실제 테이블명에 한 번만 직접 적용).
-        $prefixedTable = DB::connection()->getTablePrefix().(new MileageTransaction)->getTable();
-        $expiredType = MileageTransactionTypeEnum::EXPIRED->value;
-        $expiredSumSub = "(select COALESCE(SUM(ABS(exp.amount)), 0) from `{$prefixedTable}` as exp"
-            ." where exp.type = '{$expiredType}' and exp.source_transaction_id = `{$prefixedTable}`.id)";
+        // 소멸분 합계는 같은 테이블을 다시 보는 상관 서브쿼리다. 별칭은 빌더가 만들고
+        // (grammar 가 프리픽스를 별칭에도 붙인다), raw 는 집계 함수 한 곳만 남긴다.
+        // 서브쿼리 FROM 이 한 테이블뿐이라 집계 대상 컬럼은 한정 없이 써도 모호하지 않다.
+        $table = (new MileageTransaction)->getTable();
+
+        $expiredAmount = DB::table("{$table} as exp")
+            ->select(DB::raw('COALESCE(SUM(ABS(amount)), 0)'))
+            ->where('exp.type', MileageTransactionTypeEnum::EXPIRED->value)
+            ->whereColumn('exp.source_transaction_id', "{$table}.id");
 
         $query = MileageTransaction::query()
             ->with(['user', 'grantedByUser', 'order'])
             ->addSelect('*')
-            ->addSelect(DB::raw("{$expiredSumSub} as expired_amount"));
+            ->addSelect(['expired_amount' => $expiredAmount]);
 
         if (! empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
@@ -233,8 +241,12 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
             });
         }
 
+        // 적립/사용 이력은 계속 쌓이므로 지연 조인으로 뒤쪽 페이지 비용을 고정한다.
+        // 정렬은 applySort 가 닫힌 슬러그 집합으로 해석해 이미 쿼리에 적용돼 있다.
         $this->applySort($query, $filters['sort'] ?? 'created_at_desc');
 
+        // audit:allow repository-paginate-column-pruning reason: 정렬이 applySort 로 쿼리에 직접
+        // 적용돼 지연 조인 계약(정렬 미적용 쿼리)을 만족하지 않는다. 컬럼 프루닝은 후속 정리 대상.
         return $query->paginate($perPage);
     }
 
@@ -278,7 +290,13 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
             $query->where('currency', $filters['currency']);
         }
 
-        return $query->orderByDesc('id')->paginate($perPage);
+        // 회원 마일리지 내역 — 계속 쌓이는 이력이라 지연 조인으로 뒤쪽 페이지 비용을 고정한다
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: [['column' => 'id', 'direction' => 'desc']],
+            perPage: $perPage,
+        );
     }
 
     /**
@@ -360,8 +378,9 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
     {
         $threshold = $now->copy()->subDays($delayDays);
 
-        $query = DB::table('ecommerce_order_options as opt')
-            ->join('ecommerce_orders as ord', 'opt.order_id', '=', 'ord.id')
+        // 테이블명은 모델에서 얻는다 (문자열 하드코딩 금지)
+        $query = DB::table((new OrderOption)->getTable().' as opt')
+            ->join((new Order)->getTable().' as ord', 'opt.order_id', '=', 'ord.id')
             ->whereNotNull('ord.user_id')
             ->where('opt.option_status', $triggerStatus)
             ->whereNotNull("opt.{$triggerColumn}")
@@ -371,7 +390,7 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
             // (나눠 확정·병합으로 목표액이 늘어난 옵션의 잔여분까지 스케줄러가 포착)
             // 빌더 서브쿼리로 표현 — raw SQL/테이블 별칭은 prefix 자동 적용을 받지 못하므로 별칭 없이 컬럼만 참조.
             ->where('opt.subtotal_earned_points_amount', '>', function ($sub) {
-                $sub->from('ecommerce_mileage_transactions')
+                $sub->from((new MileageTransaction)->getTable())
                     ->selectRaw('COALESCE(SUM(amount), 0)')
                     ->whereColumn('order_option_id', 'opt.id')
                     ->where('type', MileageTransactionTypeEnum::PURCHASE_EARN->value);

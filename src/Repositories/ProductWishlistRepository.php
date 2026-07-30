@@ -59,6 +59,8 @@ class ProductWishlistRepository implements ProductWishlistRepositoryInterface
             ->where('user_id', $userId)
             ->with(['product.brand', 'product.categories', 'product.activeLabelAssignments.label'])
             ->orderByDesc('created_at')
+            // audit:allow repository-paginate-column-pruning reason: 사용자 1명에 종속된 찜 목록 —
+            // where(user_id) 로 이미 좁혀지고, 피벗 성격의 테이블이라 넓은 컬럼이 없다
             ->paginate($perPage);
     }
 

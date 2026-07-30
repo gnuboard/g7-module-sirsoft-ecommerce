@@ -4,6 +4,8 @@ namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Helpers\PermissionHelper;
 use App\Models\ActivityLog;
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Repositories\Concerns\ResolvesSortSpec;
 use App\Search\Engines\DatabaseFulltextEngine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +23,12 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
  */
 class ProductRepository implements ProductRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+    use ResolvesSortSpec;
+
+    /** 허용 정렬 컬럼 (ProductListRequest 와 동일 집합) */
+    private const ADMIN_SORTABLE_COLUMNS = ['created_at', 'updated_at', 'selling_price', 'stock_quantity', 'name'];
+
     public function __construct(
         protected Product $model
     ) {}
@@ -69,10 +77,13 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()->with(['options', 'categories', 'images', 'brand', 'shippingPolicy']);
+        $query = $this->model->newQuery();
 
         // 권한 스코프 필터링
         PermissionHelper::applyPermissionScope($query, 'sirsoft-ecommerce.products.read');
+
+        // 지연 조인 outer 전용 관계 (inner 는 id 만 훑으므로 여기서 with() 를 걸지 않는다)
+        $listRelations = ['options', 'categories', 'images', 'brand', 'shippingPolicy'];
 
         // 문자열 검색
         if (! empty($filters['search_keyword'])) {
@@ -110,11 +121,16 @@ class ProductRepository implements ProductRepositoryInterface
                 // 매칭 ID 로 조건 한정 (빈 매칭은 존재하지 않는 ID 로 빈 결과 → total=0 이 정상)
                 $query->whereIn('id', $matchedIds ?: [0]);
 
-                // 필터 + 정렬 적용
+                // 필터 적용
                 $this->applyAdminFilters($query, $filters);
-                $this->applyAdminSorting($query, $filters);
 
-                return $query->paginate($perPage);
+                return $this->paginateWithDeferredJoin(
+                    query: $query,
+                    columns: ['*'],
+                    sort: $this->resolveAdminSortSpec($filters),
+                    perPage: $perPage,
+                    relations: $listRelations,
+                );
             }
 
             // FULLTEXT 미대상 필드 (product_code, sku, barcode) → LIKE 직접
@@ -134,10 +150,13 @@ class ProductRepository implements ProductRepositoryInterface
         // 필터 적용
         $this->applyAdminFilters($query, $filters);
 
-        // 정렬
-        $this->applyAdminSorting($query, $filters);
-
-        return $query->paginate($perPage);
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: $this->resolveAdminSortSpec($filters),
+            perPage: $perPage,
+            relations: $listRelations,
+        );
     }
 
     /**
@@ -398,10 +417,12 @@ class ProductRepository implements ProductRepositoryInterface
     public function getPublicList(array $filters, int $perPage = 20): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
-            ->with(['images', 'categories', 'brand', 'activeLabelAssignments.label'])
             ->withCount('visibleReviews as review_count')
             ->withAvg('visibleReviews as rating_avg', 'rating')
             ->where('display_status', 'visible');
+
+        // 지연 조인 outer 전용 관계 (inner 는 id 만 훑으므로 with() 를 걸지 않는다)
+        $listRelations = ['images', 'categories', 'brand', 'activeLabelAssignments.label'];
 
         // 카테고리 필터 (ID) — 선택 카테고리 + 모든 하위 카테고리 포함
         if (! empty($filters['category_id'])) {
@@ -420,8 +441,8 @@ class ProductRepository implements ProductRepositoryInterface
                     $q->whereIn('ecommerce_product_categories.category_id', $categoryIds);
                 });
             } else {
-                // 존재하지 않는 slug → 빈 결과 (500 아님)
-                $query->whereRaw('1 = 0');
+                // 존재하지 않는 slug → 빈 결과 (500 아님). 빈 whereIn 은 `0 = 1` 로 컴파일된다
+                $query->whereIn($query->getModel()->getKeyName(), []);
             }
         }
 
@@ -446,18 +467,35 @@ class ProductRepository implements ProductRepositoryInterface
 
         // 정렬
         $sort = $filters['sort'] ?? 'latest';
-        match ($sort) {
-            'sales' => $query
+
+        // 판매량 정렬은 집계 서브쿼리(total_sold) 를 select 에 올려 두고 그 별칭으로 정렬한다.
+        // 지연 조인의 inner 는 select 를 id 하나로 교체하므로 별칭이 사라져 성립하지 않는다.
+        if ($sort === 'sales') {
+            $query
                 ->addSelect(['total_sold' => OrderOption::selectRaw('COALESCE(SUM(quantity), 0)')
                     ->whereColumn('product_id', 'ecommerce_products.id'),
                 ])
-                ->orderByDesc('total_sold'),
-            'price_asc' => $query->orderBy('selling_price', 'asc'),
-            'price_desc' => $query->orderBy('selling_price', 'desc'),
-            default => $query->orderBy('created_at', 'desc'), // latest
+                ->orderByDesc('total_sold')
+                ->with($listRelations);
+
+            // audit:allow repository-paginate-column-pruning reason: 판매량 정렬은 집계 서브쿼리
+            // 별칭 기준이라 지연 조인 inner(=id 단일 select)로 옮길 수 없다. 나머지 정렬은 지연 조인 적용
+            return $query->paginate($perPage);
+        }
+
+        $sortSpec = match ($sort) {
+            'price_asc' => [['column' => 'selling_price', 'direction' => 'asc']],
+            'price_desc' => [['column' => 'selling_price', 'direction' => 'desc']],
+            default => [['column' => 'created_at', 'direction' => 'desc']], // latest
         };
 
-        return $query->paginate($perPage);
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: $sortSpec,
+            perPage: $perPage,
+            relations: $listRelations,
+        );
     }
 
     /**
@@ -536,6 +574,10 @@ class ProductRepository implements ProductRepositoryInterface
             ->withAvg('visibleReviews as rating_avg', 'rating')
             ->when($categoryId !== null, fn ($q) => $q->whereHas('categories', fn ($c) => $c->where('ecommerce_categories.id', $categoryId)))
             ->orderBy($orderBy, $direction)
+            // audit:allow repository-paginate-column-pruning reason: 통합검색 —
+            // whereIn(id, $matchedIds) 로 FULLTEXT 매칭 ID 집합에 먼저 한정되므로 스캔 대상이
+            // 상품 전체가 아니라 매칭 건수로 묶인다(OFFSET 이 훑는 범위도 그 안). 지연 조인의
+            // inner 가 하는 일을 매칭 ID 산출이 이미 수행하는 구조다
             ->paginate($limit, ['*'], 'page', $page);
 
         return ['total' => $paginator->total(), 'items' => $paginator->getCollection()];
@@ -672,23 +714,25 @@ class ProductRepository implements ProductRepositoryInterface
     }
 
     /**
-     * 관리자 상품 목록 정렬을 쿼리에 적용합니다.
+     * 관리자 상품 목록 정렬 스펙을 해석합니다.
      *
-     * @param  Builder  $query  Eloquent 쿼리 빌더
+     * 지연 조인은 정렬을 inner/outer 양쪽에 동일하게 적용해야 하므로, 쿼리에 직접 orderBy 를
+     * 거는 대신 스펙 배열을 돌려준다.
+     *
      * @param  array  $filters  필터 배열
+     * @return array<int, array{column: string, direction: string}> 정렬 스펙
      */
-    private function applyAdminSorting($query, array $filters): void
+    private function resolveAdminSortSpec(array $filters): array
     {
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // 허용 컬럼 화이트리스트로 해석 (없는 컬럼 정렬은 기본값으로 흡수)
+        $sort = $this->resolveSortSpec($filters, self::ADMIN_SORTABLE_COLUMNS, 'created_at')[0];
 
         // 다국어 이름 정렬 처리
-        if ($sortBy === 'name') {
-            $locale = app()->getLocale();
-            $query->orderBy("name->{$locale}", $sortOrder);
-        } else {
-            $query->orderBy($sortBy, $sortOrder);
+        if ($sort['column'] === 'name') {
+            $sort['column'] = 'name->'.app()->getLocale();
         }
+
+        return [$sort];
     }
 
     /**
@@ -755,7 +799,7 @@ class ProductRepository implements ProductRepositoryInterface
 
         $optionIds = $product->options()->pluck('id')->toArray();
 
-        return ActivityLog::where(function (Builder $q) use ($product, $optionIds) {
+        $query = ActivityLog::where(function (Builder $q) use ($product, $optionIds) {
             // 상품 자체 로그
             $q->where(function (Builder $sub) use ($product) {
                 $sub->where('loggable_type', $product->getMorphClass())
@@ -769,6 +813,15 @@ class ProductRepository implements ProductRepositoryInterface
                         ->whereIn('loggable_id', $optionIds);
                 });
             }
-        })->orderBy('created_at', $sortOrder)->paginate($perPage);
+        });
+
+        // 활동 로그는 변경 내역(mediumText)을 리소스가 그대로 노출하므로 컬럼은 좁히지 않고
+        // 지연 조인으로 넓은 컬럼을 읽는 행 수만 이번 페이지 분량으로 고정한다.
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: [['column' => 'created_at', 'direction' => $sortOrder]],
+            perPage: $perPage,
+        );
     }
 }
