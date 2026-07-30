@@ -36,7 +36,10 @@ test.describe('관리자 주문 목록 컨텍스트 왕복 (#75)', () => {
   test('주문 상세에서 목록으로 돌아오면 페이지와 표시 개수가 복원된다', async ({ page, ordersReadToken }) => {
     await authenticatePage(page, ordersReadToken);
     await page.goto(`${LIST_URL}?${LIST_STATE}`);
-    await page.waitForLoadState('networkidle', { timeout: 30_000 });
+    // `networkidle` 은 쓰지 않는다 — 관리자 SPA 는 실시간 알림 연결·주기 폴링이 붙어 500ms 무통신
+    // 구간이 오지 않을 수 있고, 실제로 주문 상세 진입에서 30초 타임아웃했다. 다음 단계에 필요한
+    // 구체 신호만 기다린다(여기서는 API 를 직접 부르므로 문서 로드까지).
+    await page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
 
     // 목록에서 상세로 들어간 직후와 동일한 URL 상태 (진입 leg 가 mergeQuery 로 만들어 주는 형태)
     const orderNumber = await page.evaluate(async () => {
@@ -61,7 +64,9 @@ test.describe('관리자 주문 목록 컨텍스트 왕복 (#75)', () => {
     expect(orderNumber, '주문 시드가 없어 왕복을 검증할 수 없습니다.').not.toBeNull();
 
     await page.goto(`${LIST_URL}/${orderNumber}?${LIST_STATE}`);
-    await page.waitForLoadState('networkidle', { timeout: 30_000 });
+    // 다음 단계가 클릭하는 '목록' 버튼이 실제로 조작 가능해질 때까지만 기다린다.
+    await page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
+    await expect(page.locator('#list_button')).toBeVisible({ timeout: 30_000 });
 
     await page.locator('#list_button').click();
     await page.waitForURL(/\/admin\/ecommerce\/orders\?/, { timeout: 30_000 });
