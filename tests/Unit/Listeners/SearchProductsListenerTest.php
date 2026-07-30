@@ -36,7 +36,7 @@ class SearchProductsListenerTest extends TestCase
 
         $this->assertArrayHasKey('core.search.results', $hooks);
         $this->assertArrayHasKey('core.search.build_response', $hooks);
-        $this->assertArrayHasKey('core.search.validation_rules', $hooks);
+        $this->assertArrayHasKey('core.search.index_validation_rules', $hooks);
 
         // 모두 filter 타입인지 확인
         foreach ($hooks as $hook) {
