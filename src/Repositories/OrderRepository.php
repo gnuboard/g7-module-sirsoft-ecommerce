@@ -38,7 +38,7 @@ class OrderRepository implements OrderRepositoryInterface
      *
      * @var array<int, string>
      */
-    private const LIST_COLUMNS = [
+    public const LIST_COLUMNS = [
         'id',
         'user_id',
         'order_number',
