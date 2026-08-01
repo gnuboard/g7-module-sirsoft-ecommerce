@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
 use App\Repositories\Concerns\ResolvesSortSpec;
+use App\Repositories\Concerns\SortsByRelatedColumn;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -27,6 +28,7 @@ class OrderRepository implements OrderRepositoryInterface
 {
     use PaginatesWithDeferredJoin;
     use ResolvesSortSpec;
+    use SortsByRelatedColumn;
 
     /**
      * 주문 목록이 실제로 사용하는 컬럼
@@ -68,6 +70,16 @@ class OrderRepository implements OrderRepositoryInterface
      * 요청 값을 그대로 orderBy 에 넘기면 없는 컬럼으로 SQL 오류가 나거나 인덱스 없는 넓은
      * 컬럼 정렬을 강제할 수 있다.
      *
+     * 이 목록은 OrderListRequest 의 `sort_by` `in:` 규칙(ordered_at·paid_at·total_amount)
+     * 보다 넓다. 그 규칙은 `HookManager::applyFilters` 로 확장에 열려 있어 확장이 정렬
+     * 컬럼을 늘릴 수 있고, 그때 이 목록이 더 좁으면 게이트를 통과한 정렬이 조용히 기본
+     * 정렬로 되돌아간다. 게이트보다 좁게 두지 않는다
+     * (service-repository.md "정렬 컬럼 화이트리스트").
+     *
+     * 다만 created_at·total_shipping_amount·total_paid_amount 는 인덱스가 없어, 확장이
+     * 게이트를 넓혀 이 컬럼으로 정렬시키면 지연 조인의 inner 도 전체 스캔이 된다.
+     * 그 경우 인덱스를 함께 추가해야 한다.
+     *
      * @var array<int, string>
      */
     private const SORTABLE_COLUMNS = [
@@ -80,6 +92,23 @@ class OrderRepository implements OrderRepositoryInterface
         'ordered_at',
         'paid_at',
         'created_at',
+    ];
+
+    /**
+     * 관계 테이블 컬럼 기준 허용 정렬 (`SortsByRelatedColumn`)
+     *
+     * 발송일은 주문이 아니라 배송 테이블에 있고 한 주문에 배송 행이 여러 건일 수 있다.
+     * 상관 서브쿼리로 정렬하므로 원 행 수가 바뀌지 않아 총 건수·페이지 경계가 유지된다.
+     * `ecommerce_order_shippings(order_id, shipped_at)` 복합 인덱스가 전제다.
+     *
+     * @var array<string, array{model: class-string, foreign_key: string, column: string}>
+     */
+    private const RELATED_SORTABLE_COLUMNS = [
+        'shipped_at' => [
+            'model' => OrderShipping::class,
+            'foreign_key' => 'order_id',
+            'column' => 'shipped_at',
+        ],
     ];
 
     public function __construct(
@@ -299,10 +328,12 @@ class OrderRepository implements OrderRepositoryInterface
         }
 
         // 금액 범위 필터
-        if (! empty($filters['min_amount'])) {
+        // 0 은 유효한 경계값이다(예: 결제금액 0원 주문만). empty() 로 거르면 0 이 "미입력"으로
+        // 취급돼 필터가 통째로 무시된다 — min_stock/max_stock 과 같은 판정식을 쓴다.
+        if (isset($filters['min_amount']) && $filters['min_amount'] !== '') {
             $query->where('total_amount', '>=', (float) $filters['min_amount']);
         }
-        if (! empty($filters['max_amount'])) {
+        if (isset($filters['max_amount']) && $filters['max_amount'] !== '') {
             $query->where('total_amount', '<=', (float) $filters['max_amount']);
         }
 
@@ -317,10 +348,11 @@ class OrderRepository implements OrderRepositoryInterface
         }
 
         // 배송비 범위 필터
-        if (! empty($filters['min_shipping_amount'])) {
+        // 0 은 유효한 경계값이다(무료배송 주문만 보기). empty() 로 거르면 무시된다.
+        if (isset($filters['min_shipping_amount']) && $filters['min_shipping_amount'] !== '') {
             $query->where('total_shipping_amount', '>=', (float) $filters['min_shipping_amount']);
         }
-        if (! empty($filters['max_shipping_amount'])) {
+        if (isset($filters['max_shipping_amount']) && $filters['max_shipping_amount'] !== '') {
             $query->where('total_shipping_amount', '<=', (float) $filters['max_shipping_amount']);
         }
 
@@ -339,8 +371,15 @@ class OrderRepository implements OrderRepositoryInterface
             $query->whereIn('order_device', $devices);
         }
 
-        // 정렬 — 요청 값은 허용 목록으로만 해석한다
-        $sort = $this->resolveSortSpec($filters, self::SORTABLE_COLUMNS, 'ordered_at');
+        // 정렬 — 요청 값은 허용 목록으로만 해석한다.
+        // 발송일(shipped_at)은 배송 테이블에 있어 상관 서브쿼리 정렬로 해석된다.
+        $sort = $this->resolveSortSpecWithRelated(
+            $filters,
+            self::SORTABLE_COLUMNS,
+            self::RELATED_SORTABLE_COLUMNS,
+            $this->model,
+            'ordered_at',
+        );
 
         return $this->paginateWithDeferredJoin(
             query: $query,

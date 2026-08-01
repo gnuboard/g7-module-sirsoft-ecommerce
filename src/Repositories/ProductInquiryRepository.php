@@ -36,6 +36,8 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
         return $this->model->newQuery()
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
+            // 전순서 보장 — created_at 동률의 순서가 호출마다 달라지지 않도록
+            ->orderBy('id', 'desc')
             ->get();
     }
 
@@ -47,6 +49,8 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
         return $this->model->newQuery()
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
+            // 전순서 보장 — 같은 초에 등록된 문의가 페이지 경계에서 뒤섞이지 않도록
+            ->orderBy('id', 'desc')
             // audit:allow repository-paginate-column-pruning reason: 상품 1건에 종속된 문의 목록 —
             // where(product_id) 로 이미 좁혀져 OFFSET 이 깊어질 수 없고, 목록이 본문을 그대로 쓴다
             ->paginate($perPage);
@@ -71,7 +75,9 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
         $query = $this->model->newQuery()
             ->with(['product'])
             ->where('user_id', $userId)
-            ->orderBy('created_at', 'desc');
+            // 전순서 보장 — created_at 동률에서 페이지 경계 흔들림 방지
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         // 답변 여부 필터
         if (isset($filters['is_answered']) && $filters['is_answered'] !== '') {

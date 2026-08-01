@@ -57,8 +57,13 @@ class ProductWishlistRepository implements ProductWishlistRepositoryInterface
     {
         return $this->model
             ->where('user_id', $userId)
+            // 상품이 소프트 삭제되면 eager load 결과가 null 이 되어 카드가 렌더 실패한다.
+            // 목록에서 아예 제외해 "빈 셀 0" 을 성립시킨다 (찜 행 자체는 보존).
+            ->whereHas('product')
             ->with(['product.brand', 'product.categories', 'product.activeLabelAssignments.label'])
             ->orderByDesc('created_at')
+            // 전순서 보장 — 한 번에 여러 건을 담았을 때의 created_at 동률 대비
+            ->orderByDesc('id')
             // audit:allow repository-paginate-column-pruning reason: 사용자 1명에 종속된 찜 목록 —
             // where(user_id) 로 이미 좁혀지고, 피벗 성격의 테이블이라 넓은 컬럼이 없다
             ->paginate($perPage);

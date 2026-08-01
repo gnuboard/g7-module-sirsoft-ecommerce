@@ -133,8 +133,10 @@ class CouponIssueRepository implements CouponIssueRepositoryInterface
     {
         $now = Carbon::now();
 
+        // 관계는 relations: 로 넘긴다 — 쿼리에 미리 with() 하면 지연 조인 트레이트가
+        // outer 에서도 지워 관계가 로드되지 않는다.
         $query = $this->model
-            ->with(['coupon'])
+            ->newQuery()
             ->where('user_id', $userId);
 
         // 상태별 필터링
@@ -171,6 +173,7 @@ class CouponIssueRepository implements CouponIssueRepositoryInterface
             columns: ['*'],
             sort: [['column' => 'created_at', 'direction' => 'desc']],
             perPage: $perPage,
+            relations: ['coupon'],
         );
     }
 

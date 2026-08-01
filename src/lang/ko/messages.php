@@ -1202,6 +1202,8 @@ return [
         'reply_deleted' => '답변이 삭제되었습니다.',
         'reply_delete_failed' => '답변 삭제에 실패했습니다.',
         'reply_not_found' => '답변을 찾을 수 없습니다.',
+        // 서비스가 던진 사유를 그대로 덧붙여, 실패 원인을 서버 기록 없이도 알 수 있게 한다
+        'operation_failed_reason' => ':reason',
     ],
 
     // 사용자 배송지

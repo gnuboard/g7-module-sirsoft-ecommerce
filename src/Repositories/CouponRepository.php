@@ -24,7 +24,7 @@ class CouponRepository implements CouponRepositoryInterface
     use ResolvesSortSpec;
 
     /** 허용 정렬 컬럼 (CouponListRequest 와 동일 집합) */
-    private const SORTABLE_COLUMNS = ['created_at', 'name', 'discount_value', 'issued_count'];
+    private const SORTABLE_COLUMNS = ['created_at', 'name', 'discount_value', 'issued_count', 'valid_to'];
 
     public function __construct(
         protected Coupon $model,
@@ -261,7 +261,9 @@ class CouponRepository implements CouponRepositoryInterface
             ->where(fn ($q) => $q->whereNull('total_quantity')->orWhereColumn('issued_count', '<', 'total_quantity'))
             ->where(fn ($q) => $q->whereNull('valid_to')->orWhere('valid_to', '>=', now()))
             ->with(['includedProducts', 'excludedProducts', 'includedCategories', 'excludedCategories'])
-            ->orderBy('created_at', 'desc');
+            // 정렬 마지막의 기본키는 전순서 보장용이다 (일괄 등록된 쿠폰의 created_at 동률 대비)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         if ($perPage !== null) {
             // audit:allow repository-paginate-column-pruning reason: 다운로드 가능 쿠폰 "정의" 목록 —
@@ -314,15 +316,16 @@ class CouponRepository implements CouponRepositoryInterface
         }
 
         // 혜택금액 범위 필터
-        if (! empty($filters['min_benefit_amount'])) {
+        // 0 은 유효한 경계값이다. empty() 로 거르면 0 이 "미입력"이 되어 필터가 무시된다.
+        if (isset($filters['min_benefit_amount']) && $filters['min_benefit_amount'] !== '') {
             $query->where('discount_value', '>=', $filters['min_benefit_amount']);
         }
-        if (! empty($filters['max_benefit_amount'])) {
+        if (isset($filters['max_benefit_amount']) && $filters['max_benefit_amount'] !== '') {
             $query->where('discount_value', '<=', $filters['max_benefit_amount']);
         }
 
-        // 최소주문금액 필터
-        if (! empty($filters['min_order_amount'])) {
+        // 최소주문금액 필터 (0 = 최소주문금액 제한 없는 쿠폰까지 포함하는 유효 경계)
+        if (isset($filters['min_order_amount']) && $filters['min_order_amount'] !== '') {
             $query->where('min_order_amount', '>=', $filters['min_order_amount']);
         }
 

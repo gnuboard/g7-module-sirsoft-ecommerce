@@ -298,7 +298,16 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 로그인 회원이 마이페이지에서 자신이 작성한 상품 문의 목록을 조회합니다. `auth:sanctum` 인증만 요구하며, `ProductInquiryService::getUserInquiries()` 가 로그인 사용자(`Auth::id()`)의 문의를 `search`(검색어)·`is_answered`(답변 여부) 필터와 `per_page`(기본 10)로 페이지네이션해 `items`(문의 배열)와 `meta`(페이지 정보)로 반환합니다. 마이페이지 문의 내역 화면을 채우는 데 사용합니다.
+**요청 파라미터**
+
+| 이름 | 타입 | 필수 | 기본값 | 설명 |
+| --- | --- | :---: | --- | --- |
+| `page` | integer | - | 1 | 페이지 번호 (최소 1) |
+| `per_page` | integer | - | 10 | 페이지당 건수 (1~100). 범위를 벗어나면 422 |
+| `search` | string | - | - | 검색어 — **상품명**(`product_name_snapshot` 의 로케일별 값) 대상. 문의 제목·본문은 검색하지 않음 |
+| `is_answered` | boolean | - | - | 답변 여부 (`0` 답변대기 / `1` 답변완료) |
+
+**설명** 로그인 회원이 마이페이지에서 자신이 작성한 상품 문의 목록을 조회합니다. `auth:sanctum` 인증만 요구하며, `ProductInquiryService::getUserInquiries()` 가 로그인 사용자(`Auth::id()`)의 문의를 `search`(검색어)·`is_answered`(답변 여부) 필터와 `per_page`(기본 10, 허용 1~100)로 페이지네이션해 `items`(문의 배열)와 `meta`(페이지 정보)로 반환합니다. 마이페이지 문의 내역 화면을 채우는 데 사용합니다.
 
 
 ### DELETE /api/modules/sirsoft-ecommerce/user/inquiries/{inquiryId}

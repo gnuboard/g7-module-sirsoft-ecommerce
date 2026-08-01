@@ -37,8 +37,9 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
      */
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()
-            ->with(['user', 'product', 'images', 'orderOption.order', 'replyAdmin']);
+        // 관계는 아래 relations: 인자로만 넘긴다 — 여기서 with() 해도 지연 조인 트레이트가
+        // 지우므로 실제로 로드되지 않는다(중복 선언은 계약을 오해하게 만든다).
+        $query = $this->model->newQuery();
 
         // 검색 키워드
         if (! empty($filters['search_keyword'])) {
@@ -134,8 +135,8 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
      */
     public function findByProduct(int $productId, array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
+        // 관계는 아래 relations: 인자로만 넘긴다 (위 getListWithFilters 와 같은 이유)
         $query = $this->model->newQuery()
-            ->with(['user', 'images'])
             ->where('product_id', $productId)
             ->where('status', ReviewStatus::VISIBLE->value);
 

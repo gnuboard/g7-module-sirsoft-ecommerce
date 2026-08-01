@@ -71,6 +71,35 @@ class UserAddressUpdatePresenceValidationTest extends ModuleTestCase
     }
 
     /**
+     * 우편번호만 유효한 값으로 바꾸는 수정은 통과합니다.
+     *
+     * 비우기(`''`)는 위 test_update_blanking_zipcode_only_fails 가 막지만, 그 반대 방향인
+     * "우편번호만 새 값으로 교체" 는 별개 경로다. 결과 상태 판정이 페이로드에 없는 필드를
+     * 기존 레코드로 메우지 못하면 이 정상 수정도 422 가 되어 부분 수정이 깨진다.
+     */
+    public function test_update_zipcode_only_passes(): void
+    {
+        $user = User::factory()->create();
+        $address = UserAddress::factory()->create([
+            'user_id' => $user->id,
+            'zipcode' => '06236',
+            'address' => '서울시 강남구 테헤란로 100',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->putJson("{$this->baseUrl}/{$address->id}", ['zipcode' => '13529']);
+
+        $response->assertStatus(200);
+
+        $this->assertSame('13529', $address->fresh()->zipcode, '변경한 우편번호가 저장되어야 한다');
+        $this->assertSame(
+            '서울시 강남구 테헤란로 100',
+            $address->fresh()->address,
+            '전송하지 않은 주소는 기존 값이 보존되어야 한다'
+        );
+    }
+
+    /**
      * 도로명 주소만 바꾸는 수정은 기존 우편번호를 근거로 통과합니다.
      */
     public function test_update_address_only_passes_with_existing_zipcode(): void

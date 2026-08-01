@@ -29,7 +29,7 @@
 | --- | --- | --- | --- | --- | --- |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 | per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
-| sort_by | query | string | 아니오 | `created_at`, `name`, `discount_value`, `issued_count` | 정렬 기준 필드명 |
+| sort_by | query | string | 아니오 | `created_at`, `name`, `discount_value`, `issued_count`, `valid_to` | 정렬 기준 필드명 (그 외 값은 422). `valid_to` 는 유효기간 종료일 |
 | sort_order | query | string | 아니오 | `asc`, `desc` | 정렬 방향 (asc 오름차순 / desc 내림차순) |
 | search_field | query | string | 아니오 | `all`, `name`, `description`, `created_by` | 검색 대상 필드명 (검색어를 적용할 컬럼) |
 | search_keyword | query | string | 아니오 | max 255 | 검색 키워드 (부분 일치) |

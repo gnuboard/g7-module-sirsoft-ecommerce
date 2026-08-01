@@ -1213,6 +1213,8 @@ return [
         'reply_deleted' => 'Reply has been deleted.',
         'reply_delete_failed' => 'Failed to delete reply.',
         'reply_not_found' => 'Reply not found.',
+        // 서비스가 던진 사유를 그대로 덧붙여, 실패 원인을 서버 기록 없이도 알 수 있게 한다
+        'operation_failed_reason' => ':reason',
     ],
 
     // User addresses

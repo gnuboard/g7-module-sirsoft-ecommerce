@@ -453,10 +453,11 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         // 가격 범위 필터 (소수 통화 대응 — float 비교)
-        if (! empty($filters['min_price'])) {
+        // 0 은 유효한 경계값이다(무료 상품만 보기). empty() 로 거르면 필터가 무시된다.
+        if (isset($filters['min_price']) && $filters['min_price'] !== '') {
             $query->where('selling_price', '>=', (float) $filters['min_price']);
         }
-        if (! empty($filters['max_price'])) {
+        if (isset($filters['max_price']) && $filters['max_price'] !== '') {
             $query->where('selling_price', '<=', (float) $filters['max_price']);
         }
 
@@ -574,6 +575,8 @@ class ProductRepository implements ProductRepositoryInterface
             ->withAvg('visibleReviews as rating_avg', 'rating')
             ->when($categoryId !== null, fn ($q) => $q->whereHas('categories', fn ($c) => $c->where('ecommerce_categories.id', $categoryId)))
             ->orderBy($orderBy, $direction)
+            // 전순서 보장 — 정렬 컬럼(등록일/판매량 등)이 비고유라 페이지 경계가 흔들릴 수 있다
+            ->orderBy('id', $direction === 'asc' ? 'asc' : 'desc')
             // audit:allow repository-paginate-column-pruning reason: 통합검색 —
             // whereIn(id, $matchedIds) 로 FULLTEXT 매칭 ID 집합에 먼저 한정되므로 스캔 대상이
             // 상품 전체가 아니라 매칭 건수로 묶인다(OFFSET 이 훑는 범위도 그 안). 지연 조인의
@@ -691,10 +694,11 @@ class ProductRepository implements ProductRepositoryInterface
         if (! empty($filters['price_type'])) {
             $priceField = $filters['price_type'];
 
-            if (! empty($filters['min_price'])) {
+            // 0 은 유효한 경계값 — empty() 판정 금지 (min_stock/max_stock 과 동일 규칙)
+            if (isset($filters['min_price']) && $filters['min_price'] !== '') {
                 $query->where($priceField, '>=', (float) $filters['min_price']);
             }
-            if (! empty($filters['max_price'])) {
+            if (isset($filters['max_price']) && $filters['max_price'] !== '') {
                 $query->where($priceField, '<=', (float) $filters['max_price']);
             }
         }
