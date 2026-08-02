@@ -2015,6 +2015,8 @@ HTTP/1.1 200
 | copy_seo | query | boolean | 아니오 | true/false (기본 **false**) | SEO 메타 복사 여부 — 메타 제목·설명은 상품마다 달라야 검색 결과에서 구분되므로 기본 제외 |
 | copy_identification | query | boolean | 아니오 | true/false (기본 true) | 식별 정보(SKU·상품코드 등) 복사 여부 |
 
+> 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.show_for_copy_validation_rules`).
+
 **요청 예시**
 
 ```http
@@ -2293,6 +2295,8 @@ HTTP/1.1 200
 | product | path | string | 예 | — | 대상 product의 식별자 |
 | per_page | query | integer | 아니오 | 1~100 (기본 10) | 페이지당 로그 수 |
 | sort_order | query | string | 아니오 | `asc` / `desc` (기본 `desc`) | 작성 시각 정렬 방향 |
+
+> 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.product.logs_validation_rules`).
 
 **요청 예시**
 
