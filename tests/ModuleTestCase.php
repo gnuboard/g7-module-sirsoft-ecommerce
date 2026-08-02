@@ -27,6 +27,7 @@ use Modules\Sirsoft\Ecommerce\Models\ShippingType;
 use Modules\Sirsoft\Ecommerce\Module;
 use Modules\Sirsoft\Ecommerce\Providers\EcommerceServiceProvider;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
+use Modules\Sirsoft\Ecommerce\Support\CurrencySettingsCache;
 use Tests\TestCase;
 
 /**
@@ -79,16 +80,23 @@ abstract class ModuleTestCase extends TestCase
      */
     protected function migrateFreshUsing(): array
     {
+        // 모든 번들 확장 migrations 포함 — 여러 확장 스위트를 한 프로세스에서 함께 돌릴 때
+        // 가장 먼저 실행된 TestCase 가 스키마를 확정하므로, 자기 확장만 넘기면 뒤따르는
+        // 확장의 테이블이 생성되지 않는다 (troubleshooting-backend.md 사례 21).
+        $paths = ['database/migrations'];
+        foreach (glob(base_path('modules/_bundled/*/database/migrations'), GLOB_ONLYDIR) as $p) {
+            $paths[] = str_replace(base_path().DIRECTORY_SEPARATOR, '', $p);
+        }
+        foreach (glob(base_path('plugins/_bundled/*/database/migrations'), GLOB_ONLYDIR) as $p) {
+            $paths[] = str_replace(base_path().DIRECTORY_SEPARATOR, '', $p);
+        }
+
         return [
             '--drop-views' => $this->shouldDropViews(),
             '--drop-types' => $this->shouldDropTypes(),
             '--seed' => $this->shouldSeed(),
             '--seeder' => $this->seeder(),
-            '--path' => [
-                base_path('database/migrations'),
-                $this->getModuleBasePath().'/database/migrations',
-            ],
-            '--realpath' => true,
+            '--path' => $paths,
         ];
     }
 
@@ -185,6 +193,11 @@ abstract class ModuleTestCase extends TestCase
         if (method_exists(ShippingType::class, 'clearCodeCache')) {
             ShippingType::clearCodeCache();
         }
+
+        // - CurrencySettingsCache: 통화 설정을 요청 단위로 캐시한다. 비우지 않으면 앞선 테스트가
+        //   읽어 둔 통화 구성(기본 통화의 소수 자릿수 등)을 뒤 테스트가 물려받아, 금액 필드가
+        //   int 로 나와야 할 자리에서 float 이 나오는 등 단독 통과 / 함께 실행 실패가 발생한다.
+        CurrencySettingsCache::clear();
     }
 
     /**

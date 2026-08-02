@@ -1743,8 +1743,9 @@ return [
                 'boolean' => 'Auto cancel unpaid orders option must be true or false.',
             ],
             'auto_cancel_days' => [
+                'required' => 'Please enter the auto cancel days.',
                 'integer' => 'Auto cancel days must be an integer.',
-                'min' => 'Auto cancel days must be at least 0.',
+                'min' => 'Auto cancel days must be at least 1.',
                 'max' => 'Auto cancel days cannot exceed 30.',
             ],
             'cart_expiry_days' => [

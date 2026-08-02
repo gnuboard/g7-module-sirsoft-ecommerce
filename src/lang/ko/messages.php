@@ -345,6 +345,7 @@ return [
         'not_downloadable' => '다운로드할 수 없는 쿠폰입니다.',
         'quantity_exhausted' => '쿠폰 수량이 소진되었습니다.',
         'issue_period_expired' => '쿠폰 발급 기간이 종료되었습니다.',
+        'validity_not_configured' => '쿠폰의 유효기간이 설정되어 있지 않아 발급할 수 없습니다. 관리자에게 문의해주세요.',
         // 쿠폰 검증 오류 (DTO/ValidationError)
         'expired' => '만료된 쿠폰입니다.',
         'min_amount_not_met' => '최소 주문 금액 조건을 충족하지 않습니다.',

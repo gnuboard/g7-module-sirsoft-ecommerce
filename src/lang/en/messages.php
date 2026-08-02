@@ -341,6 +341,7 @@ return [
         'not_downloadable' => 'This coupon is not available for download.',
         'quantity_exhausted' => 'Coupon quantity exhausted.',
         'issue_period_expired' => 'Coupon issue period has ended.',
+        'validity_not_configured' => 'This coupon cannot be issued because its validity period is not configured. Please contact the administrator.',
         // Coupon validation errors (DTO/ValidationError)
         'expired' => 'This coupon has expired.',
         'min_amount_not_met' => 'Minimum order amount not met.',
