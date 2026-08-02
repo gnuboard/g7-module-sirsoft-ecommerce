@@ -2050,6 +2050,11 @@ HTTP/1.1 200
 
 **설명** 관리자가 이커머스 환경설정을 저장합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, `_tab` 으로 저장할 카테고리를 지정하고 각 섹션(`basic_info`·`shipping`·`claim` 등)을 배열로 전달합니다. `EcommerceSettingsService::saveSettings()`가 JSON 설정을 저장하되, DB 관리 대상인 `shipping.carriers`·`shipping.types`·`claim.refund_reasons` 는 분리해 각 Service 의 sync 메서드로 동기화합니다. 저장 성공 시 `sirsoft-ecommerce.settings.after_save` 훅을 발화하고, 관리자 UI 상태 갱신을 위해 병합된 전체 설정을 다시 반환합니다.
 
+**숫자 필드 정규화** 검증 규칙에 `integer` / `numeric` 이 선언된 모든 필드는 검증 직전에 숫자 타입으로 캐스트되어 저장됩니다(중첩 배열의 와일드카드 경로 포함 — 예: `mileage.currency_rules.*.use_unit`). HTML `number` 입력의 값은 문자열(`"5"`)로 전송되고 Laravel 의 `integer` 규칙은 숫자 문자열을 통과시키되 캐스트하지 않으므로, 정규화가 없으면 문자열이 그대로 설정 파일에 영속되어 이후 날짜/수치 연산에서 타입 오류를 유발합니다.
+
+- 정규화 대상: 정수 표기 문자열(`"5"`, `"05"`) → `int`, 소수 표기 문자열(`"1.5"`) → `float`(단, `numeric` 필드에 한함)
+- 정규화 제외: 비숫자 문자열(`"abc"`), 빈 문자열, `null`, 불리언, 그리고 `integer` 필드에 전달된 소수 문자열(`"3.7"`) — 검증을 느슨하게 만들지 않기 위해 캐스트하지 않고 그대로 검증 실패시킵니다
+- 조회(`GET`) 응답도 `defaults.json` 스키마의 숫자 타입으로 정규화되어 반환되므로, 저장 시점의 표현 형태와 무관하게 숫자로 수신됩니다
 
 ### PUT /api/modules/sirsoft-ecommerce/admin/settings/banks
 <!-- @generated:start:api.modules.sirsoft-ecommerce.admin.settings.store-banks -->

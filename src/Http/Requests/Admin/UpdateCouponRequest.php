@@ -16,6 +16,7 @@ use Modules\Sirsoft\Ecommerce\Enums\CouponIssueStatus;
 use Modules\Sirsoft\Ecommerce\Enums\CouponTargetScope;
 use Modules\Sirsoft\Ecommerce\Enums\CouponTargetType;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\Concerns\ValidatesCouponTargetScope;
+use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\Concerns\ValidatesCouponValidityPair;
 use Modules\Sirsoft\Ecommerce\Models\Category;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 
@@ -25,6 +26,7 @@ use Modules\Sirsoft\Ecommerce\Models\Product;
 class UpdateCouponRequest extends FormRequest
 {
     use ValidatesCouponTargetScope;
+    use ValidatesCouponValidityPair;
 
     /**
      * 사용자가 이 요청을 수행할 권한이 있는지 확인
@@ -44,6 +46,7 @@ class UpdateCouponRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $this->validateTargetScopeSelection($validator);
+        $this->validateValidityPair($validator);
     }
 
     /**
@@ -102,11 +105,12 @@ class UpdateCouponRequest extends FormRequest
             // 다른 탭만 고치는 요청도 1인당 사용 제한을 매번 실어 보내야 저장된다.
             'per_user_limit' => 'sometimes|required|integer|min:0',
 
-            // 유효기간 — 조건부 규칙은 StoreCouponRequest 와 동일해야 한다.
-            // required_if 는 조건 필드(valid_type)가 요청에 없으면 발화하지 않으므로
-            // 부분 수정을 깨지 않으면서 "기간 지정인데 기간이 비어 있는" 저장만 차단한다.
+            // days_from_issue 쌍의 정합성은 ValidatesCouponValidityPair 가 Store 와 공통으로 판정한다.
+            // 규칙 배열의 required_if 는 조건 필드(valid_type)가 요청에 없으면 발화하지 않아,
+            // `valid_days: null` 만 보내는 부분 수정이 그대로 통과한다(실측). 저장된 유형이
+            // days_from_issue 인 쿠폰이 그 경로로 일수를 잃으면 발급 즉시 만료되는 쿠폰이 조용히 나간다.
             'valid_type' => 'sometimes|required|string|in:period,days_from_issue',
-            'valid_days' => 'nullable|required_if:valid_type,days_from_issue|integer|min:1',
+            'valid_days' => 'nullable|integer|min:1',
             'valid_from' => 'nullable|required_if:valid_type,period|date',
             'valid_to' => 'nullable|required_if:valid_type,period|date|after_or_equal:valid_from',
 

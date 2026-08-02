@@ -46,6 +46,15 @@ use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
  */
 class OrderProcessingService
 {
+    /** 입금기한 기본값(일) — 설정이 비어 있거나 사용할 수 없는 값일 때 적용 */
+    private const AUTO_CANCEL_DAYS_DEFAULT = 3;
+
+    /** 입금기한 허용 하한(일) — 설정(limits)에 값이 없을 때의 fallback */
+    private const AUTO_CANCEL_DAYS_MIN_FALLBACK = 1;
+
+    /** 입금기한 허용 상한(일) — 설정(limits)에 값이 없을 때의 fallback */
+    private const AUTO_CANCEL_DAYS_MAX_FALLBACK = 30;
+
     public function __construct(
         protected OrderRepositoryInterface $orderRepository,
         protected TempOrderService $tempOrderService,
@@ -928,9 +937,7 @@ class OrderProcessingService
         if ($paymentMethod === PaymentMethodEnum::VBANK->value) {
             $paymentData['vbank_holder'] = $depositorName;
             // 입금기한 단일 SSoT: auto_cancel_days (결제수단 무관)
-            $paymentData['vbank_due_at'] = Carbon::now()->addDays(
-                module_setting('sirsoft-ecommerce', 'order_settings.auto_cancel_days', 3)
-            );
+            $paymentData['vbank_due_at'] = Carbon::now()->addDays($this->resolveAutoCancelDays());
         }
 
         // 무통장입금 (수동 입금) 정보
@@ -954,12 +961,46 @@ class OrderProcessingService
             // 입금기한 단일 SSoT: auto_cancel_days (VBANK 와 동일 기준).
             // 클라이언트가 보낸 due_days 는 무시한다 — 기한은 서버 정책이며, 이를 받아들이면
             // 미입금 자동취소 스케줄러와 안내 기한이 어긋난다.
-            $paymentData['deposit_due_at'] = Carbon::now()->addDays(
-                module_setting('sirsoft-ecommerce', 'order_settings.auto_cancel_days', 3)
-            );
+            $paymentData['deposit_due_at'] = Carbon::now()->addDays($this->resolveAutoCancelDays());
         }
 
         $order->payment()->create($paymentData);
+    }
+
+    /**
+     * 입금기한(일)을 정수로 해석합니다.
+     *
+     * 설정값은 관리자 화면(HTML number 입력)을 거치면서 문자열로 저장될 수 있고,
+     * Carbon 의 날짜 연산은 strict 타입 경계라 문자열을 받으면 TypeError 를 던진다.
+     * 저장 타입과 무관하게 정수를 보장하고, 허용 범위를 벗어난 값은 안전한 값으로 보정한다.
+     *
+     * @return int 입금기한 일수 (허용 범위로 클램프된 값)
+     */
+    private function resolveAutoCancelDays(): int
+    {
+        $fallback = self::AUTO_CANCEL_DAYS_DEFAULT;
+
+        $raw = module_setting('sirsoft-ecommerce', 'order_settings.auto_cancel_days', $fallback);
+        $days = is_numeric($raw) ? (int) $raw : $fallback;
+
+        // 0 이하(빈 문자열/미설정/오염값)는 즉시 만료를 뜻하므로 기본값으로 되돌린다.
+        if ($days <= 0) {
+            $days = $fallback;
+        }
+
+        // 허용 범위는 검증 규칙(StoreEcommerceSettingsRequest)과 같은 limits 설정을 SSoT 로 쓴다.
+        // 여기서 다시 좁히는 것이 아니라, 검증을 거치지 않고 영속된 값(구버전 데이터·직접 편집)만
+        // 안전 범위로 되돌린다 — 주문 생성 자체를 실패시키지 않기 위함.
+        $min = max(
+            self::AUTO_CANCEL_DAYS_MIN_FALLBACK,
+            (int) config('sirsoft-ecommerce.limits.auto_cancel_days_min', self::AUTO_CANCEL_DAYS_MIN_FALLBACK)
+        );
+        $max = max(
+            $min,
+            (int) config('sirsoft-ecommerce.limits.auto_cancel_days_max', self::AUTO_CANCEL_DAYS_MAX_FALLBACK)
+        );
+
+        return max($min, min($max, $days));
     }
 
     /**
