@@ -2,6 +2,7 @@
 
 namespace Modules\Sirsoft\Ecommerce\Http\Requests\Admin;
 
+use App\Extension\HookManager;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -10,7 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * 권한은 라우트 미들웨어(permission:admin,sirsoft-ecommerce.products.create)에서 처리하며,
  * 여기서는 어떤 항목을 함께 복사할지 고르는 플래그만 검증합니다.
  */
-class ShowProductForCopyRequest extends FormRequest
+class ProductShowForCopyRequest extends FormRequest
 {
     /**
      * 복사 대상 항목과 미지정 시 기본값
@@ -54,22 +55,29 @@ class ShowProductForCopyRequest extends FormRequest
             $rules["copy_{$target}"] = ['sometimes', 'boolean'];
         }
 
-        return $rules;
+        return HookManager::applyFilters('sirsoft-ecommerce.product.show_for_copy_validation_rules', $rules, $this);
     }
 
     /**
      * 복사 옵션을 반환합니다.
      *
-     * @return array<string, bool> 항목별 복사 여부
+     * 코어 항목은 `copy_` 접두사를 뗀 키로, 확장이 훅으로 추가한 필드는 검증된 이름 그대로
+     * 함께 담는다 — 고정 키만 열거하면 확장이 규칙을 얹어도 값이 Service 에 도달하지 못한다.
+     *
+     * @return array<string, mixed> 항목별 복사 여부 + 확장 추가 필드
      */
     public function getCopyOptions(): array
     {
+        $coreKeys = [];
         $options = [];
 
         foreach (self::COPY_TARGETS as $target => $default) {
+            $coreKeys[] = "copy_{$target}";
             $options[$target] = $this->boolean("copy_{$target}", $default);
         }
 
-        return $options;
+        $extra = array_diff_key($this->validated(), array_flip($coreKeys));
+
+        return array_merge($extra, $options);
     }
 }

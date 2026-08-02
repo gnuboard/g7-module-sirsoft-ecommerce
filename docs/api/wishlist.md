@@ -72,10 +72,18 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 422 | Validation Error | `page` < 1, `per_page` 가 1~100 범위를 벗어나거나 정수가 아닌 경우 |
 
 <!-- @generated:end -->
 
-**설명** 로그인한 회원의 찜(위시리스트) 목록을 페이지네이션으로 조회합니다. `auth:sanctum` 인증이 필요하며, `WishlistController@index`가 `ProductWishlistService::getByUser()`로 본인 찜 목록만 가져와 `WishlistCollection`으로 반환합니다. `per_page`는 기본 20건이며 최대 100건으로 제한됩니다. 마이페이지의 찜 목록 화면에서 사용합니다.
+**요청 파라미터**
+
+| 이름 | 타입 | 필수 | 기본값 | 설명 |
+| --- | --- | :---: | --- | --- |
+| `page` | integer | - | 1 | 페이지 번호 (최소 1) |
+| `per_page` | integer | - | 20 | 페이지당 건수 (1~100). 범위를 벗어나면 422 |
+
+**설명** 로그인한 회원의 찜(위시리스트) 목록을 페이지네이션으로 조회합니다. `auth:sanctum` 인증이 필요하며, `WishlistController@index`가 `ProductWishlistService::getByUser()`로 본인 찜 목록만 가져와 `WishlistCollection`으로 반환합니다. 페이지네이션 파라미터는 `WishlistListRequest` 가 검증하며 `per_page` 는 기본 20건, 허용 범위 1~100건입니다(범위를 벗어나면 422). 소프트 삭제된 상품의 찜 행은 목록에서 제외되므로 `total` 은 찜 테이블의 행 수보다 작을 수 있습니다. 마이페이지의 찜 목록 화면에서 사용합니다.
 
 
 ### POST /api/modules/sirsoft-ecommerce/wishlist/toggle

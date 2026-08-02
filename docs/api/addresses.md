@@ -402,6 +402,8 @@ HTTP/1.1 200
 | intl_postal_code | body | string | 아니오 | max 20 | 우편번호 (국제 주소) |
 | is_default | body | boolean | 아니오 | — | 기본값 지정 여부 |
 
+개별 필드는 모두 선택이지만 주소 필수 조합은 "기존 저장값 + 이번 요청" 결과 상태 기준으로 검증됩니다. 국내(`country_code=KR` 또는 미전송 시 기존 국가가 KR)는 `zipcode` + `address`, 해외는 `address_line_1` + `intl_city` + `intl_postal_code` 가 결과적으로 모두 채워져 있어야 하며, 그렇지 않으면 422 로 거절됩니다. 요청에 없는 필드는 저장된 값으로 판정하므로 `is_default` 만 바꾸는 요청이나 도로명 주소만 교체하는 요청은 그대로 통과합니다. 해외 주소의 저장 컬럼은 `city`/`state`/`postal_code` 이므로 요청에 `intl_city`/`intl_postal_code` 가 없으면 그 저장값이 판정 기준이 됩니다.
+
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.user_address.update_validation_rules`).
 
 **요청 예시**

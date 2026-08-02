@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Helpers\PermissionHelper;
+use App\Repositories\Concerns\ResolvesSortSpec;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,11 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ShippingPolicyRepositoryInt
  */
 class ShippingPolicyRepository implements ShippingPolicyRepositoryInterface
 {
+    use ResolvesSortSpec;
+
+    /** 허용 정렬 컬럼 (ShippingPolicyListRequest 와 동일 집합) */
+    private const SORTABLE_COLUMNS = ['id', 'name', 'is_active', 'sort_order', 'created_at', 'updated_at'];
+
     public function __construct(
         protected ShippingPolicy $model
     ) {}
@@ -75,18 +81,19 @@ class ShippingPolicyRepository implements ShippingPolicyRepositoryInterface
             $query->where('is_active', $isActive);
         }
 
-        // 정렬
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // 정렬 (허용 컬럼 화이트리스트로 해석)
+        $sort = $this->resolveSortSpec($filters, self::SORTABLE_COLUMNS, 'created_at')[0];
 
         // 다국어 이름 정렬 처리
-        if ($sortBy === 'name') {
+        if ($sort['column'] === 'name') {
             $locale = app()->getLocale();
-            $query->orderBy("name->{$locale}", $sortOrder);
+            $query->orderBy("name->{$locale}", $sort['direction']);
         } else {
-            $query->orderBy($sortBy, $sortOrder);
+            $query->orderBy($sort['column'], $sort['direction']);
         }
 
+        // audit:allow repository-paginate-column-pruning reason: 배송정책 "정의" 목록 —
+        // 행 수가 운영자가 만든 정책 수에 묶여 OFFSET 이 깊어질 수 없다
         return $query->paginate($perPage);
     }
 

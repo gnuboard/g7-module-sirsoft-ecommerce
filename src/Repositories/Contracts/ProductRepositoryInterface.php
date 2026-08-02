@@ -258,7 +258,7 @@ interface ProductRepositoryInterface
      * 상품과 그 옵션의 활동 로그를 합쳐 페이지네이션으로 조회
      *
      * @param  Product  $product  대상 상품
-     * @param  array  $filters  조회 필터 (per_page, sort_order)
+     * @param  array  $filters  조회 필터 (per_page, sort_order + 확장이 훅으로 추가한 필드)
      * @return LengthAwarePaginator 활동 로그 페이지네이터
      */
     public function getActivityLogsForProduct(Product $product, array $filters = []): LengthAwarePaginator;

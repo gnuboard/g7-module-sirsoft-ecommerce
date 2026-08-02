@@ -29,7 +29,7 @@
 | --- | --- | --- | --- | --- | --- |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 | per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
-| sort_by | query | string | 아니오 | `created_at`, `name`, `discount_value`, `issued_count` | 정렬 기준 필드명 |
+| sort_by | query | string | 아니오 | `created_at`, `name`, `discount_value`, `issued_count`, `valid_to` | 정렬 기준 필드명 (그 외 값은 422). `valid_to` 는 유효기간 종료일 |
 | sort_order | query | string | 아니오 | `asc`, `desc` | 정렬 방향 (asc 오름차순 / desc 내림차순) |
 | search_field | query | string | 아니오 | `all`, `name`, `description`, `created_by` | 검색 대상 필드명 (검색어를 적용할 컬럼) |
 | search_keyword | query | string | 아니오 | max 255 | 검색 키워드 (부분 일치) |
@@ -700,6 +700,8 @@ HTTP/1.1 200
 | target_scope | body | string | 아니오 | `all`, `products`, `categories` | 적용 범위: all(전체 상품), products(특정 상품), categories(특정 카테고리) |
 | products | body | array | 아니오 | — | 적용 상품 목록 (`target_scope=products`), 항목별 `{id, type: include\|exclude}` |
 | categories | body | array | 아니오 | — | 적용 카테고리 목록 (`target_scope=categories`), 항목별 `{id, type: include\|exclude}` |
+
+> 필수 표기는 "전송했을 때 값이 있어야 함"을 뜻합니다. 이 엔드포인트는 부분 수정을 지원하므로 body 필드는 모두 생략할 수 있습니다 (생략하면 기존 값 유지). 유효기간은 `valid_type` 을 함께 전송할 때만 조건부 필수가 적용됩니다 — `period` 면 `valid_from`/`valid_to`, `days_from_issue` 면 `valid_days` 가 비어 있으면 422 입니다. `valid_type` 을 보내지 않는 부분 수정은 유효기간 필드를 요구하지 않습니다.
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.update_validation_rules`).
 

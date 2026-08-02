@@ -922,6 +922,13 @@ class UserMileageService
                 $firstSource ??= $lot->id;
             }
 
+            // 지급(adminEarn)은 description 을 채우는데 차감·사용은 비워 두면
+            // 회원 마일리지 내역의 「내용」 열이 음수 행에서만 공백이 된다.
+            // 활동 로그와 같은 키를 써서 지급/차감 표기를 대칭으로 맞춘다.
+            $descriptionKey = $type === MileageTransactionTypeEnum::ADMIN_DEDUCT
+                ? 'sirsoft-ecommerce::activity_log.description.mileage_admin_deduct'
+                : 'sirsoft-ecommerce::activity_log.description.mileage_use';
+
             $tx = $this->ledger->createTransaction(array_merge([
                 'user_id' => $userId,
                 'currency' => $currency,
@@ -930,6 +937,7 @@ class UserMileageService
                 'remaining_amount' => 0,
                 'balance_after' => $this->ledger->getBalanceByCurrency($userId, $currency),
                 'source_transaction_id' => $firstSource,
+                'description' => __($descriptionKey, ['amount' => $amount]),
             ], $extra));
 
             $this->cache->recalculateForUser($userId, $currency);

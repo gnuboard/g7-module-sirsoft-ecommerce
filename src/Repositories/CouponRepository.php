@@ -3,6 +3,8 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Helpers\PermissionHelper;
+use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Repositories\Concerns\ResolvesSortSpec;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,6 +20,12 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponRepositoryInterface;
  */
 class CouponRepository implements CouponRepositoryInterface
 {
+    use PaginatesWithDeferredJoin;
+    use ResolvesSortSpec;
+
+    /** 허용 정렬 컬럼 (CouponListRequest 와 동일 집합) */
+    private const SORTABLE_COLUMNS = ['created_at', 'name', 'discount_value', 'issued_count', 'valid_to'];
+
     public function __construct(
         protected Coupon $model,
         protected CouponIssue $issueModel
@@ -89,10 +97,9 @@ class CouponRepository implements CouponRepositoryInterface
      */
     private function finalizeListQuery(Builder $query, array $filters, array $with, int $perPage): LengthAwarePaginator
     {
-        // 정렬
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder)->orderBy('id', $sortOrder);
+        // 정렬 (허용 컬럼 화이트리스트로 해석)
+        $sort = $this->resolveSortSpec($filters, self::SORTABLE_COLUMNS, 'created_at')[0];
+        $query->orderBy($sort['column'], $sort['direction'])->orderBy('id', $sort['direction']);
 
         // Eager loading
         if (! empty($with)) {
@@ -102,6 +109,8 @@ class CouponRepository implements CouponRepositoryInterface
         // 기본 관계 로드
         $query->with(['creator:id,uuid,name,email']);
 
+        // audit:allow repository-paginate-column-pruning reason: 쿠폰 "정의" 목록 —
+        // 행 수가 운영자가 만든 쿠폰 수에 묶인다(발급 이력은 별도 테이블). description 외에 넓은 컬럼이 없다
         return $query->paginate($perPage);
     }
 
@@ -178,13 +187,19 @@ class CouponRepository implements CouponRepositoryInterface
             $query->where('status', $filters['status']);
         }
 
-        // 기본 정렬: 발급일 최신순
-        $query->orderBy('issued_at', 'desc')->orderBy('id', 'desc');
-
-        // 관계 로드 (사용처 주문번호 표시를 위해 order 도 로드)
-        $query->with(['user:id,uuid,name', 'order:id,order_number']);
-
-        return $query->paginate($perPage);
+        // 지연 조인: 쿠폰 1건의 발급 이력은 대량 발급 시 수십만 건이 될 수 있어
+        // 뒤쪽 페이지에서 OFFSET 비용이 그대로 누적된다. inner 는 id 만 훑는다.
+        return $this->paginateWithDeferredJoin(
+            query: $query,
+            columns: ['*'],
+            sort: [
+                ['column' => 'issued_at', 'direction' => 'desc'],
+                ['column' => 'id', 'direction' => 'desc'],
+            ],
+            perPage: $perPage,
+            // 관계 로드 (사용처 주문번호 표시를 위해 order 도 로드)
+            relations: ['user:id,uuid,name', 'order:id,order_number'],
+        );
     }
 
     /**
@@ -246,9 +261,13 @@ class CouponRepository implements CouponRepositoryInterface
             ->where(fn ($q) => $q->whereNull('total_quantity')->orWhereColumn('issued_count', '<', 'total_quantity'))
             ->where(fn ($q) => $q->whereNull('valid_to')->orWhere('valid_to', '>=', now()))
             ->with(['includedProducts', 'excludedProducts', 'includedCategories', 'excludedCategories'])
-            ->orderBy('created_at', 'desc');
+            // 정렬 마지막의 기본키는 전순서 보장용이다 (일괄 등록된 쿠폰의 created_at 동률 대비)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         if ($perPage !== null) {
+            // audit:allow repository-paginate-column-pruning reason: 다운로드 가능 쿠폰 "정의" 목록 —
+            // 발급중 상태의 쿠폰만 남는 좁은 집합이라 OFFSET 이 깊어질 수 없다
             return $query->paginate($perPage);
         }
 
@@ -297,15 +316,16 @@ class CouponRepository implements CouponRepositoryInterface
         }
 
         // 혜택금액 범위 필터
-        if (! empty($filters['min_benefit_amount'])) {
+        // 0 은 유효한 경계값이다. empty() 로 거르면 0 이 "미입력"이 되어 필터가 무시된다.
+        if (isset($filters['min_benefit_amount']) && $filters['min_benefit_amount'] !== '') {
             $query->where('discount_value', '>=', $filters['min_benefit_amount']);
         }
-        if (! empty($filters['max_benefit_amount'])) {
+        if (isset($filters['max_benefit_amount']) && $filters['max_benefit_amount'] !== '') {
             $query->where('discount_value', '<=', $filters['max_benefit_amount']);
         }
 
-        // 최소주문금액 필터
-        if (! empty($filters['min_order_amount'])) {
+        // 최소주문금액 필터 (0 = 최소주문금액 제한 없는 쿠폰까지 포함하는 유효 경계)
+        if (isset($filters['min_order_amount']) && $filters['min_order_amount'] !== '') {
             $query->where('min_order_amount', '>=', $filters['min_order_amount']);
         }
 
