@@ -73,7 +73,7 @@
           "name": "Button",
           "props": {
             "type": "button",
-            "className": "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50",
+            "className": "px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium transition-colors disabled:opacity-50",
             "disabled": "{{!(_local.selectedItems || []).length || !_local.bulkIssueStatus || coupons?.data?.abilities?.can_update !== true}}"
           },
           "text": "$t:sirsoft-ecommerce.admin.promotion_coupon.bulk.apply",
@@ -303,6 +303,7 @@
                 "type": "basic",
                 "name": "A",
                 "props": {
+                  "href": "#",
                   "className": "text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
                 },
                 "text": "{{row.localized_name}}",
@@ -708,7 +709,7 @@
             {
               "iteration": {
                 "source": "coupons?.data?.data || []",
-                "item": "coupon",
+                "item_var": "coupon",
                 "key": "coupon.id"
               },
               "children": [
