@@ -37,6 +37,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterf
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductAdditionalOptionValueRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ShippingPolicyRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\MileageRounding;
 use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
 
 /**
@@ -316,7 +317,8 @@ class OrderCalculationService
         $pointsPerItem = $this->calculatePointsEarning(
             $preparedItems,
             $itemsAfterOrderDiscount,
-            $pointsUsageResult
+            $pointsUsageResult,
+            $input
         );
         $pointsPerItem = HookManager::applyFilters(
             'sirsoft-ecommerce.calculation.after_points_earning',
@@ -855,11 +857,19 @@ class OrderCalculationService
      * @param  array  $preparedItems  준비된 아이템 배열
      * @param  array  $discountedItems  할인 후 아이템 배열 (주문쿠폰 적용 후)
      * @param  array  $pointsUsageResult  마일리지 사용 결과 (points_by_option 포함)
+     * @param  CalculationInput|null  $input  계산 입력 (재계산 시 주문 시점 절사 기준 복원용)
      * @return array 옵션별 마일리지 배열 [product_option_id => points]
      */
-    protected function calculatePointsEarning(array $preparedItems, array $discountedItems, array $pointsUsageResult = []): array
+    protected function calculatePointsEarning(array $preparedItems, array $discountedItems, array $pointsUsageResult = [], ?CalculationInput $input = null): array
     {
         $pointsPerItem = [];
+
+        // 적립 절사 기준. 재계산(부분취소·추가결제)은 주문 스냅샷을 우선한다 — 설정을 다시 읽으면
+        // 운영자가 이후에 바꾼 절사 기준이 과거 주문에 소급 적용돼, 취소하지 않은 잔여분의
+        // 적립액이 취소 처리만으로 달라진다.
+        $rounding = $input?->mileagePolicySnapshot !== null
+            ? MileageRounding::fromOrderSnapshot($input->mileagePolicySnapshot)
+            : MileageRounding::normalize($this->resolveMileageCurrencyRule($input));
 
         foreach ($preparedItems as $item) {
             $optionId = $item['product_option_id'];
@@ -890,19 +900,50 @@ class OrderCalculationService
             if ($option->mileage_value !== null && $option->mileage_type !== null) {
                 if ($option->mileage_type === 'fixed') {
                     // 정액 적립: mileage_value를 그대로 사용 (수량 곱)
-                    $pointsPerItem[$optionId] = (int) floor($option->mileage_value * $item['quantity']);
+                    $pointsPerItem[$optionId] = MileageRounding::apply($option->mileage_value * $item['quantity'], $rounding);
                 } else {
                     // 정률 적립: earnableAmount 기준으로 계산
-                    $pointsPerItem[$optionId] = (int) floor($earnableAmount * $option->mileage_value / 100);
+                    $pointsPerItem[$optionId] = MileageRounding::apply($earnableAmount * $option->mileage_value / 100, $rounding);
                 }
             } else {
                 // 기본 마일리지 적립율 (설정값, 기본 1%)
                 $defaultRate = (float) $this->settingsService->getSetting('mileage.default_earn_rate', 1);
-                $pointsPerItem[$optionId] = (int) floor($earnableAmount * $defaultRate / 100);
+                $pointsPerItem[$optionId] = MileageRounding::apply($earnableAmount * $defaultRate / 100, $rounding);
             }
         }
 
         return $pointsPerItem;
+    }
+
+    /**
+     * 적립 절사 기준을 담은 통화별 마일리지 규칙을 조회합니다.
+     *
+     * 마일리지는 표시통화가 아니라 기준통화(base_currency)로 적립·정산되므로, 규칙도
+     * 기준통화 기준으로 고른다. 스냅샷 모드에서는 주문 시점 기준통화를, 신규 주문에서는
+     * 현재 기본 통화를 쓴다. 해당 통화 규칙이 없으면 첫 행(기본 통화 규칙)으로 폴백한다 —
+     * `UserMileageService::currencyRule()` 과 같은 해석 규칙이다.
+     *
+     * @param  CalculationInput|null  $input  계산 입력
+     * @return array|null 통화별 마일리지 규칙 (없으면 null → 절사 기본값 적용)
+     */
+    protected function resolveMileageCurrencyRule(?CalculationInput $input): ?array
+    {
+        $rules = (array) $this->settingsService->getSetting('mileage.currency_rules', []);
+
+        if ($rules === []) {
+            return null;
+        }
+
+        $currency = $input->metadata['currency_snapshot']['base_currency']
+            ?? $this->currencyService->getDefaultCurrency();
+
+        foreach ($rules as $rule) {
+            if (is_array($rule) && ($rule['currency_code'] ?? null) === $currency) {
+                return $rule;
+            }
+        }
+
+        return is_array($rules[0] ?? null) ? $rules[0] : null;
     }
 
     /**

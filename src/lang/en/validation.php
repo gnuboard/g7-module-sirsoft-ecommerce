@@ -1390,6 +1390,8 @@ return [
         'mileage.currency_rules.*.use_unit' => 'Use Unit',
         'mileage.currency_rules.*.max_use_percent' => 'Max Use Percent',
         'mileage.currency_rules.*.max_use_value' => 'Max Use Amount',
+        'mileage.currency_rules.*.earn_rounding_unit' => 'Earning Rounding Unit',
+        'mileage.currency_rules.*.earn_rounding_method' => 'Earning Rounding Method',
         'mileage.expiry_days' => 'Expiry Days',
         'mileage.expiry_notification_days_before' => 'Expiry Notification Days',
 
@@ -1615,6 +1617,12 @@ return [
                     'integer' => 'Max usable amount must be an integer.',
                     'min' => 'Max usable amount must be 0 or greater.',
                     'max' => 'Max usable amount is too large (max 1 billion).',
+                ],
+                'earn_rounding_unit' => [
+                    'in' => 'The earning rounding unit must be one of: 1, 10, 100.',
+                ],
+                'earn_rounding_method' => [
+                    'in' => 'The earning rounding method must be one of: floor, round, ceil.',
                 ],
             ],
         ],

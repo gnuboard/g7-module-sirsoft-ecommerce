@@ -513,6 +513,7 @@
                 "type": "basic",
                 "name": "Button",
                 "props": {
+                  "data-testid": "ecommerce-settings-save",
                   "disabled": "{{_computed.isReadOnly || !_local.hasChanges || _local.isSaving}}",
                   "className": "btn btn-primary flex-center gap-1.5"
                 },

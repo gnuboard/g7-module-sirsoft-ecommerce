@@ -16,6 +16,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderOptionRepositoryInterf
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderShippingRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\MileageRounding;
 
 /**
  * 주문 옵션 서비스
@@ -203,7 +204,16 @@ class OrderOptionService
                 }
 
                 // 분할 레코드 금액 = 원본 × ratio
-                $this->applySplitAmounts($splitOption, $origAmounts, $ratio, $quantity);
+                // 적립 포인트는 주문 시점 절사 기준으로 정수화한다 — 안분을 소수 2자리로 남기면
+                // 원장에 없는 소수점 포인트(390.5P)가 옵션 행에 생기고, 그 합이 적립 목표액이 되어
+                // 실제 지급 가능한 정수 포인트와 어긋난다.
+                $this->applySplitAmounts(
+                    $splitOption,
+                    $origAmounts,
+                    $ratio,
+                    $quantity,
+                    MileageRounding::fromOrderSnapshot($option->order?->mileage_policy_snapshot)
+                );
                 $this->orderOptionRepository->save($splitOption);
 
                 // 원본 레코드 = 원본 - 분할 (잔여분)
@@ -439,8 +449,9 @@ class OrderOptionService
      * @param  array  $origAmounts  원본 금액 캡처 데이터
      * @param  float  $ratio  분할 비율 (변경수량 / 원본수량)
      * @param  int  $quantity  분할 수량
+     * @param  array{unit: string, method: string}|null  $earnRounding  적립 절사 기준 (주문 스냅샷 기준)
      */
-    private function applySplitAmounts(OrderOption $splitOption, array $origAmounts, float $ratio, int $quantity): void
+    private function applySplitAmounts(OrderOption $splitOption, array $origAmounts, float $ratio, int $quantity, ?array $earnRounding = null): void
     {
         $splitOption->subtotal_price = round($splitOption->unit_price * $quantity, 2);
         $splitOption->subtotal_discount_amount = round($origAmounts['subtotal_discount_amount'] * $ratio, 2);
@@ -450,7 +461,11 @@ class OrderOptionService
         $splitOption->subtotal_deposit_used_amount = round($origAmounts['subtotal_deposit_used_amount'] * $ratio, 2);
         $splitOption->subtotal_tax_amount = round($origAmounts['subtotal_tax_amount'] * $ratio, 2);
         $splitOption->subtotal_tax_free_amount = round($origAmounts['subtotal_tax_free_amount'] * $ratio, 2);
-        $splitOption->subtotal_earned_points_amount = round($origAmounts['subtotal_earned_points_amount'] * $ratio, 2);
+        // 적립 포인트는 절사 기준으로 정수화 — 잔여분은 `원본 − 분할` 이라 총액은 그대로 보존된다.
+        $splitOption->subtotal_earned_points_amount = MileageRounding::apply(
+            $origAmounts['subtotal_earned_points_amount'] * $ratio,
+            $earnRounding
+        );
         $splitOption->subtotal_weight = round($splitOption->unit_weight * $quantity, 3);
         $splitOption->subtotal_volume = round($splitOption->unit_volume * $quantity, 3);
         $splitOption->subtotal_paid_amount = $splitOption->subtotal_price

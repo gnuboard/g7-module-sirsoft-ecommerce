@@ -864,7 +864,9 @@ HTTP/1.1 200
                     "use_unit": 10,
                     "max_use_type": "fixed",
                     "max_use_percent": 30,
-                    "max_use_value": 50000
+                    "max_use_value": 50000,
+                    "earn_rounding_unit": "1",
+                    "earn_rounding_method": "floor"
                 }
             ],
             "expiry_enabled": true,
@@ -1905,7 +1907,9 @@ HTTP/1.1 200
                     "use_unit": 10,
                     "max_use_type": "fixed",
                     "max_use_percent": 30,
-                    "max_use_value": 50000
+                    "max_use_value": 50000,
+                    "earn_rounding_unit": "1",
+                    "earn_rounding_method": "floor"
                 }
             ],
             "expiry_enabled": true,
@@ -2055,6 +2059,19 @@ HTTP/1.1 200
 - 정규화 대상: 정수 표기 문자열(`"5"`, `"05"`) → `int`, 소수 표기 문자열(`"1.5"`) → `float`(단, `numeric` 필드에 한함)
 - 정규화 제외: 비숫자 문자열(`"abc"`), 빈 문자열, `null`, 불리언, 그리고 `integer` 필드에 전달된 소수 문자열(`"3.7"`) — 검증을 느슨하게 만들지 않기 위해 캐스트하지 않고 그대로 검증 실패시킵니다
 - 조회(`GET`) 응답도 `defaults.json` 스키마의 숫자 타입으로 정규화되어 반환되므로, 저장 시점의 표현 형태와 무관하게 숫자로 수신됩니다
+
+**마일리지 적립 절사 기준** `mileage.currency_rules.*` 의 두 필드가 적립 포인트 산출·안분의 절사 기준을 정합니다.
+
+| 필드 | 타입 | 허용값 | 기본값 | 설명 |
+| --- | --- | --- | --- | --- |
+| `earn_rounding_unit` | string | `1` · `10` · `100` | `1` | 적립 포인트를 맞출 단위(점). 마일리지는 원장에 정수로 확정되므로 소수 단위는 허용하지 않습니다 |
+| `earn_rounding_method` | string | `floor` · `round` · `ceil` | `floor` | 단위에 맞출 방식(버림 / 반올림 / 올림) |
+
+- 적용 지점: 옵션 정액 적립 · 옵션 정률 적립 · 기본 적립률 세 갈래 전부, 그리고 부분취소로 주문옵션이 분할될 때의 적립액 안분
+- 기준 통화 선택: 마일리지는 표시 통화가 아니라 기준 통화(`currency_snapshot.base_currency`)로 적립·정산되므로, 그 통화의 규칙을 사용하고 없으면 첫 규칙(기본 통화)으로 폴백합니다
+- 주문 시점 고정: 주문 생성 시 `mileage_policy_snapshot.rule` 에 함께 기록되며, 부분취소·추가결제 재계산은 현재 설정이 아니라 이 스냅샷을 사용합니다. 그렇지 않으면 이후 설정 변경이 과거 주문에 소급돼, 취소하지 않은 잔여분의 적립액이 취소 처리만으로 달라집니다
+- 값이 없는 경우(이 필드 도입 이전 설치본·주문): 기본값 `1` / `floor` 로 해석되며 이는 도입 이전 동작과 동일한 금액을 산출합니다
+- 통화 환산 절사(`language_currency.currencies.*.rounding_unit` / `rounding_method`)와는 별개입니다 — 그쪽은 외화 표시 환산에만 적용되어 기본 통화에는 적용되지 않으므로 적립 규칙으로 쓸 수 없습니다
 
 ### PUT /api/modules/sirsoft-ecommerce/admin/settings/banks
 <!-- @generated:start:api.modules.sirsoft-ecommerce.admin.settings.store-banks -->
@@ -2574,7 +2591,9 @@ HTTP/1.1 200
                     "use_unit": 10,
                     "max_use_type": "fixed",
                     "max_use_percent": 30,
-                    "max_use_value": 50000
+                    "max_use_value": 50000,
+                    "earn_rounding_unit": "1",
+                    "earn_rounding_method": "floor"
                 }
             ],
             "expiry_enabled": true,

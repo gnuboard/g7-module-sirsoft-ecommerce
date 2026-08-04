@@ -15,6 +15,7 @@ use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\RefundPriorityEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\ShippingPolicySnapshot;
 use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
 
 /**
@@ -391,8 +392,9 @@ class OrderAdjustmentService
         // 배송지 복원
         $shippingAddress = null;
         $shippingSnapshot = $order->shipping_policy_applied_snapshot ?? [];
-        if (! empty($shippingSnapshot['address'])) {
-            $shippingAddress = ShippingAddress::fromArray($shippingSnapshot['address']);
+        $snapshotAddress = ShippingPolicySnapshot::address($shippingSnapshot);
+        if (! empty($snapshotAddress)) {
+            $shippingAddress = ShippingAddress::fromArray($snapshotAddress);
         }
 
         // 배송정책 스냅샷을 product_option_id 키 맵으로 변환
@@ -416,6 +418,9 @@ class OrderAdjustmentService
             ],
             shippingPolicySnapshots: $shippingPolicySnapshots,
             promotionSnapshots: $order->promotions_applied_snapshot,
+            // 적립 절사 기준은 주문 시점 값으로 고정한다 — 설정을 다시 읽으면 운영자가 이후에
+            // 바꾼 기준이 소급 적용돼, 취소하지 않은 잔여분의 적립액이 취소 처리만으로 달라진다.
+            mileagePolicySnapshot: $order->mileage_policy_snapshot,
         );
     }
 
@@ -909,25 +914,10 @@ class OrderAdjustmentService
      */
     private function buildShippingPolicySnapshotMap(array $shippingSnapshot): array
     {
-        $map = [];
-
-        foreach ($shippingSnapshot as $key => $entry) {
-            // 이미 product_option_id를 키로 사용하는 경우 (숫자 키 + policy 데이터)
-            if (is_int($key) && isset($entry['product_option_id'], $entry['policy'])) {
-                $map[$entry['product_option_id']] = $entry['policy'];
-            } elseif (is_int($key) && isset($entry['policy_id'])) {
-                // product_option_id 키 맵 형태 (테스트 헬퍼 등에서 직접 구성한 경우)
-                $map[$key] = $entry;
-            } elseif ($key === 'address') {
-                // address 키는 스킵 (배송지 정보)
-                continue;
-            } else {
-                // 기타 (이미 product_option_id => data 형태)
-                $map[$key] = $entry;
-            }
-        }
-
-        return $map;
+        // 형태 판별은 ShippingPolicySnapshot 단일 출처에 위임한다 — 종전에는 이 메서드와
+        // OrderCancellationService::buildShippingSnapshot() 이 `is_int($key)` 판별을
+        // 각자 복제하고 있어, 구조가 바뀔 때 한쪽만 고쳐질 위험이 있었다.
+        return ShippingPolicySnapshot::toOptionPolicyMap($shippingSnapshot);
     }
 
     /**

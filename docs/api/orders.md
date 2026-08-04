@@ -497,7 +497,7 @@ _단건 응답: `data` 객체의 필드._
 | shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
 | cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
 | promotions_applied_snapshot | object | `{"coupon_issue_ids":[7330],"item_coupons":[],"discount_co…` | 적용된 프로모션 스냅샷 (재계산용) |
-| shipping_policy_applied_snapshot | null | `null` | 적용된 배송정책 스냅샷 (재계산용) |
+| shipping_policy_applied_snapshot | object | `{"items": [], "address": {}}` | 적용된 배송정책 스냅샷 (재계산용). `items` 는 옵션별 적용 정책 목록(각 항목: `product_option_id`, `policy`), `address` 는 주문 시점 배송지 메타(`country_code`, `zipcode`). 항목이 없어도 `items` 는 빈 배열이다 |
 | admin_memo | null | `null` | 관리자 메모 (내부 관리용) |
 | customer_memo | null | `null` | 고객 메모 (주문 시 고객이 남긴 메모) |
 | created_at | string | `2026-06-17T02:07:25+00:00` | 생성 일시 |
@@ -1523,7 +1523,7 @@ _단건 응답: `data` 객체의 필드._
 | shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
 | cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
 | promotions_applied_snapshot | null | `null` | 적용된 프로모션 스냅샷 (재계산용) |
-| shipping_policy_applied_snapshot | null | `null` | 적용된 배송정책 스냅샷 (재계산용) |
+| shipping_policy_applied_snapshot | object | `{"items": [], "address": {}}` | 적용된 배송정책 스냅샷 (재계산용). `items` 는 옵션별 적용 정책 목록(각 항목: `product_option_id`, `policy`), `address` 는 주문 시점 배송지 메타(`country_code`, `zipcode`). 항목이 없어도 `items` 는 빈 배열이다 |
 | admin_memo | null | `null` | 관리자 메모 (내부 관리용) |
 | customer_memo | null | `null` | 고객 메모 (주문 시 고객이 남긴 메모) |
 | created_at | string | `2026-07-08T01:44:49+00:00` | 생성 일시 |
@@ -2206,7 +2206,7 @@ _단건 응답: `data` 객체의 필드._
 | shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
 | cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
 | promotions_applied_snapshot | null | `null` | 적용된 프로모션 스냅샷 (재계산용) |
-| shipping_policy_applied_snapshot | null | `null` | 적용된 배송정책 스냅샷 (재계산용) |
+| shipping_policy_applied_snapshot | object | `{"items": [], "address": {}}` | 적용된 배송정책 스냅샷 (재계산용). `items` 는 옵션별 적용 정책 목록(각 항목: `product_option_id`, `policy`), `address` 는 주문 시점 배송지 메타(`country_code`, `zipcode`). 항목이 없어도 `items` 는 빈 배열이다 |
 | admin_memo | null | `null` | 관리자 메모 (내부 관리용) |
 | customer_memo | null | `null` | 고객 메모 (주문 시 고객이 남긴 메모) |
 | created_at | string | `2026-07-08T01:44:49+00:00` | 생성 일시 |

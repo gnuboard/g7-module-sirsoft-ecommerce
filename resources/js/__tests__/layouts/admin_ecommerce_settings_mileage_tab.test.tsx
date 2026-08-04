@@ -247,19 +247,19 @@ describe('통화 규칙 테이블 (_tab_mileage_currency_table.json)', () => {
     expect(percentInput.props.disabled).toContain("rule.max_use_type !== 'percent'");
   });
 
-  it('max_use_type 라디오는 부모 Label 클릭으로 상태를 바꾼다 (게시판 검증 패턴 — 라디오 자동바인딩 회피)', () => {
+  it('max_use_type 라디오는 Label 클릭과 키보드 change 양쪽으로 같은 상태를 만든다', () => {
     // 회귀: 라디오 자동바인딩은 문자열 값을 value 바인딩으로 처리해 라디오 그룹을 깨뜨린다.
-    // 게시판 date_display_format 의 검증된 패턴: 라디오는 pointer-events-none(시각 전용),
-    // 부모 Label 에 click 액션을 달아 해당 행(rule._idx)의 max_use_type 을 배열 map 교체로 갱신.
+    // 그래서 Label click 으로 상태를 갱신한다. 다만 라디오를 pointer-events-none 으로만 두면
+    // 키보드 방향키(change)로 옮겼을 때 화면 표시와 저장될 값이 어긋난다(#493) —
+    // 라디오 자체에도 click 과 **동일한 params** 를 갖는 change 액션을 둔다.
     const radios = findAll(currencyTable, (n) => n.name === 'Input' && n.props?.type === 'radio'
       && String(n.props?.name).includes('max_use_type'));
     // currency_rules 행(2) + 인라인 추가 행(2) = 4
     expect(radios.length).toBe(4);
     for (const radio of radios) {
-      // 라디오는 클릭 이벤트를 받지 않는다 (부모 Label 이 처리)
-      expect(radio.props.className, `radio(${radio.props.value}) 에 pointer-events-none 누락`).toContain('pointer-events-none');
-      // 라디오 자체에는 actions 가 없다 (자동바인딩/onChange 미사용)
-      expect(radio.actions ?? []).toHaveLength(0);
+      const change = (radio.actions ?? []).find((a: any) => a.type === 'change' && a.handler === 'setState');
+      expect(change, `radio(${radio.props.value}) 에 키보드 조작용 change 액션 누락`).toBeTruthy();
+      expect(change.params.target).toBe('local');
     }
 
     // 부모 Label 이 click → setState 로 max_use_type 갱신
@@ -346,6 +346,67 @@ describe('통화 규칙 모바일 카드 (_tab_mileage_currency_cards.json)', ()
   it('PC 테이블과 동일하게 currency_rules 를 iteration 한다', () => {
     const card = findFirst(currencyCards, (n) => n.iteration);
     expect(card.iteration.source).toContain('currency_rules');
+  });
+});
+
+describe('적립 절사 기준 (earn_rounding_unit / earn_rounding_method)', () => {
+  const 절사_컨트롤 = (root: any, 접두: string) => ({
+    unit: findFirst(root, (n) => n.name === 'Select' && String(n.props?.name).includes(`${접두}earn_rounding_unit`)),
+    method: findFirst(root, (n) => n.name === 'Select' && String(n.props?.name).includes(`${접두}earn_rounding_method`)),
+  });
+
+  it('테이블 행에 단위/방식 Select 가 통화 규칙 인덱스로 바인딩된다', () => {
+    const { unit, method } = 절사_컨트롤(currencyTable, "mileage.currency_rules.' + rule._idx + '.");
+
+    expect(unit).toBeTruthy();
+    expect(method).toBeTruthy();
+    // 값이 없는 기존 행도 종전 동작(1점 버림)으로 보이도록 폴백을 둔다
+    expect(unit.props.value).toContain("?? '1'");
+    expect(method.props.value).toContain("?? 'floor'");
+  });
+
+  it('절사 방식 옵션은 서버 허용 어휘(floor/round/ceil)와 일치한다', () => {
+    const { method } = 절사_컨트롤(currencyTable, "mileage.currency_rules.' + rule._idx + '.");
+
+    // 화면 옵션이 서버 게이트를 벗어나면 저장이 422 로 막히는데 화면에는 선택지로 보인다
+    expect(method.props.options.map((o: any) => o.value)).toEqual(['floor', 'round', 'ceil']);
+  });
+
+  it('절사 단위 옵션은 정수 포인트 단위만 제공한다 (통화 환산 절사의 소수 단위와 다름)', () => {
+    const { unit } = 절사_컨트롤(currencyTable, "mileage.currency_rules.' + rule._idx + '.");
+    const opts = String(unit.props.options);
+
+    expect(opts).toContain("value: '1'");
+    expect(opts).toContain("value: '10'");
+    expect(opts).toContain("value: '100'");
+    // 마일리지는 원장에 정수로 확정된다 — 0.01 같은 소수 단위는 선택지가 될 수 없다
+    expect(opts).not.toContain("value: '0.01'");
+  });
+
+  it('모바일 카드 뷰에도 동일 항목이 있다 (한쪽만 있으면 모바일에서 설정 불가)', () => {
+    const { unit, method } = 절사_컨트롤(currencyCards, "mileage.currency_rules.' + rule._idx + '.");
+
+    expect(unit).toBeTruthy();
+    expect(method).toBeTruthy();
+  });
+
+  it.each([
+    ['테이블', currencyTable, 'new_mileage_currency_row'],
+    ['모바일 카드', currencyCards, 'new_mileage_currency_card'],
+  ])('%s 의 신규 통화 추가 행에도 절사 컨트롤이 있고 저장 payload 에 포함된다', (_label, root, rowId) => {
+    const newRow = findById(root, rowId);
+    const { unit, method } = 절사_컨트롤(newRow, 'newMileageCurrency.');
+
+    expect(unit).toBeTruthy();
+    expect(method).toBeTruthy();
+
+    const seq = findFirst(newRow, (n) => n.handler === 'sequence');
+    const actions = seq.actions ?? seq.params?.actions ?? [];
+    const push = actions.find((a: any) => a.handler === 'setState' && a.params?.['form.mileage.currency_rules']);
+
+    // 컨트롤만 두고 payload 에 빠뜨리면 입력해도 저장되지 않는다
+    expect(String(push.params['form.mileage.currency_rules'])).toContain('earn_rounding_unit:');
+    expect(String(push.params['form.mileage.currency_rules'])).toContain('earn_rounding_method:');
   });
 });
 
