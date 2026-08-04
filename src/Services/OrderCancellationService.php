@@ -32,6 +32,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderOptionRepositoryInterf
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRefundOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRefundRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderShippingRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\ShippingPolicySnapshot;
 
 /**
  * 주문 취소 서비스
@@ -472,7 +473,7 @@ class OrderCancellationService
     protected function buildShippingSnapshot(Order $order, array $cancelItems): array
     {
         $orderSnapshot = $order->shipping_policy_applied_snapshot ?? [];
-        $address = $orderSnapshot['address'] ?? [];
+        $address = ShippingPolicySnapshot::address($orderSnapshot);
 
         // 주문 스냅샷에 배송지가 없으면 현재 배송주소에서 폴백 복원(과거 주문 호환).
         if (empty($address['country_code'])) {
@@ -492,13 +493,8 @@ class OrderCancellationService
             }
         }
 
-        $policies = [];
-        foreach ($orderSnapshot as $key => $entry) {
-            if (is_int($key) && isset($entry['product_option_id'], $entry['policy'])
-                && isset($cancelOptionIds[$entry['product_option_id']])) {
-                $policies[] = $entry;
-            }
-        }
+        // 형태 판별은 ShippingPolicySnapshot 단일 출처에 위임 (구형 혼합 배열도 흡수).
+        $policies = ShippingPolicySnapshot::itemsForOptions($orderSnapshot, $cancelOptionIds);
 
         return [
             'country_code' => strtoupper((string) ($address['country_code'] ?? 'KR')),

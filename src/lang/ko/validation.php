@@ -1390,6 +1390,8 @@ return [
         'mileage.currency_rules.*.use_unit' => '사용 단위',
         'mileage.currency_rules.*.max_use_percent' => '최대 사용 비율',
         'mileage.currency_rules.*.max_use_value' => '최대 사용 금액',
+        'mileage.currency_rules.*.earn_rounding_unit' => '적립 절사 단위',
+        'mileage.currency_rules.*.earn_rounding_method' => '적립 절사 방식',
         'mileage.expiry_days' => '유효기간',
         'mileage.expiry_notification_days_before' => '소멸 예정 알림일',
 
@@ -1615,6 +1617,12 @@ return [
                     'integer' => '최대 사용 금액은 정수여야 합니다.',
                     'min' => '최대 사용 금액은 0 이상이어야 합니다.',
                     'max' => '최대 사용 금액이 너무 큽니다. (최대 10억)',
+                ],
+                'earn_rounding_unit' => [
+                    'in' => '적립 절사 단위는 1, 10, 100 중 하나여야 합니다.',
+                ],
+                'earn_rounding_method' => [
+                    'in' => '적립 절사 방식은 floor, round, ceil 중 하나여야 합니다.',
                 ],
             ],
         ],

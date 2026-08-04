@@ -17,6 +17,7 @@ use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderOption;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\MileageBalanceRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\MileageTransactionRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\MileageRounding;
 
 /**
  * 사용자 마일리지 서비스 (원장 SSoT + 표시 캐시)
@@ -265,6 +266,10 @@ class UserMileageService
         $usable = $this->isMileageUsable();
         $rule = $usable ? $this->currencyRule($currency) : [];
 
+        // 적립 절사 기준은 사용 가능 여부와 무관하게 기록한다 — 마일리지 "사용" 이 막혀 있어도
+        // 적립은 별개로 일어나므로, 사용 불가 주문의 재계산에도 절사 기준이 필요하다.
+        $earnRounding = MileageRounding::normalize($this->currencyRule($currency));
+
         return [
             'usable' => $usable,
             'currency' => $currency,
@@ -275,6 +280,8 @@ class UserMileageService
                 'max_use_type' => (string) ($rule['max_use_type'] ?? 'percent'),
                 'max_use_percent' => (float) ($rule['max_use_percent'] ?? 100),
                 'max_use_value' => (int) ($rule['max_use_value'] ?? 0),
+                MileageRounding::UNIT_KEY => $earnRounding['unit'],
+                MileageRounding::METHOD_KEY => $earnRounding['method'],
             ],
             // 판정 근거 — 이 결제금액에 이 정책을 적용해 아래 상한이 나왔고, 그 안에서 사용됐다.
             'payment_amount_basis' => $paymentAmount,

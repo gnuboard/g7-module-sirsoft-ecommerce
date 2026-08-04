@@ -9,6 +9,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
 use Modules\Sirsoft\Ecommerce\Services\PaymentMethodResolver;
+use Modules\Sirsoft\Ecommerce\Support\MileageRounding;
 
 /**
  * 이커머스 설정 저장 요청 검증
@@ -311,6 +312,11 @@ class StoreEcommerceSettingsRequest extends FormRequest
             'mileage.currency_rules.*.max_use_percent' => ['nullable', 'numeric', 'min:'.config('sirsoft-ecommerce.limits.max_use_percent_min', 0), 'max:'.config('sirsoft-ecommerce.limits.max_use_percent_max', 100)],
             // 최대 사용한도(고정금액): 비합리적 거액 방지를 위해 10억 상한
             'mileage.currency_rules.*.max_use_value' => ['nullable', 'integer', 'min:'.config('sirsoft-ecommerce.limits.max_use_value_min', 0), 'max:'.config('sirsoft-ecommerce.limits.max_use_value_max', 1000000000)],
+            // 적립 절사 기준 — 통화 환산 절사(language_currency.currencies.*.rounding_*)와 별개다.
+            // 그쪽은 외화 표시 전용이라 기본 통화에는 적용되지 않는 반면, 적립은 기본 통화 원장에
+            // 확정 기록되는 값이므로 자기 규칙을 갖는다. 어휘는 MileageRounding 이 SSoT.
+            'mileage.currency_rules.*.earn_rounding_unit' => ['nullable', 'string', 'in:'.implode(',', MileageRounding::UNITS)],
+            'mileage.currency_rules.*.earn_rounding_method' => ['nullable', 'string', 'in:'.implode(',', MileageRounding::METHODS)],
             'mileage.expiry_enabled' => ['nullable', 'boolean'],
             'mileage.expiry_days' => ['nullable', 'integer', 'min:'.config('sirsoft-ecommerce.limits.expiry_days_min', 1), 'max:'.config('sirsoft-ecommerce.limits.expiry_days_max', 3650)],
             'mileage.expiry_notification_enabled' => ['nullable', 'boolean'],

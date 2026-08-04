@@ -36,6 +36,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ShippingTypeRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\ShippingPolicySnapshot;
 use Modules\Sirsoft\Ecommerce\Support\VatCalculator;
 
 /**
@@ -1428,10 +1429,10 @@ class OrderProcessingService
      */
     protected function buildShippingPolicyAppliedSnapshot(OrderCalculationResult $result, array $shippingInfo = []): array
     {
-        $policies = [];
+        $items = [];
         foreach ($result->items as $item) {
             if ($item->appliedShippingPolicy) {
-                $policies[] = [
+                $items[] = [
                     'product_option_id' => $item->productOptionId,
                     'policy' => $item->appliedShippingPolicy->toArray(),
                 ];
@@ -1439,13 +1440,16 @@ class OrderProcessingService
         }
 
         // 배송지(국가/우편번호) 스냅샷 보존 (B5 — 환불/취소 재계산 시 도서산간/국가별 정책 판단 복원).
-        // OrderAdjustmentService::buildRecalcInput 가 'address' 키로 ShippingAddress 를 복원한다.
-        $policies['address'] = [
+        //
+        // 항목 목록과 배송지 메타는 **별도 키**로 분리한다. 종전에는 `$policies[]` 리스트에
+        // `$policies['address']` 를 덧붙여 한 배열에 섞었고, 그 결과 PHP 배열이
+        // non-sequential 이 되어 `json_encode` 가 객체로 직렬화했다. 서버는 `is_int($key)` 로
+        // 버텼지만 배열을 전제하는 프론트에서 `.find is not a function` 이 나며 마이페이지·
+        // 비회원 주문 상세의 배송정책 블록이 조용히 사라졌다.
+        return ShippingPolicySnapshot::make($items, [
             'country_code' => strtoupper((string) ($shippingInfo['country_code'] ?? 'KR')),
             'zipcode' => $shippingInfo['zipcode'] ?? $shippingInfo['intl_postal_code'] ?? null,
-        ];
-
-        return $policies;
+        ]);
     }
 
     /**

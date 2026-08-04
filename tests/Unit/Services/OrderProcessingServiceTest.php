@@ -629,11 +629,18 @@ class OrderProcessingServiceTest extends ModuleTestCase
             103000
         );
 
-        // shipping_policy_applied_snapshot이 비어있지 않아야 함
+        // shipping_policy_applied_snapshot 은 `{items: [...], address: {...}}` 구조여야 한다.
+        // 항목 목록과 배송지 메타를 한 배열에 섞으면 PHP 배열이 non-sequential 이 되어
+        // json_encode 가 객체로 직렬화하고, 배열을 전제하는 화면에서 표시가 사라진다.
         $snapshot = $order->shipping_policy_applied_snapshot;
         $this->assertNotEmpty($snapshot);
-        $this->assertEquals($productOption->id, $snapshot[0]['product_option_id']);
-        $this->assertEquals(1, $snapshot[0]['policy']['policy_id']);
+        $this->assertArrayHasKey('items', $snapshot);
+        $this->assertArrayHasKey('address', $snapshot);
+        $this->assertEquals($productOption->id, $snapshot['items'][0]['product_option_id']);
+        $this->assertEquals(1, $snapshot['items'][0]['policy']['policy_id']);
+
+        // items 는 JSON 에서 반드시 배열 리터럴로 나가야 한다 (객체면 프론트 .find 가 죽는다)
+        $this->assertStringContainsString('"items":[', json_encode($snapshot));
     }
 
     public function test_create_from_temp_order_saves_order_meta_with_calculation_input(): void
