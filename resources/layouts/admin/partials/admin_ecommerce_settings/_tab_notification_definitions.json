@@ -713,7 +713,8 @@
               "name": "Pagination",
               "props": {
                 "currentPage": "{{ecommerceNotificationDefinitions?.data?.pagination?.current_page || 1}}",
-                "totalPages": "{{ecommerceNotificationDefinitions?.data?.pagination?.last_page || 1}}"
+                "totalPages": "{{ecommerceNotificationDefinitions?.data?.pagination?.last_page ?? null}}",
+                "hasMorePages": "{{ecommerceNotificationDefinitions?.data?.pagination?.has_more_pages ?? false}}"
               },
               "actions": [
                 {

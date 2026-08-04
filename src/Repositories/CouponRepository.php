@@ -3,8 +3,12 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Helpers\PermissionHelper;
+use App\Repositories\Concerns\FiltersByDateRange;
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
 use App\Repositories\Concerns\ResolvesSortSpec;
+use App\Search\KeywordSearch;
+use App\Support\Query\BoundedPaginator;
+use App\Support\Query\PaginationLimits;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,6 +24,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponRepositoryInterface;
  */
 class CouponRepository implements CouponRepositoryInterface
 {
+    use FiltersByDateRange;
     use PaginatesWithDeferredJoin;
     use ResolvesSortSpec;
 
@@ -55,20 +60,19 @@ class CouponRepository implements CouponRepositoryInterface
             // all → FULLTEXT(name+description) + creator 보조필드 union (Scout queryCallback total
             // 재계산 시 orWhereHas('creator') 가 MATCH 절 없이 재적용되어 total=0 이 되는 결함 회피)
             if ($searchField === 'all') {
-                $ftIds = Coupon::search($keyword)->keys()->all();
+                // FULLTEXT 매칭과 작성자 보조 매칭을 하나의 WHERE 그룹으로 묶어 페이지 쿼리에
+                // 직접 넣는다. 종전에는 매칭 ID 전량을 PHP 로 끌어와 whereIn 으로 되먹여,
+                // 매칭이 많을수록 메모리와 IN(...) 목록이 함께 커졌다.
+                $query->where(function ($group) use ($keyword) {
+                    // 정제는 코어 헬퍼가 단독 수행 — BOOLEAN MODE 연산자 입력이 500 이 되지 않는다.
+                    // 쿠폰 테이블도 컬럼별 단일 FULLTEXT 인덱스다 — 복합 MATCH 는 쓸 수 없다.
+                    KeywordSearch::applyAny($group, ['name', 'description'], $keyword);
 
-                $auxIds = $this->model->newQuery()
-                    ->whereHas('creator', function ($creatorQuery) use ($keyword) {
+                    $group->orWhereHas('creator', function ($creatorQuery) use ($keyword) {
                         $creatorQuery->where('name', 'like', "%{$keyword}%")
                             ->orWhere('email', 'like', "%{$keyword}%");
-                    })
-                    ->pluck('id')
-                    ->all();
-
-                $matchedIds = array_values(array_unique([...$ftIds, ...$auxIds]));
-
-                // 매칭 ID 로 조건 한정 (빈 매칭은 존재하지 않는 ID 로 빈 결과 → total=0 이 정상)
-                $query->whereIn('id', $matchedIds ?: [0]);
+                    });
+                });
             } elseif ($searchField === 'name') {
                 // 컬럼 한정 검색 — Scout(FULLTEXT)는 컬럼 한정 미지원이므로 단일컬럼 LIKE
                 $query->where('name', 'like', "%{$keyword}%");
@@ -111,7 +115,14 @@ class CouponRepository implements CouponRepositoryInterface
 
         // audit:allow repository-paginate-column-pruning reason: 쿠폰 "정의" 목록 —
         // 행 수가 운영자가 만든 쿠폰 수에 묶인다(발급 이력은 별도 테이블). description 외에 넓은 컬럼이 없다
-        return $query->paginate($perPage);
+        //
+        // 키워드 검색은 FULLTEXT + creator 보조 매칭이라 매칭 수가 데이터 증가에 비례한다.
+        // 총 건수는 상한까지만 세고, "다음" 이동은 per_page + 1 실측으로 끝까지 열어 둔다.
+        return BoundedPaginator::paginate(
+            $query,
+            perPage: $perPage,
+            resultCap: PaginationLimits::resultCap('ecommerce.coupons'),
+        );
     }
 
     /**
@@ -199,6 +210,7 @@ class CouponRepository implements CouponRepositoryInterface
             perPage: $perPage,
             // 관계 로드 (사용처 주문번호 표시를 위해 order 도 로드)
             relations: ['user:id,uuid,name', 'order:id,order_number'],
+            resultCap: PaginationLimits::resultCap('ecommerce.coupon_issues'),
         );
     }
 
@@ -331,26 +343,26 @@ class CouponRepository implements CouponRepositoryInterface
 
         // 등록일 필터
         if (! empty($filters['created_start_date'])) {
-            $query->whereDate('created_at', '>=', $filters['created_start_date']);
+            $this->applyDateRangeFilter($query, 'created_at', $filters['created_start_date'], null);
         }
         if (! empty($filters['created_end_date'])) {
-            $query->whereDate('created_at', '<=', $filters['created_end_date']);
+            $this->applyDateRangeFilter($query, 'created_at', null, $filters['created_end_date']);
         }
 
         // 유효기간 필터
         if (! empty($filters['valid_start_date'])) {
-            $query->whereDate('valid_from', '>=', $filters['valid_start_date']);
+            $this->applyDateRangeFilter($query, 'valid_from', $filters['valid_start_date'], null);
         }
         if (! empty($filters['valid_end_date'])) {
-            $query->whereDate('valid_to', '<=', $filters['valid_end_date']);
+            $this->applyDateRangeFilter($query, 'valid_to', null, $filters['valid_end_date']);
         }
 
         // 발급기간 필터
         if (! empty($filters['issue_start_date'])) {
-            $query->whereDate('issue_from', '>=', $filters['issue_start_date']);
+            $this->applyDateRangeFilter($query, 'issue_from', $filters['issue_start_date'], null);
         }
         if (! empty($filters['issue_end_date'])) {
-            $query->whereDate('issue_to', '<=', $filters['issue_end_date']);
+            $this->applyDateRangeFilter($query, 'issue_to', null, $filters['issue_end_date']);
         }
 
         // 등록자 필터 (UUID → 정수 FK 변환)

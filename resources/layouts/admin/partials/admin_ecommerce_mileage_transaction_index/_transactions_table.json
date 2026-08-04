@@ -31,7 +31,8 @@
         "pagination": true,
         "serverSidePagination": true,
         "serverCurrentPage": "{{transactions?.data?.pagination?.current_page ?? 1}}",
-        "serverTotalPages": "{{transactions?.data?.pagination?.last_page ?? 1}}",
+        "serverTotalPages": "{{transactions?.data?.pagination?.last_page ?? null}}",
+        "serverHasMorePages": "{{transactions?.data?.pagination?.has_more_pages ?? false}}",
         "pageSize": "{{query.per_page || 20}}",
         "alwaysShowPagination": true,
         "columns": [

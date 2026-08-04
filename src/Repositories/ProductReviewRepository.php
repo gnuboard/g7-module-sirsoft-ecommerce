@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Support\Query\PaginationLimits;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -145,6 +146,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
                 'orderOption.order',
                 'replyAdmin',
             ],
+            resultCap: PaginationLimits::resultCap('admin.product_reviews'),
         );
     }
 
@@ -222,6 +224,7 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             // 개수는 배열 길이 대신 DB 집계를 그대로 쓴다(Resource 가 집계를 우선한다).
             relations: ['user', 'images'],
             withCount: ['images as image_count'],
+            resultCap: PaginationLimits::resultCap('shop.product_reviews'),
         );
     }
 

@@ -18,6 +18,7 @@ use Modules\Sirsoft\Ecommerce\Listeners\ActivityLogDescriptionResolver;
 use Modules\Sirsoft\Ecommerce\Listeners\AssignDefaultCurrencyOnRegisterListener;
 use Modules\Sirsoft\Ecommerce\Listeners\AssignDefaultShippingCountryOnRegisterListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CategoryActivityLogListener;
+use Modules\Sirsoft\Ecommerce\Listeners\CategoryTreeCacheListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CouponActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CouponRestoreListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CouponUseListener;
@@ -2087,6 +2088,7 @@ class Module extends AbstractModule
             CouponUseListener::class,
             SeoProductCacheListener::class,
             SeoCategoryCacheListener::class,
+            CategoryTreeCacheListener::class,
             SeoSettingsCacheListener::class,
             MileageTransactionListener::class,
             UserMileageInfoListener::class,

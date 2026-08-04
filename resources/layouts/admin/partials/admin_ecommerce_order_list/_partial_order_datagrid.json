@@ -740,7 +740,8 @@
             "pagination": true,
             "serverSidePagination": true,
             "serverCurrentPage": "{{orders?.data?.pagination?.current_page ?? 1}}",
-            "serverTotalPages": "{{orders?.data?.pagination?.last_page ?? 1}}",
+            "serverTotalPages": "{{orders?.data?.pagination?.last_page ?? null}}",
+            "serverHasMorePages": "{{orders?.data?.pagination?.has_more_pages ?? false}}",
             "pageSize": 20,
             "alwaysShowPagination": true,
             "rowActions": [

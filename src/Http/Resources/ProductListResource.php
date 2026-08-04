@@ -64,12 +64,23 @@ class ProductListResource extends BaseApiResource
             ])),
             'primary_category' => $this->whenLoaded('categories', fn () => $this->categories->firstWhere('pivot.is_primary', true)?->getLocalizedName()
             ),
-            'categories_with_path' => $this->whenLoaded('categories', fn () => $this->categories->map(fn ($cat) => [
-                'id' => $cat->id,
-                'path' => $cat->getBreadcrumb(),
-                'path_string' => collect($cat->getBreadcrumb())->pluck('name')->implode(' > '),
-                'is_primary' => $cat->pivot->is_primary,
-            ])),
+            // 경로는 카테고리당 한 번만 만든다. 두 번 부르면 조상 조회도 두 번 나간다.
+            //
+            // 조상 예열은 여기가 아니라 ProductCollection 이 응답 단위로 한 번 수행한다.
+            // 상품마다 예열하면 예열 쿼리가 상품 수만큼 반복된다. 단건 사용처(컬렉션을
+            // 거치지 않는 경로)에서는 getBreadcrumb() 이 스스로 필요한 조상만 읽는다.
+            'categories_with_path' => $this->whenLoaded('categories', function () {
+                return $this->categories->map(function ($cat) {
+                    $breadcrumb = $cat->getBreadcrumb();
+
+                    return [
+                        'id' => $cat->id,
+                        'path' => $breadcrumb,
+                        'path_string' => collect($breadcrumb)->pluck('name')->implode(' > '),
+                        'is_primary' => $cat->pivot->is_primary,
+                    ];
+                });
+            }),
 
             // 브랜드 (다국어)
             'brand_name' => $this->whenLoaded('brand', fn () => $this->brand?->getLocalizedName()),

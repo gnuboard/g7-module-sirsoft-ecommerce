@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Support\Query\PaginationLimits;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -33,6 +34,9 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
      */
     public function findByProductId(int $productId): Collection
     {
+        // audit:allow query-unbounded-get reason: 상품 삭제 시 딸린 문의를 함께 정리하기 위한
+        // 내부 조회다. 상한을 걸면 남은 문의가 고아로 남는다. 화면용 목록은 같은 클래스의
+        // paginateByProductId() 가 담당한다
         return $this->model->newQuery()
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
@@ -144,6 +148,7 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
             sort: [['column' => 'created_at', 'direction' => 'desc']],
             perPage: $perPage,
             relations: ['product', 'user'],
+            resultCap: PaginationLimits::resultCap('admin.product_inquiries'),
         );
     }
 

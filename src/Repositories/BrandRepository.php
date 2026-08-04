@@ -3,7 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Helpers\PermissionHelper;
-use App\Search\Engines\DatabaseFulltextEngine;
+use App\Search\KeywordSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Sirsoft\Ecommerce\Models\Brand;
@@ -47,7 +47,7 @@ class BrandRepository implements BrandRepositoryInterface
             $keyword = $filters['search'];
 
             $query->where(function ($q) use ($keyword) {
-                DatabaseFulltextEngine::whereFulltext($q, 'name', $keyword, 'and');
+                KeywordSearch::apply($q, 'name', $keyword, 'and');
                 $q->orWhere('slug', 'like', "%{$keyword}%")
                     ->orWhere('website', 'like', "%{$keyword}%");
             });

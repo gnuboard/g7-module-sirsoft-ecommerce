@@ -2,6 +2,9 @@
 
 namespace Modules\Sirsoft\Ecommerce\Repositories\Contracts;
 
+use App\Support\Query\BoundedCount;
+use App\Support\Query\BoundedPage;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Sirsoft\Ecommerce\Models\Product;
@@ -150,6 +153,13 @@ interface ProductRepositoryInterface
     public function getStatistics(): array;
 
     /**
+     * 상품 통계 캐시를 무효화합니다.
+     *
+     * 상품이 바뀌면 통계도 곧바로 달라져야 합니다.
+     */
+    public function forgetStatisticsCache(): void;
+
+    /**
      * 상품 코드로 상품 조회
      *
      * @param  string  $productCode  상품 코드
@@ -219,6 +229,17 @@ interface ProductRepositoryInterface
     public function findByIds(array $ids): Collection;
 
     /**
+     * ID 목록으로 상품을 관계와 함께 조회해 ID 키 맵으로 반환합니다.
+     *
+     * 항목마다 `find()` 를 부르는 루프를 없애기 위한 일괄 진입점입니다.
+     *
+     * @param  array<int, int>  $ids  상품 ID 배열
+     * @param  array<int, string>  $relations  함께 적재할 관계
+     * @return Collection<int, Product> 상품 ID 키 맵
+     */
+    public function findByIdsWithRelationsKeyed(array $ids, array $relations = []): Collection;
+
+    /**
      * ID 목록으로 상품을 조회하고 ID 키 맵으로 반환합니다 (bulk activity log lookup).
      *
      * @param  array<int, int>  $ids  상품 ID 목록
@@ -246,16 +267,16 @@ interface ProductRepositoryInterface
      * @param  int  $limit  조회할 최대 항목 수
      * @return array{total: int, items: Collection}
      */
-    public function searchByKeyword(string $keyword, string $orderBy = 'created_at', string $direction = 'desc', ?int $categoryId = null, int $offset = 0, int $limit = 10): array;
+    public function searchByKeyword(string $keyword, string $orderBy = 'created_at', string $direction = 'desc', ?int $categoryId = null, int $offset = 0, int $limit = 10): BoundedPage;
 
     /**
      * 키워드와 일치하는 공개 상품 수를 조회합니다.
      *
      * @param  string  $keyword  검색 키워드
      * @param  int|null  $categoryId  카테고리 필터 (null이면 전체)
-     * @return int 일치하는 상품 수
+     * @return BoundedCount 일치하는 상품 수 (정확도 포함)
      */
-    public function countByKeyword(string $keyword, ?int $categoryId = null): int;
+    public function countByKeyword(string $keyword, ?int $categoryId = null): BoundedCount;
 
     /**
      * 상품 재고를 옵션 재고 합계와 동기화

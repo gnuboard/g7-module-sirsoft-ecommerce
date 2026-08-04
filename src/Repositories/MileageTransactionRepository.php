@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Models\User;
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Support\Query\PaginationLimits;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -62,6 +63,9 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
     public function getActiveLotsForUpdate(int $userId, string $currency): Collection
     {
         // 잠금 순서 고정 — 항상 트랜잭션 내에서 호출 (만료 임박 순)
+        // audit:allow query-unbounded-get reason: 차감 대상 lot 을 만료 임박 순으로 소진해야
+        // 하므로 잔액이 있는 활성 lot 전량이 한 트랜잭션에 필요하다. 상한을 걸면 뒤쪽 lot 이
+        // 차감에서 누락돼 잔액이 틀어진다. 모수는 한 사용자·한 통화의 미소진 lot 으로 한정된다
         return MileageTransaction::query()
             ->forUserCurrency($userId, $currency)
             ->active()
@@ -261,6 +265,7 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
             outerUsing: fn (Builder $outer) => $outer
                 ->addSelect('*')
                 ->addSelect(['expired_amount' => $expiredAmount]),
+            resultCap: PaginationLimits::resultCap('admin.mileage_transactions'),
         );
     }
 
@@ -318,6 +323,7 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
             columns: ['*'],
             sort: [['column' => 'id', 'direction' => 'desc']],
             perPage: $perPage,
+            resultCap: PaginationLimits::resultCap('admin.mileage_transactions'),
         );
     }
 
@@ -447,6 +453,9 @@ class MileageTransactionRepository implements MileageTransactionRepositoryInterf
      */
     public function getActiveLotsForUser(int $userId): Collection
     {
+        // audit:allow query-unbounded-get reason: 한 사용자의 잔액 산정용 활성 lot 전량 —
+        // 잔액은 미소진 lot 의 합이라 일부만 읽으면 값이 틀린다. 소진된 lot 은 active()
+        // 스코프에서 빠지므로 모수가 사용 이력에 비례해 늘지 않는다
         return MileageTransaction::query()
             ->where('user_id', $userId)
             ->active()

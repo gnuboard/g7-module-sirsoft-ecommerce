@@ -554,15 +554,33 @@ class CartService
             $guestItems = $this->cartRepository->findByCartKeyWithoutUser($cartKey);
             $count = 0;
 
+            // 병합할 항목이 없으면 사전 조회도 하지 않는다 (빈 cart_key·존재하지 않는 키)
+            if ($guestItems->isEmpty()) {
+                return $count;
+            }
+
+            // 항목마다 옵션과 회원 장바구니 라인을 조회하면 로그인 한 번에 항목 수 × 2 만큼
+            // 쿼리가 난다. 루프 밖에서 한 번씩만 읽어 맵으로 들고 간다.
+            $guestOptionIds = $guestItems->pluck('product_option_id')->all();
+            $optionsById = $this->productOptionRepository->findByIds($guestOptionIds)->keyBy('id');
+            $memberLinesByOption = $this->cartRepository->findAllByUserAndOptions($userId, $guestOptionIds);
+
+            // 구매 수량 한도 판정에 쓰는 상품별 합계도 시작 시점 값을 한 번만 읽는다.
+            // 루프가 회원 장바구니를 바꾸므로 그 변동분은 아래에서 메모리로 누적한다 —
+            // 매 항목 합계를 다시 조회하면 항목 수만큼 쿼리가 더 난다.
+            $memberTotalByProduct = $this->cartRepository->sumQuantityByProducts(
+                $guestItems->pluck('product_id')->all(),
+                $userId
+            );
+
             foreach ($guestItems as $guestItem) {
                 // 재고 확인
-                $productOption = $this->productOptionRepository->findById($guestItem->product_option_id);
+                $productOption = $optionsById->get($guestItem->product_option_id);
                 $availableStock = $productOption?->stock_quantity ?? 0;
 
                 // 회원 장바구니에 동일 옵션 + 동일 추가옵션 조합이 있는지 확인 (D3)
                 $guestHash = $guestItem->getAdditionalOptionSelectionHash();
-                $existingItem = $this->cartRepository
-                    ->findAllByUserAndOption($userId, $guestItem->product_option_id)
+                $existingItem = ($memberLinesByOption->get($guestItem->product_option_id) ?? collect())
                     ->first(fn ($candidate) => $candidate->getAdditionalOptionSelectionHash() === $guestHash);
 
                 if ($existingItem) {
@@ -573,12 +591,9 @@ class CartService
                     // 로그인 시 자동 병합이라 예외를 던지면 로그인 자체가 실패한다 →
                     // 상한까지 클램프하고 조정 내역을 반환값에 담아 화면이 안내하게 한다.
                     // 같은 상품의 다른 라인 수량까지 합산해 판정한다 (옵션 분할 우회 차단).
-                    $otherLinesTotal = $this->cartRepository->sumQuantityByProduct(
-                        $guestItem->product_id,
-                        $userId,
-                        null,
-                        $existingItem->id,
-                    );
+                    // 지금 합치는 라인 자신은 빼야 하므로 그 수량만 제외한다.
+                    $productTotal = $memberTotalByProduct[$guestItem->product_id] ?? 0;
+                    $otherLinesTotal = max(0, $productTotal - (int) $existingItem->quantity);
 
                     $clamped = $this->clampToPurchaseQuantityLimit(
                         $guestItem->product_id,
@@ -599,6 +614,9 @@ class CartService
                         ];
                     }
 
+                    // 이 라인의 수량이 바뀐 만큼 상품 합계도 옮겨 둔다 (다음 항목 판정용).
+                    $memberTotalByProduct[$guestItem->product_id] = $otherLinesTotal + $clamped;
+
                     $this->cartRepository->update($existingItem, [
                         'quantity' => $clamped,
                     ]);
@@ -607,11 +625,8 @@ class CartService
                     // 동일 옵션 없음: 재고 초과 시 조정 후 user_id 업데이트 (cart_key 유지)
                     $finalQuantity = $availableStock > 0 ? min($guestItem->quantity, $availableStock) : $guestItem->quantity;
 
-                    $otherLinesTotal = $this->cartRepository->sumQuantityByProduct(
-                        $guestItem->product_id,
-                        $userId,
-                        null,
-                    );
+                    // 회원 장바구니에 같은 옵션이 없으므로 기존 합계 전부가 '다른 라인' 이다.
+                    $otherLinesTotal = $memberTotalByProduct[$guestItem->product_id] ?? 0;
 
                     $clamped = $this->clampToPurchaseQuantityLimit(
                         $guestItem->product_id,
@@ -637,6 +652,9 @@ class CartService
                             'user_id' => $userId,
                             'quantity' => $clamped,
                         ]);
+
+                        // 이 라인이 회원 장바구니로 넘어왔으므로 상품 합계에 더한다.
+                        $memberTotalByProduct[$guestItem->product_id] = $otherLinesTotal + $clamped;
                     }
                 }
 

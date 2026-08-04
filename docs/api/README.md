@@ -39,6 +39,7 @@
 | [shipping-carriers.md](shipping-carriers.md) | `shipping-carriers` | 7 |
 | [shipping-country.md](shipping-country.md) | `shipping-country` | 2 |
 | [shipping-policies.md](shipping-policies.md) | `shipping-policies` | 11 |
+| [storefront.md](storefront.md) | `storefront` | 1 |
 | [users.md](users.md) | `users` | 2 |
 | [wishlist.md](wishlist.md) | `wishlist` | 3 |
 

@@ -2902,10 +2902,11 @@
                     {
                         "type": "composite",
                         "name": "Pagination",
-                        "if": "{{(reviews.data?.meta?.last_page ?? 1) > 1}}",
+                        "if": "{{((reviews.data?.meta?.last_page ?? 0) > 1) || (reviews.data?.meta?.has_more_pages === true) || ((reviews.data?.meta?.current_page ?? 1) > 1)}}",
                         "props": {
                             "currentPage": "{{reviews.data?.meta?.current_page ?? 1}}",
-                            "totalPages": "{{reviews.data?.meta?.last_page ?? 1}}",
+                            "totalPages": "{{reviews.data?.meta?.last_page ?? null}}",
+                            "hasMorePages": "{{reviews.data?.meta?.has_more_pages ?? false}}",
                             "className": "flex justify-center mt-4"
                         },
                         "actions": [

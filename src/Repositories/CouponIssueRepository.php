@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
+use App\Support\Query\PaginationLimits;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -179,6 +180,7 @@ class CouponIssueRepository implements CouponIssueRepositoryInterface
             // 제3자 확장이 쿠폰 원본 정의(쿠폰명·할인율·사용조건)를 읽고 있을 수 있어 현행 유지
             // (PO 결정 2026-08-04). 번들 템플릿에는 아직 대응 마이페이지 화면이 없다.
             relations: ['coupon'],
+            resultCap: PaginationLimits::resultCap('ecommerce.coupon_issues'),
         );
     }
 
