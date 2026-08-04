@@ -19,6 +19,10 @@ use App\Extension\AbstractUpgradeStep;
  * 반영되므로 업그레이드 시점에 동일 인덱스를 적용한다. 데이터가 많은 쇼핑몰에서는
  * ALTER TABLE 이 수 분 걸리며 그동안 해당 테이블 쓰기가 대기한다.
  *
+ * 3. 주문에 보관된 배송정책 스냅샷을 리스트+메타 구조로 정규화한다.
+ *    항목 목록과 배송지 메타를 한 배열에 섞어 담아 json_encode 가 리스트가 아닌 객체로
+ *    직렬화했고, 배열을 전제한 주문 상세 화면에서 배송정책 줄이 통째로 사라졌다.
+ *
  * 모든 비즈니스 로직은 data/1.0.5/migrations/ 로 격리(AbstractUpgradeStep 규약).
  *
  * @upgrade-path A
