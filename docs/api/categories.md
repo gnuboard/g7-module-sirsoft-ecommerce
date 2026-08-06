@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Categories 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -49,12 +49,12 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| id | integer | `87` | 기본 키 (내부 식별자) |
+| id | integer | `29` | 기본 키 (내부 식별자) |
 | name | object | `{"ko":"의류","en":"Clothing"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
 | description | object | `{"ko":"다양한 스타일의 의류 제품","en":"Various styles of clothing p…` | 설명 (다국어 필드는 로케일별 값 객체) |
 | localized_name | string | `의류` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
 | parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
-| path | string | `87` | 조상부터 자기 자신까지의 ID를 `/`로 이은 materialized path (조상 조회·하위 일괄 선택에 사용) |
+| path | string | `29` | 조상부터 자기 자신까지의 ID를 `/`로 이은 materialized path (조상 조회·하위 일괄 선택에 사용) |
 | depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
 | sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
 | is_active | boolean | `true` | active 여부 |
@@ -63,10 +63,10 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | icon | string | `folder` | 아이콘 식별자 (아이콘 클래스/이름) |
 | meta_title | null | `null` | SEO 메타 제목 (검색엔진/소셜 공유 표시 제목, 미설정 시 null) |
 | meta_description | null | `null` | SEO 메타 설명 (검색엔진/소셜 공유 표시 요약, 미설정 시 null) |
-| created_at | string | `2026-06-15 02:24:00` | 생성 일시 |
-| updated_at | string | `2026-06-15 02:24:00` | 최종 수정 일시 |
+| created_at | string | `2026-07-30 14:35:46` | 생성 일시 |
+| updated_at | string | `2026-07-30 14:35:46` | 최종 수정 일시 |
 | images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
-| products_count | integer | `22` | products 개수 (집계) |
+| products_count | integer | `24` | products 개수 (집계) |
 | children_count | integer | `0` | children 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
@@ -83,34 +83,70 @@ HTTP/1.1 200
     "data": {
         "data": [
             {
-                "id": 1,
+                "id": 29,
                 "name": {
-                    "ko": "API 문서 샘플 카테고리",
-                    "en": "API Doc Sample Category"
+                    "ko": "의류",
+                    "en": "Clothing"
                 },
-                "description": null,
-                "localized_name": "API 문서 샘플 카테고리",
+                "description": {
+                    "ko": "다양한 스타일의 의류 제품",
+                    "en": "Various styles of clothing products"
+                },
+                "localized_name": "의류",
                 "parent_id": null,
-                "path": "0",
+                "path": "29",
                 "depth": 0,
                 "sort_order": 0,
                 "is_active": true,
-                "slug": "apidoc-sample-category",
-                "url": "apidoc-sample-category",
+                "slug": "clothing",
+                "url": "clothing",
                 "icon": "folder",
                 "meta_title": null,
                 "meta_description": null,
-                "created_at": "2026-07-08 01:44:49",
-                "updated_at": "2026-07-08 01:44:49",
+                "created_at": "2026-07-30 14:35:46",
+                "updated_at": "2026-07-30 14:35:46",
                 "images": [],
-                "products_count": 0,
+                "products_count": 24,
                 "children_count": 0,
                 "abilities": {
                     "can_create": true,
                     "can_update": true,
                     "can_delete": true
                 }
-            }
+            },
+            {
+                "id": 38,
+                "name": {
+                    "ko": "전자기기",
+                    "en": "Electronics"
+                },
+                "description": {
+                    "ko": "최신 전자제품과 기기",
+                    "en": "Latest electronic products and devices"
+                },
+                "localized_name": "전자기기",
+                "parent_id": null,
+                "path": "38",
+                "depth": 0,
+                "sort_order": 1,
+                "is_active": true,
+                "slug": "electronics",
+                "url": "electronics",
+                "icon": "folder",
+                "meta_title": null,
+                "meta_description": null,
+                "created_at": "2026-07-30 14:35:47",
+                "updated_at": "2026-07-30 14:35:47",
+                "images": [],
+                "products_count": 15,
+                "children_count": 0,
+                "abilities": {
+                    "can_create": true,
+                    "can_update": true,
+                    "can_delete": true
+                }
+            },
+            "... (총 8건 중 2건 표시)"
         ],
         "abilities": {
             "can_create": true,
@@ -182,7 +218,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -249,7 +285,7 @@ Content-Disposition: form-data; name="alt_text"
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -300,7 +336,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -334,7 +370,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/categories/images/1 HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/categories/images/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -342,11 +378,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-404 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -397,7 +433,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -441,12 +477,12 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| id | integer | `87` | 기본 키 (내부 식별자) |
+| id | integer | `29` | 기본 키 (내부 식별자) |
 | name | object | `{"ko":"의류","en":"Clothing"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
 | description | object | `{"ko":"다양한 스타일의 의류 제품","en":"Various styles of clothing p…` | 설명 (다국어 필드는 로케일별 값 객체) |
 | localized_name | string | `의류` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
 | parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
-| path | string | `87` | 조상부터 자기 자신까지의 ID를 `/`로 이은 materialized path (조상 조회·하위 일괄 선택에 사용) |
+| path | string | `29` | 조상부터 자기 자신까지의 ID를 `/`로 이은 materialized path (조상 조회·하위 일괄 선택에 사용) |
 | depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
 | sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
 | is_active | boolean | `true` | active 여부 |
@@ -455,12 +491,12 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | icon | string | `folder` | 아이콘 식별자 (아이콘 클래스/이름) |
 | meta_title | null | `null` | SEO 메타 제목 (검색엔진/소셜 공유 표시 제목, 미설정 시 null) |
 | meta_description | null | `null` | SEO 메타 설명 (검색엔진/소셜 공유 표시 요약, 미설정 시 null) |
-| created_at | string | `2026-06-15 02:24:00` | 생성 일시 |
-| updated_at | string | `2026-06-15 02:24:00` | 최종 수정 일시 |
+| created_at | string | `2026-07-30 14:35:46` | 생성 일시 |
+| updated_at | string | `2026-07-30 14:35:46` | 최종 수정 일시 |
 | parent | null | `null` | 상위 항목 객체 (parent 관계 파생) |
-| children | array | `[{"id":88,"name":{"ko":"남성","en":"Men"},"description":{"k…` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
+| children | array | `[{"id":30,"name":{"ko":"남성","en":"Men"},"description":{"k…` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
 | images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
-| products_count | integer | `22` | products 개수 (집계) |
+| products_count | integer | `24` | products 개수 (집계) |
 | children_count | integer | `2` | children 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
@@ -477,36 +513,34 @@ HTTP/1.1 200
     "data": {
         "data": [
             {
-                "id": 1,
+                "id": 29,
                 "name": {
-                    "ko": "API 문서 샘플 카테고리",
-                    "en": "API Doc Sample Category"
+                    "ko": "의류",
+                    "en": "Clothing"
                 },
-                "description": null,
-                "localized_name": "API 문서 샘플 카테고리",
+                "description": {
+                    "ko": "다양한 스타일의 의류 제품",
+                    "en": "Various styles of clothing products"
+                },
+                "localized_name": "의류",
                 "parent_id": null,
-                "path": "0",
-                "depth": 0,
-                "sort_order": 0,
-                "is_active": true,
-                "slug": "apidoc-sample-category",
-                "url": "apidoc-sample-category",
-                "icon": "folder",
-                "meta_title": null,
-                "meta_description": null,
-                "created_at": "2026-07-08 01:44:49",
-                "updated_at": "2026-07-08 01:44:49",
-                "parent": null,
-                "children": [],
-                "images": [],
-                "products_count": 0,
-                "children_count": 0,
-                "abilities": {
-                    "can_create": true,
-                    "can_update": true,
-                    "can_delete": true
-                }
-            }
+                "...": "(17개 키 생략, 총 22개)"
+            },
+            {
+                "id": 38,
+                "name": {
+                    "ko": "전자기기",
+                    "en": "Electronics"
+                },
+                "description": {
+                    "ko": "최신 전자제품과 기기",
+                    "en": "Latest electronic products and devices"
+                },
+                "localized_name": "전자기기",
+                "parent_id": null,
+                "...": "(17개 키 생략, 총 22개)"
+            },
+            "... (총 8건 중 2건 표시)"
         ],
         "abilities": {
             "can_create": true,
@@ -578,7 +612,7 @@ Content-Disposition: form-data; name="alt_text"
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -613,7 +647,7 @@ Content-Disposition: form-data; name="alt_text"
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/categories/1 HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/categories/{category} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -621,27 +655,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| category_id | integer | `1` | category 식별자 (연관 리소스 참조) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "카테고리가 삭제되었습니다.",
-    "data": {
-        "category_id": 1
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -681,7 +699,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-PUT /api/modules/sirsoft-ecommerce/admin/categories/1 HTTP/1.1
+PUT /api/modules/sirsoft-ecommerce/admin/categories/{category} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -705,11 +723,11 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -740,7 +758,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/categories/1 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/categories/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -748,76 +766,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| id | integer | `1` | 기본 키 (내부 식별자) |
-| name | object | `{"ko":"API 문서 샘플 카테고리","en":"API Doc Sample Category"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
-| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
-| localized_name | string | `API 문서 샘플 카테고리` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
-| path | string | `0` | Materialized Path: 1/5/23 |
-| depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
-| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
-| is_active | boolean | `true` | active 여부 |
-| slug | string | `apidoc-sample-category` | URL 친화 식별자 (slug) |
-| url | string | `apidoc-sample-category` | SortableMenuItem 표시용 URL (slug 값을 그대로 사용) |
-| icon | string | `folder` | 아이콘 식별자 (아이콘 클래스/이름) |
-| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
-| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
-| created_at | string | `2026-07-08 01:44:49` | 생성 일시 |
-| updated_at | string | `2026-07-08 01:44:49` | 최종 수정 일시 |
-| parent | null | `null` | 상위 항목 객체 (parent 관계 파생) |
-| children | array | `[]` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
-| images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
-| products_count | integer | `0` | products 개수 (집계) |
-| children_count | integer | `0` | children 개수 (집계) |
-| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "카테고리 정보를 조회했습니다.",
-    "data": {
-        "id": 1,
-        "name": {
-            "ko": "API 문서 샘플 카테고리",
-            "en": "API Doc Sample Category"
-        },
-        "description": null,
-        "localized_name": "API 문서 샘플 카테고리",
-        "parent_id": null,
-        "path": "0",
-        "depth": 0,
-        "sort_order": 0,
-        "is_active": true,
-        "slug": "apidoc-sample-category",
-        "url": "apidoc-sample-category",
-        "icon": "folder",
-        "meta_title": null,
-        "meta_description": null,
-        "created_at": "2026-07-08 01:44:49",
-        "updated_at": "2026-07-08 01:44:49",
-        "parent": null,
-        "children": [],
-        "images": [],
-        "products_count": 0,
-        "children_count": 0,
-        "abilities": {
-            "can_create": true,
-            "can_update": true,
-            "can_delete": true
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -847,7 +800,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/categories/1/toggle-status HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/categories/{id}/toggle-status HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -855,72 +808,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| id | integer | `1` | 기본 키 (내부 식별자) |
-| name | object | `{"ko":"API 문서 샘플 카테고리","en":"API Doc Sample Category"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
-| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
-| localized_name | string | `API 문서 샘플 카테고리` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
-| path | string | `0` | Materialized Path: 1/5/23 |
-| depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
-| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
-| is_active | boolean | `false` | active 여부 |
-| slug | string | `apidoc-sample-category` | URL 친화 식별자 (slug) |
-| url | string | `apidoc-sample-category` | SortableMenuItem 표시용 URL (slug 값을 그대로 사용) |
-| icon | string | `folder` | 아이콘 식별자 (아이콘 클래스/이름) |
-| meta_title | null | `null` | SEO 제목 (다국어 JSON) |
-| meta_description | null | `null` | SEO 설명 (다국어 JSON) |
-| created_at | string | `2026-07-08 01:44:49` | 생성 일시 |
-| updated_at | string | `2026-07-08 06:00:17` | 최종 수정 일시 |
-| images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
-| products_count | integer | `0` | products 개수 (집계) |
-| children_count | integer | `0` | children 개수 (집계) |
-| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "sirsoft-ecommerce::messages.categories.status_changed",
-    "data": {
-        "id": 1,
-        "name": {
-            "ko": "API 문서 샘플 카테고리",
-            "en": "API Doc Sample Category"
-        },
-        "description": null,
-        "localized_name": "API 문서 샘플 카테고리",
-        "parent_id": null,
-        "path": "0",
-        "depth": 0,
-        "sort_order": 0,
-        "is_active": false,
-        "slug": "apidoc-sample-category",
-        "url": "apidoc-sample-category",
-        "icon": "folder",
-        "meta_title": null,
-        "meta_description": null,
-        "created_at": "2026-07-08 01:44:49",
-        "updated_at": "2026-07-08 06:00:17",
-        "images": [],
-        "products_count": 0,
-        "children_count": 0,
-        "abilities": {
-            "can_create": true,
-            "can_update": true,
-            "can_delete": true
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -957,14 +849,14 @@ Accept: application/json
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| id | integer | `87` | 기본 키 (내부 식별자) |
+| id | integer | `29` | 기본 키 (내부 식별자) |
 | name | object | `{"ko":"의류","en":"Clothing"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
 | name_localized | string | `의류` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
 | slug | string | `clothing` | URL 친화 식별자 (slug) |
 | depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
 | parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
-| products_count | integer | `22` | products 개수 (집계) |
-| children | array | `[{"id":88,"name":{"ko":"남성","en":"Men"},"name_localized":…` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
+| products_count | integer | `24` | products 개수 (집계) |
+| children | array | `[{"id":30,"name":{"ko":"남성","en":"Men"},"name_localized":…` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
 
 **응답 예시**
 
@@ -978,18 +870,61 @@ HTTP/1.1 200
     "message": "카테고리 목록을 조회했습니다.",
     "data": [
         {
-            "id": 1,
+            "id": 29,
             "name": {
-                "ko": "API 문서 샘플 카테고리",
-                "en": "API Doc Sample Category"
+                "ko": "의류",
+                "en": "Clothing"
             },
-            "name_localized": "API 문서 샘플 카테고리",
-            "slug": "apidoc-sample-category",
+            "name_localized": "의류",
+            "slug": "clothing",
             "depth": 0,
-            "parent_id": null,
-            "products_count": 0,
-            "children": []
-        }
+            "...": "(3개 키 생략, 총 8개)"
+        },
+        {
+            "id": 38,
+            "name": {
+                "ko": "전자기기",
+                "en": "Electronics"
+            },
+            "name_localized": "전자기기",
+            "slug": "electronics",
+            "depth": 0,
+            "...": "(3개 키 생략, 총 8개)"
+        },
+        {
+            "id": 46,
+            "name": {
+                "ko": "가구",
+                "en": "Furniture"
+            },
+            "name_localized": "가구",
+            "slug": "furniture",
+            "depth": 0,
+            "...": "(3개 키 생략, 총 8개)"
+        },
+        {
+            "id": 51,
+            "name": {
+                "ko": "식품",
+                "en": "Food"
+            },
+            "name_localized": "식품",
+            "slug": "food",
+            "depth": 0,
+            "...": "(3개 키 생략, 총 8개)"
+        },
+        {
+            "id": 56,
+            "name": {
+                "ko": "스포츠",
+                "en": "Sports"
+            },
+            "name_localized": "스포츠",
+            "slug": "sports",
+            "depth": 0,
+            "...": "(3개 키 생략, 총 8개)"
+        },
+        "... (총 8건 중 5건 표시)"
     ]
 }
 ```
@@ -1018,65 +953,18 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/categories/apidoc-sample-category HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/categories/{slug} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 ```
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| id | integer | `1` | 기본 키 (내부 식별자) |
-| name | object | `{"ko":"API 문서 샘플 카테고리","en":"API Doc Sample Category"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
-| name_localized | string | `API 문서 샘플 카테고리` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
-| description_localized | null | `null` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| slug | string | `apidoc-sample-category` | URL 친화 식별자 (slug) |
-| depth | integer | `0` | 계층 트리에서의 깊이 (0 = 최상위, 하위로 갈수록 증가) |
-| parent_id | null | `null` | parent 식별자 (연관 리소스 참조) |
-| products_count | integer | `0` | products 개수 (집계) |
-| breadcrumb | array | `[{"id":1,"name":"API 문서 샘플 카테고리","slug":"apidoc-sample-ca…` | 최상위부터 현재 카테고리까지의 상위 경로 배열 (각 항목에 id·현지화 name·slug — 스토어프론트 breadcrumb 표시용) |
-| images | array | `[]` | 카테고리 이미지 배열 (images 관계 로드 시 — id/hash/download_url/alt_text 등) |
-| children | array | `[]` | 하위 항목 배열 (계층 트리 — children 관계 파생) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "sirsoft-ecommerce::messages.categories.fetch_success",
-    "data": {
-        "id": 1,
-        "name": {
-            "ko": "API 문서 샘플 카테고리",
-            "en": "API Doc Sample Category"
-        },
-        "name_localized": "API 문서 샘플 카테고리",
-        "description": null,
-        "description_localized": null,
-        "slug": "apidoc-sample-category",
-        "depth": 0,
-        "parent_id": null,
-        "products_count": 0,
-        "breadcrumb": [
-            {
-                "id": 1,
-                "name": "API 문서 샘플 카테고리",
-                "slug": "apidoc-sample-category"
-            }
-        ],
-        "images": [],
-        "children": []
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

@@ -60,7 +60,15 @@ class ProductWishlistRepository implements ProductWishlistRepositoryInterface
             // 상품이 소프트 삭제되면 eager load 결과가 null 이 되어 카드가 렌더 실패한다.
             // 목록에서 아예 제외해 "빈 셀 0" 을 성립시킨다 (찜 행 자체는 보존).
             ->whereHas('product')
-            ->with(['product.brand', 'product.categories', 'product.activeLabelAssignments.label'])
+            // 대표 이미지는 로드된 컬렉션에서 고른다. 미로드 시 `getThumbnailUrl()` 이 행마다
+            // 관계를 최대 2회 재조회하므로(대표 지정 조회 → 첫 이미지 폴백) 행 수에 비례해 늘어난다.
+            // 썸네일 URL 조립에 필요한 컬럼만 읽어 페이로드는 늘리지 않는다.
+            ->with([
+                'product.brand',
+                'product.categories',
+                'product.activeLabelAssignments.label',
+                'product.images:id,product_id,hash,is_thumbnail,sort_order',
+            ])
             ->orderByDesc('created_at')
             // 전순서 보장 — 한 번에 여러 건을 담았을 때의 created_at 동률 대비
             ->orderByDesc('id')

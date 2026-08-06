@@ -247,19 +247,34 @@ describe('통화 규칙 테이블 (_tab_mileage_currency_table.json)', () => {
     expect(percentInput.props.disabled).toContain("rule.max_use_type !== 'percent'");
   });
 
-  it('max_use_type 라디오는 Label 클릭과 키보드 change 양쪽으로 같은 상태를 만든다', () => {
+  it('max_use_type 라디오는 라디오 자신과 부모 Label 양쪽에서 상태를 바꾼다 (키보드 조작 가능)', () => {
     // 회귀: 라디오 자동바인딩은 문자열 값을 value 바인딩으로 처리해 라디오 그룹을 깨뜨린다.
-    // 그래서 Label click 으로 상태를 갱신한다. 다만 라디오를 pointer-events-none 으로만 두면
-    // 키보드 방향키(change)로 옮겼을 때 화면 표시와 저장될 값이 어긋난다(#493) —
-    // 라디오 자체에도 click 과 **동일한 params** 를 갖는 change 액션을 둔다.
+    // 그래서 자동바인딩 대신 명시적 setState 로 해당 행(rule._idx)의 max_use_type 을
+    // 배열 map 교체로 갱신한다.
+    //
+    // 종전에는 라디오를 `pointer-events-none`(시각 전용)으로 두고 부모 Label click 만 처리했으나,
+    // 그 형태는 키보드(Tab → Space/방향키)로 값을 바꿀 수 없어 #493 에서 되돌렸다. 지금 계약은
+    // **라디오 자신의 change + 부모 Label 의 click 둘 다** 같은 setState 를 수행하는 것이다
+    // (같은 값을 쓰므로 이벤트가 겹쳐 두 번 실행돼도 결과가 같다).
     const radios = findAll(currencyTable, (n) => n.name === 'Input' && n.props?.type === 'radio'
       && String(n.props?.name).includes('max_use_type'));
     // currency_rules 행(2) + 인라인 추가 행(2) = 4
     expect(radios.length).toBe(4);
     for (const radio of radios) {
-      const change = (radio.actions ?? []).find((a: any) => a.type === 'change' && a.handler === 'setState');
-      expect(change, `radio(${radio.props.value}) 에 키보드 조작용 change 액션 누락`).toBeTruthy();
-      expect(change.params.target).toBe('local');
+      // 라디오가 포인터 이벤트를 막으면 키보드 포커스 이동 후 조작도 함께 막힌다
+      expect(
+        String(radio.props.className ?? ''),
+        `radio(${radio.props.value}) 가 pointer-events-none 이면 키보드로 값을 바꿀 수 없다`,
+      ).not.toContain('pointer-events-none');
+
+      // 라디오 자신이 change 로 값을 바꾼다 (자동바인딩이 아니라 명시적 setState)
+      const changeActions = (radio.actions ?? []).filter((a: any) => a.type === 'change');
+      expect(changeActions.length, `radio(${radio.props.value}) 에 change 액션 누락`).toBe(1);
+      expect(changeActions[0].handler).toBe('setState');
+      // Label click 과 **동일한 params** 여야 한다 — 대상 저장소(local)와 갱신 키가 갈리면
+      // 마우스로 고른 값과 키보드로 고른 값이 서로 다른 곳에 쓰인다 (#493)
+      expect(changeActions[0].params?.target).toBe('local');
+      expect(JSON.stringify(changeActions[0].params ?? {})).toContain('max_use_type');
     }
 
     // 부모 Label 이 click → setState 로 max_use_type 갱신

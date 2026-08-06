@@ -121,12 +121,30 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             default => [['column' => 'created_at', 'direction' => 'desc']],
         };
 
+        // `images` 는 관리자 목록에서 의도적으로 유지한다. 공개 리뷰 목록(`getPublicListByProduct`)도
+        // 같은 이유로 유지하므로, 한쪽만 뺄 수 있다고 읽지 말 것.
+        //
+        // 소비처 실측: `admin_ecommerce_product_review_index.json` 의 확장 행이 썸네일을 최대
+        // 3장 그리고(`:2199`, `:2237`, `:2275`), 클릭 시 미리보기 모달에 배열 전체를 넘긴다
+        // (`:2218`, `:2256`, `:2294`). 목록에서 빼면 그 화면이 그대로 기능을 잃는다.
+        //
+        // 줄이려면 페이로드를 깎는 것이 아니라 확장 시 지연 로드하는 경로(상품 옵션과 같은
+        // 방식)를 먼저 만들어야 하며, 그것은 이 변경의 범위 밖이다.
         return $this->paginateWithDeferredJoin(
             query: $query,
             columns: ['*'],
             sort: $sort,
             perPage: $perPage,
-            relations: ['user', 'product', 'images', 'orderOption.order', 'replyAdmin'],
+            // `product.images` 는 상품 썸네일 산출용이다. 미로드 시 `getThumbnailUrl()` 이
+            // 행마다 관계를 최대 2회 재조회한다. 썸네일 조립 컬럼만 읽어 페이로드는 늘리지 않는다.
+            relations: [
+                'user',
+                'product',
+                'product.images:id,product_id,hash,is_thumbnail,sort_order',
+                'images',
+                'orderOption.order',
+                'replyAdmin',
+            ],
         );
     }
 
@@ -190,7 +208,20 @@ class ProductReviewRepository implements ProductReviewRepositoryInterface
             columns: ['*'],
             sort: $sort,
             perPage: $perPage,
+            // 리뷰 첨부 이미지는 로드한다 — 상품 상세의 리뷰 탭이 실제로 그린다.
+            //
+            // 소비처 실측: `templates/_bundled/sirsoft-basic/layouts/partials/shop/detail/
+            // _tab_reviews.json` 이 썸네일 3장을 인덱스로 직접 읽고(`review.images[0..2]
+            // .download_url`), 클릭 시 이미지 모달에 배열 전체를 넘긴다. 이 파셜은
+            // `shop/show.json` 이 include 하므로 그 파일만 열어보면 참조가 보이지 않는다.
+            //
+            // 빼면 조용히 깨진다. 썸네일이 `(review.images ?? []).length > 0` 가드 뒤에 있어
+            // 예외도 콘솔 경고도 없이 자리만 빈다. 게다가 바깥 컨테이너는 `image_count > 0` 로
+            // 열리므로 "빈 상자" 가 남는다.
+            //
+            // 개수는 배열 길이 대신 DB 집계를 그대로 쓴다(Resource 가 집계를 우선한다).
             relations: ['user', 'images'],
+            withCount: ['images as image_count'],
         );
     }
 

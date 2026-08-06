@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Promotion Coupons 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -64,54 +64,54 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| id | integer | `157` | 기본 키 (내부 식별자) |
-| name | object | `{"ko":"API 문서 샘플 쿠폰","en":"API Doc Sample Coupon"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
-| localized_name | string | `API 문서 샘플 쿠폰` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| description | object | `{"ko":null,"en":null}` | 설명 (다국어 필드는 로케일별 값 객체) |
+| id | integer | `110` | 기본 키 (내부 식별자) |
+| name | object | `{"ko":"설날 무료배송 (예정)","en":"Lunar New Year Free Shipping (…` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
+| localized_name | string | `설날 무료배송 (예정)` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
+| description | object | `{"ko":"설날 특별 무료배송 예정","en":"Upcoming Lunar New Year free …` | 설명 (다국어 필드는 로케일별 값 객체) |
 | localized_description | string | `설날 특별 무료배송 예정` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| target_type | string | `order_amount` | 적용대상(할인 기준): product_amount(상품금액), order_amount(주문금액), shipping_fee(배송비) |
-| target_type_label | string | `주문금액` | `target_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| target_type_badge_color | string | `blue` | `target_type` 배지 색상 (상품금액=teal, 주문금액=blue, 배송비=orange) |
+| target_type | string | `shipping_fee` | 적용대상(할인 기준): product_amount(상품금액), order_amount(주문금액), shipping_fee(배송비) |
+| target_type_label | string | `배송비` | `target_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| target_type_badge_color | string | `orange` | `target_type` 배지 색상 (상품금액=teal, 주문금액=blue, 배송비=orange) |
 | discount_type | string | `fixed` | 혜택유형: fixed(정액 금액 할인), rate(정률 % 할인) |
 | discount_type_label | string | `정액할인` | `discount_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| discount_value | integer | `1000` | 혜택값 (정액이면 할인 금액, 정률이면 할인율 %). 정액은 기본 통화 자릿수로 정규화 |
+| discount_value | integer | `5000` | 혜택값 (정액이면 할인 금액, 정률이면 할인율 %). 정액은 기본 통화 자릿수로 정규화 |
 | discount_max_amount | integer | `2000` | 최대 할인액 (정률 할인 시 상한 금액, 미설정 시 null) |
-| min_order_amount | integer | `0` | 쿠폰 적용 최소 주문금액 (0=제한 없음) |
-| benefit_formatted | string | `1,000원 할인` | `benefit` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| multi_currency_discount_value | object | `{"KRW":{"price":1000,"formatted":"1,000원","is_default":tr…` | 정액 할인 금액의 통화별 환산 맵 (정률은 통화 무관이라 null) |
-| multi_currency_min_order_amount | object | `{"KRW":{"price":10000,"formatted":"10,000원","is_default":…` | 최소 주문금액의 통화별 환산 맵 (0이면 null) |
+| min_order_amount | integer | `20000` | 쿠폰 적용 최소 주문금액 (0=제한 없음) |
+| benefit_formatted | string | `¥5,000 할인` | `benefit` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| multi_currency_discount_value | object | `{"KRW":{"price":5000,"formatted":"5,000원","is_default":tr…` | 정액 할인 금액의 통화별 환산 맵 (정률은 통화 무관이라 null) |
+| multi_currency_min_order_amount | object | `{"KRW":{"price":20000,"formatted":"20,000원","is_default":…` | 최소 주문금액의 통화별 환산 맵 (0이면 null) |
 | multi_currency_discount_max_amount | object | `{"KRW":{"price":2000,"formatted":"2,000원","is_default":tr…` | 최대 할인액의 통화별 환산 맵 (미설정 시 null) |
-| issue_method | string | `download` | 발급방법: direct(직접발급), download(다운로드), auto(자동발급) |
-| issue_method_label | string | `다운로드` | `issue_method` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| issue_method_badge_color | string | `teal` | `issue_method` 배지 색상 (직접발급=gray, 다운로드=teal, 자동발급=blue) |
+| issue_method | string | `direct` | 발급방법: direct(직접발급), download(다운로드), auto(자동발급) |
+| issue_method_label | string | `직접발급` | `issue_method` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| issue_method_badge_color | string | `gray` | `issue_method` 배지 색상 (직접발급=gray, 다운로드=teal, 자동발급=blue) |
 | issue_condition | string | `manual` | 발급조건: manual(수동), signup(회원가입), first_purchase(첫구매), birthday(생일) |
 | issue_condition_label | string | `수동발급` | `issue_condition` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | issue_condition_badge_color | string | `orange` | `issue_condition` 배지 색상 (수동=orange, 회원가입=blue, 첫구매=teal, 생일=pink) |
 | issue_status | string | `issuing` | 발급상태: issuing(발급중), stopped(발급중단) |
 | issue_status_label | string | `발급중` | `issue_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | issue_status_badge_color | string | `blue` | `issue_status` 배지 색상 (발급중=blue, 발급중단=orange) |
-| total_quantity | integer | `1` | 총 발급 수량 (null=무제한) |
-| issued_count | integer | `0` | issued 개수 (집계) |
+| total_quantity | integer | `3000` | 총 발급 수량 (null=무제한) |
+| issued_count | integer | `59` | issued 개수 (집계) |
 | per_user_limit | integer | `1` | 회원 1인당 발급 제한 수량 (0=무제한) |
-| issue_count_formatted | string | `0/무제한` | `issue_count` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| issue_count_formatted | string | `59/3000` | `issue_count` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | valid_type | string | `period` | 유효기간 유형: period(기간 지정), days_from_issue(발급일로부터 N일) |
-| valid_days | integer | `1` | 발급일로부터 유효 일수 (valid_type=days_from_issue 일 때) |
-| valid_from | string | `2026-06-30` | 유효기간 시작일 (사이트 타임존 기준 날짜 문자열) |
-| valid_to | string | `2026-07-30` | 유효기간 종료일 (사이트 타임존 기준 날짜 문자열) |
-| valid_period_formatted | string | `-` | `valid_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| issue_from | string | `2026-06-30T11:24` | 발급기간 시작 일시 (datetime-local 입력 호환 문자열) |
-| issue_to | string | `2026-07-15T11:24` | 발급기간 종료 일시 (datetime-local 입력 호환 문자열) |
-| issue_period_formatted | string | `상시발급` | `issue_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| is_combinable | boolean | `false` | combinable 여부 |
+| valid_days | integer | `7` | 발급일로부터 유효 일수 (valid_type=days_from_issue 일 때) |
+| valid_from | string | `2026-08-14` | 유효기간 시작일 (사이트 타임존 기준 날짜 문자열) |
+| valid_to | string | `2026-09-13` | 유효기간 종료일 (사이트 타임존 기준 날짜 문자열) |
+| valid_period_formatted | string | `2026-08-14 ~ 2026-09-13` | `valid_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| issue_from | string | `2026-08-14T23:36` | 발급기간 시작 일시 (datetime-local 입력 호환 문자열) |
+| issue_to | string | `2026-08-29T23:36` | 발급기간 종료 일시 (datetime-local 입력 호환 문자열) |
+| issue_period_formatted | string | `2026-08-14 ~ 2026-08-29` | `issue_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| is_combinable | boolean | `true` | combinable 여부 |
 | target_scope | string | `all` | 적용 범위: all(전체 상품), products(특정 상품), categories(특정 카테고리) |
 | target_scope_label | string | `전체상품` | `target_scope` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| is_issuable | boolean | `true` | issuable 여부 |
-| created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
-| updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
-| created_by | string | `a1e0a91a-fba6-491c-a53e-7285a5686857` | 등록자(생성한 관리자) UUID (creator 관계 로드 시) |
+| is_issuable | boolean | `false` | issuable 여부 |
+| created_at | string | `2026-07-30 23:36:17` | 생성 일시 |
+| updated_at | string | `2026-07-31 07:42:40` | 최종 수정 일시 |
+| created_by | null | `null` | 등록자(생성한 관리자) UUID (creator 관계 로드 시) |
 | created_by_name | string | `-` | 등록자 이름 (creator 미로드/미설정 시 `-`) |
-| created_by_email | string | `heuristing@gmail.com` | 등록자 이메일 (creator 관계 파생) |
-| creator | object | `{"uuid":"a1e0a91a-fba6-491c-a53e-7285a5686857","name":"관리자"}` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
+| created_by_email | null | `null` | 등록자 이메일 (creator 관계 파생) |
+| creator | null | `null` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
 | issues_count | integer | `0` | issues 개수 (집계) |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
@@ -128,99 +128,34 @@ HTTP/1.1 200
     "data": {
         "data": [
             {
-                "id": 1,
+                "id": 110,
                 "name": {
-                    "ko": "API 문서 샘플 쿠폰",
-                    "en": "API Doc Sample Coupon"
+                    "ko": "설날 무료배송 (예정)",
+                    "en": "Lunar New Year Free Shipping (Upcoming)"
                 },
-                "localized_name": "API 문서 샘플 쿠폰",
-                "description": null,
-                "localized_description": null,
-                "target_type": "order_amount",
-                "target_type_label": "주문금액",
-                "target_type_badge_color": "blue",
-                "discount_type": "fixed",
-                "discount_type_label": "정액할인",
-                "discount_value": 1000,
-                "discount_max_amount": null,
-                "min_order_amount": 0,
-                "benefit_formatted": "1,000원 할인",
-                "multi_currency_discount_value": {
-                    "KRW": {
-                        "price": 1000,
-                        "formatted": "1,000원",
-                        "is_default": true,
-                        "editable": true
-                    },
-                    "USD": {
-                        "price": 0.85,
-                        "formatted": "$0.85",
-                        "is_default": false,
-                        "editable": false,
-                        "exchange_rate": 0.85
-                    },
-                    "JPY": {
-                        "price": 115,
-                        "formatted": "¥115",
-                        "is_default": false,
-                        "editable": false,
-                        "exchange_rate": 115
-                    },
-                    "CNY": {
-                        "price": 5.8,
-                        "formatted": "元5.80",
-                        "is_default": false,
-                        "editable": false,
-                        "exchange_rate": 5.8
-                    },
-                    "EUR": {
-                        "price": 0.78,
-                        "formatted": "€0.78",
-                        "is_default": false,
-                        "editable": false,
-                        "exchange_rate": 0.78
-                    }
+                "localized_name": "설날 무료배송 (예정)",
+                "description": {
+                    "ko": "설날 특별 무료배송 예정",
+                    "en": "Upcoming Lunar New Year free shipping"
                 },
-                "multi_currency_min_order_amount": null,
-                "multi_currency_discount_max_amount": null,
-                "issue_method": "download",
-                "issue_method_label": "다운로드",
-                "issue_method_badge_color": "teal",
-                "issue_condition": "manual",
-                "issue_condition_label": "수동발급",
-                "issue_condition_badge_color": "orange",
-                "issue_status": "issuing",
-                "issue_status_label": "발급중",
-                "issue_status_badge_color": "blue",
-                "total_quantity": null,
-                "issued_count": 0,
-                "per_user_limit": 1,
-                "issue_count_formatted": "0/무제한",
-                "valid_type": "period",
-                "valid_days": null,
-                "valid_from": null,
-                "valid_to": null,
-                "valid_period_formatted": "-",
-                "issue_from": null,
-                "issue_to": null,
-                "issue_period_formatted": "상시발급",
-                "is_combinable": false,
-                "target_scope": "all",
-                "target_scope_label": "전체상품",
-                "is_issuable": true,
-                "created_at": "2026-07-08 10:44:49",
-                "updated_at": "2026-07-08 10:44:49",
-                "created_by": null,
-                "created_by_name": "-",
-                "created_by_email": null,
-                "creator": null,
-                "issues_count": 0,
-                "abilities": {
-                    "can_create": true,
-                    "can_update": true,
-                    "can_delete": true
-                }
-            }
+                "localized_description": "설날 특별 무료배송 예정",
+                "...": "(45개 키 생략, 총 50개)"
+            },
+            {
+                "id": 109,
+                "name": {
+                    "ko": "배송비 30% 할인 (종료)",
+                    "en": "Shipping 30% Off (Ended)"
+                },
+                "localized_name": "배송비 30% 할인 (종료)",
+                "description": {
+                    "ko": "배송비 30% 할인 이벤트 종료",
+                    "en": "Shipping 30% off event ended"
+                },
+                "localized_description": "배송비 30% 할인 이벤트 종료",
+                "...": "(45개 키 생략, 총 50개)"
+            },
+            "... (총 25건 중 2건 표시)"
         ],
         "abilities": {
             "can_create": true,
@@ -229,12 +164,11 @@ HTTP/1.1 200
         },
         "pagination": {
             "current_page": 1,
-            "last_page": 1,
+            "last_page": 2,
             "per_page": 25,
-            "total": 1,
+            "total": 50,
             "from": 1,
-            "to": 1,
-            "has_more_pages": false
+            "...": "(2개 키 생략, 총 7개)"
         }
     }
 }
@@ -333,7 +267,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -384,7 +318,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -418,7 +352,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1 HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/promotion-coupons/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -426,27 +360,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| coupon_id | integer | `1` | coupon 식별자 (연관 리소스 참조) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "쿠폰이 삭제되었습니다.",
-    "data": {
-        "coupon_id": 1
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -476,7 +394,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -484,175 +402,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| id | integer | `1` | 기본 키 (내부 식별자) |
-| name | object | `{"ko":"API 문서 샘플 쿠폰","en":"API Doc Sample Coupon"}` | 대상의 이름/명칭 (다국어 필드는 로케일별 값 객체) |
-| localized_name | string | `API 문서 샘플 쿠폰` | `name` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
-| localized_description | null | `null` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| target_type | string | `order_amount` | 적용대상: product_amount(상품금액), order_amount(주문금액), shipping_fee(배송비) |
-| target_type_label | string | `주문금액` | `target_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| target_type_badge_color | string | `blue` | `target_type` 배지 색상 (상품금액=teal, 주문금액=blue, 배송비=orange) |
-| discount_type | string | `fixed` | 혜택유형: fixed(정액), rate(정률) |
-| discount_type_label | string | `정액할인` | `discount_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| discount_value | integer | `1000` | 혜택값 (정액: 금액, 정률: %) |
-| discount_max_amount | null | `null` | 최대 할인액 (정률 시) |
-| min_order_amount | integer | `0` | 최소 주문금액 |
-| benefit_formatted | string | `1,000원 할인` | `benefit` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| multi_currency_discount_value | object | `{"KRW":{"price":1000,"formatted":"1,000원","is_default":tr…` | 정액 할인 금액의 통화별 환산 맵 (정률은 통화 무관이라 null) |
-| multi_currency_min_order_amount | null | `null` | 최소 주문금액의 통화별 환산 맵 (0이면 null) |
-| multi_currency_discount_max_amount | null | `null` | 최대 할인액의 통화별 환산 맵 (미설정 시 null) |
-| issue_method | string | `download` | 발급방법: direct(직접발급), download(다운로드), auto(자동발급) |
-| issue_method_label | string | `다운로드` | `issue_method` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| issue_method_badge_color | string | `teal` | `issue_method` 배지 색상 (직접발급=gray, 다운로드=teal, 자동발급=blue) |
-| issue_condition | string | `manual` | 발급조건: manual(수동), signup(회원가입), first_purchase(첫구매), birthday(생일) |
-| issue_condition_label | string | `수동발급` | `issue_condition` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| issue_condition_badge_color | string | `orange` | `issue_condition` 배지 색상 (수동=orange, 회원가입=blue, 첫구매=teal, 생일=pink) |
-| issue_status | string | `issuing` | 발급상태: issuing(발급중), stopped(발급중단) |
-| issue_status_label | string | `발급중` | `issue_status` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| issue_status_badge_color | string | `blue` | `issue_status` 배지 색상 (발급중=blue, 발급중단=orange) |
-| total_quantity | null | `null` | 총 발급 수량 (NULL=무제한) |
-| issued_count | integer | `0` | issued 개수 (집계) |
-| per_user_limit | integer | `1` | 회원당 발급 제한 |
-| issue_count_formatted | string | `0/무제한` | `issue_count` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| valid_type | string | `period` | 유효기간 유형: period(기간지정), days_from_issue(발급일로부터) |
-| valid_days | null | `null` | 발급일로부터 N일 (valid_type=days_from_issue) |
-| valid_from | null | `null` | 유효기간 시작 |
-| valid_to | null | `null` | 유효기간 종료 |
-| valid_period_formatted | string | `-` | `valid_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| issue_from | null | `null` | 발급기간 시작 |
-| issue_to | null | `null` | 발급기간 종료 |
-| issue_period_formatted | string | `상시발급` | `issue_period` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| is_combinable | boolean | `false` | combinable 여부 |
-| target_scope | string | `all` | 적용 범위: all(전체), products(특정상품), categories(특정카테고리) |
-| target_scope_label | string | `전체상품` | `target_scope` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| is_issuable | boolean | `true` | issuable 여부 |
-| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
-| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
-| created_by | null | `null` | 쿠폰 등록자(관리자) 식별자 (users 참조, 삭제 시 null) |
-| created_by_name | string | `-` | 등록자 이름 (creator 미로드/미설정 시 `-`) |
-| created_by_email | null | `null` | 등록자 이메일 (creator 관계 파생) |
-| creator | null | `null` | 생성자 정보 객체 (uuid/name/email — creator 관계 파생) |
-| included_products | array | `[]` | 적용 대상 포함 상품 목록 (target_scope=products 시 이 상품에만 적용) |
-| excluded_products | array | `[]` | 적용 제외 상품 목록 (해당 상품은 쿠폰 적용에서 제외) |
-| included_categories | array | `[]` | 적용 대상 포함 카테고리 목록 (target_scope=categories 시 이 카테고리에만 적용) |
-| excluded_categories | array | `[]` | 적용 제외 카테고리 목록 (해당 카테고리는 쿠폰 적용에서 제외) |
-| issues_count | integer | `0` | issues 개수 (집계) |
-| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "쿠폰 정보를 조회했습니다.",
-    "data": {
-        "id": 1,
-        "name": {
-            "ko": "API 문서 샘플 쿠폰",
-            "en": "API Doc Sample Coupon"
-        },
-        "localized_name": "API 문서 샘플 쿠폰",
-        "description": null,
-        "localized_description": null,
-        "target_type": "order_amount",
-        "target_type_label": "주문금액",
-        "target_type_badge_color": "blue",
-        "discount_type": "fixed",
-        "discount_type_label": "정액할인",
-        "discount_value": 1000,
-        "discount_max_amount": null,
-        "min_order_amount": 0,
-        "benefit_formatted": "1,000원 할인",
-        "multi_currency_discount_value": {
-            "KRW": {
-                "price": 1000,
-                "formatted": "1,000원",
-                "is_default": true,
-                "editable": true
-            },
-            "USD": {
-                "price": 0.85,
-                "formatted": "$0.85",
-                "is_default": false,
-                "editable": false,
-                "exchange_rate": 0.85
-            },
-            "JPY": {
-                "price": 115,
-                "formatted": "¥115",
-                "is_default": false,
-                "editable": false,
-                "exchange_rate": 115
-            },
-            "CNY": {
-                "price": 5.8,
-                "formatted": "元5.80",
-                "is_default": false,
-                "editable": false,
-                "exchange_rate": 5.8
-            },
-            "EUR": {
-                "price": 0.78,
-                "formatted": "€0.78",
-                "is_default": false,
-                "editable": false,
-                "exchange_rate": 0.78
-            }
-        },
-        "multi_currency_min_order_amount": null,
-        "multi_currency_discount_max_amount": null,
-        "issue_method": "download",
-        "issue_method_label": "다운로드",
-        "issue_method_badge_color": "teal",
-        "issue_condition": "manual",
-        "issue_condition_label": "수동발급",
-        "issue_condition_badge_color": "orange",
-        "issue_status": "issuing",
-        "issue_status_label": "발급중",
-        "issue_status_badge_color": "blue",
-        "total_quantity": null,
-        "issued_count": 0,
-        "per_user_limit": 1,
-        "issue_count_formatted": "0/무제한",
-        "valid_type": "period",
-        "valid_days": null,
-        "valid_from": null,
-        "valid_to": null,
-        "valid_period_formatted": "-",
-        "issue_from": null,
-        "issue_to": null,
-        "issue_period_formatted": "상시발급",
-        "is_combinable": false,
-        "target_scope": "all",
-        "target_scope_label": "전체상품",
-        "is_issuable": true,
-        "created_at": "2026-07-08 10:44:49",
-        "updated_at": "2026-07-08 10:44:49",
-        "created_by": null,
-        "created_by_name": "-",
-        "created_by_email": null,
-        "creator": null,
-        "included_products": [],
-        "excluded_products": [],
-        "included_categories": [],
-        "excluded_categories": [],
-        "issues_count": 0,
-        "abilities": {
-            "can_create": true,
-            "can_update": true,
-            "can_delete": true
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -701,14 +455,12 @@ HTTP/1.1 200
 | products | body | array | 아니오 | — | 적용 상품 목록 (`target_scope=products`), 항목별 `{id, type: include\|exclude}` |
 | categories | body | array | 아니오 | — | 적용 카테고리 목록 (`target_scope=categories`), 항목별 `{id, type: include\|exclude}` |
 
-> 필수 표기는 "전송했을 때 값이 있어야 함"을 뜻합니다. 이 엔드포인트는 부분 수정을 지원하므로 body 필드는 모두 생략할 수 있습니다 (생략하면 기존 값 유지). 유효기간은 `valid_type` 을 함께 전송할 때만 조건부 필수가 적용됩니다 — `period` 면 `valid_from`/`valid_to`, `days_from_issue` 면 `valid_days` 가 비어 있으면 422 입니다. `valid_type` 을 보내지 않는 부분 수정은 유효기간 필드를 요구하지 않습니다.
-
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.coupon.update_validation_rules`).
 
 **요청 예시**
 
 ```http
-PUT /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1 HTTP/1.1
+PUT /api/modules/sirsoft-ecommerce/admin/promotion-coupons/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -750,11 +502,11 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -786,7 +538,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-POST /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1/issue-direct HTTP/1.1
+POST /api/modules/sirsoft-ecommerce/admin/promotion-coupons/{id}/issue-direct HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -801,11 +553,11 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -841,7 +593,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1/issues?user_id=9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d&status=available&per_page=1 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/promotion-coupons/{id}/issues?user_id=9f8b2c1a-4d3e-4a2b-8c1d-0e1f2a3b4c5d&status=available&per_page=1 HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -849,34 +601,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
-
-<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "쿠폰 발급 내역을 조회했습니다.",
-    "data": {
-        "data": [],
-        "pagination": {
-            "current_page": 1,
-            "last_page": 1,
-            "per_page": 25,
-            "total": 0,
-            "from": null,
-            "to": null,
-            "has_more_pages": false
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -908,7 +637,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/promotion-coupons/1/issues/{issueId} HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/promotion-coupons/{id}/issues/{issueId} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -916,7 +645,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 

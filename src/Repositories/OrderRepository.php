@@ -381,6 +381,11 @@ class OrderRepository implements OrderRepositoryInterface
             'ordered_at',
         );
 
+        // 마이페이지 주문내역은 한 주문의 아이템을 전부 나열하므로 옵션 전량이 필요하다(실측:
+        // `partials/mypage/orders/_list.json` 의 `order.items` 순회). 관리자 목록은 대표 상품
+        // 1건과 "외 N건" 만 그리므로 대표 1건 + 집계로 충분하다.
+        $withItems = ! empty($filters['with_items']);
+
         return $this->paginateWithDeferredJoin(
             query: $query,
             columns: self::LIST_COLUMNS,
@@ -388,10 +393,22 @@ class OrderRepository implements OrderRepositoryInterface
             perPage: $perPage,
             relations: [
                 'user',
-                'options',
+                $withItems ? 'options' : 'firstOption',
                 'shippingAddress',
                 'payment',
-                'shippings',
+                // 목록은 대표 배송 1건의 표시 정보만 그린다. 택배사 이름까지 함께 로드해야
+                // Resource 가 행마다 carrier 를 다시 조회하지 않는다.
+                'firstShipping.carrier',
+            ],
+            withCount: $withItems ? [] : [
+                // "외 N건" 표기용 전체 옵션 수.
+                'options',
+                // 부분취소 뱃지 판정용 — 취소 옵션이 있으면서 남은 옵션도 있는 상태.
+                // 컬렉션을 순회하지 않고 DB 집계 두 개로 같은 판정을 얻는다.
+                'options as cancelled_options_count' => fn ($optionQuery) => $optionQuery->where(
+                    'option_status',
+                    OrderStatusEnum::CANCELLED->value,
+                ),
             ],
         );
     }

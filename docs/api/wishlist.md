@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Wishlist 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -25,12 +25,15 @@
 
 **요청 파라미터**
 
-_요청 파라미터 없음._
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
+| per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
 
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/wishlist HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/wishlist?page=1&per_page=1 HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -40,7 +43,12 @@ Authorization: Bearer {YOUR_TOKEN}
 
 _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
-<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `2` | 기본 키 (내부 식별자) |
+| product_id | integer | `1732` | product 식별자 (연관 리소스 참조) |
+| created_at | string | `2026-07-31T12:45:03.000000Z` | 생성 일시 |
+| product | object | `{"id":1732,"name":{"ko":"면 손수건 3매입 #1","en":"Cotton Handk…` | <!-- TODO: 설명 --> |
 
 **응답 예시**
 
@@ -53,15 +61,48 @@ HTTP/1.1 200
     "success": true,
     "message": "찜 목록을 불러왔습니다.",
     "data": {
-        "data": [],
+        "data": [
+            {
+                "id": 2,
+                "product_id": 1732,
+                "created_at": "2026-07-31T12:45:03.000000Z",
+                "product": {
+                    "id": 1732,
+                    "name": {
+                        "ko": "면 손수건 3매입 #1",
+                        "en": "Cotton Handkerchief 3pcs #1"
+                    },
+                    "name_localized": "면 손수건 3매입 #1",
+                    "product_code": "CJTFHBL8SLRQ8ILM",
+                    "sku": "HK-0001",
+                    "...": "(32개 키 생략, 총 37개)"
+                }
+            },
+            {
+                "id": 1,
+                "product_id": 1733,
+                "created_at": "2026-07-31T12:44:43.000000Z",
+                "product": {
+                    "id": 1733,
+                    "name": {
+                        "ko": "기본 양말 5족 #2",
+                        "en": "Basic Socks 5 Pairs #2"
+                    },
+                    "name_localized": "기본 양말 5족 #2",
+                    "product_code": "S0SO3A6SJFYLAKSF",
+                    "sku": "SK-0002",
+                    "...": "(32개 키 생략, 총 37개)"
+                }
+            },
+            "... (총 25건 중 2건 표시)"
+        ],
         "pagination": {
             "current_page": 1,
-            "last_page": 1,
+            "last_page": 2,
             "per_page": 25,
-            "total": 0,
-            "from": null,
-            "to": null,
-            "has_more_pages": false
+            "total": 45,
+            "from": 1,
+            "...": "(2개 키 생략, 총 7개)"
         }
     }
 }
@@ -72,13 +113,13 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Validation Error | `page` < 1, `per_page` 가 1~100 범위를 벗어나거나 정수가 아닌 경우 |
+| 422 | Unprocessable Entity | `page` < 1, `per_page` 가 1~100 범위를 벗어나거나 정수가 아닌 경우 |
 
 <!-- @generated:end -->
 
 **요청 파라미터**
 
-| 이름 | 타입 | 필수 | 기본값 | 설명 |
+| 이름 | 타입 | 필수 | 기본값 | 용도 |
 | --- | --- | :---: | --- | --- |
 | `page` | integer | - | 1 | 페이지 번호 (최소 1) |
 | `per_page` | integer | - | 20 | 페이지당 건수 (1~100). 범위를 벗어나면 422 |
@@ -116,27 +157,11 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| added | boolean | `true` | 토글 후 찜 상태 (true 이면 찜 목록에 추가됨 / false 이면 제거됨) |
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "상품이 찜 목록에 추가되었습니다.",
-    "data": {
-        "added": true
-    }
-}
-```
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -173,7 +198,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 

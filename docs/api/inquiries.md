@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Inquiries 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -40,7 +40,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -82,7 +82,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -130,7 +130,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -179,7 +179,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -207,12 +207,17 @@ Content-Type: application/json
 
 **요청 파라미터**
 
-_요청 파라미터 없음._
+| 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
+| --- | --- | --- | --- | --- | --- |
+| page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
+| per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
+| search | query | string | 아니오 | max 100 | 검색어 (지정한 검색 대상 필드에서 부분 일치) |
+| is_answered | query | boolean | 아니오 | — | answered 여부 |
 
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/user/inquiries HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/user/inquiries?page=1&per_page=1&search=%EC%98%88%EC%8B%9C%EA%B0%92&is_answered=1 HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -224,8 +229,8 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| items | array | `[]` | 내 문의 항목 배열 (각 항목: id, product 요약, product_name, is_answered, 게시판 연동 시 title/category/content/is_secret/reply/attachments) |
-| meta | object | `{"current_page":1,"per_page":25,"total":0,"last_page":1,"…` | 페이지네이션 메타 (current_page/per_page/total/last_page/from/to, 문의 게시판 연동 여부 inquiry_available, abilities 답변·삭제 권한, board_settings) |
+| items | array | `[{"id":19,"product_id":1732,"product":{"id":1732,"product…` | 내 문의 항목 배열 (각 항목: id, product 요약, product_name, is_answered, 게시판 연동 시 title/category/content/is_secret/reply/attachments) |
+| meta | object | `{"current_page":1,"per_page":25,"total":39,"last_page":2,…` | 페이지네이션 메타 (current_page/per_page/total/last_page/from/to, 문의 게시판 연동 여부 inquiry_available, abilities 답변·삭제 권한, board_settings) |
 
 **응답 예시**
 
@@ -240,51 +245,84 @@ HTTP/1.1 200
     "data": {
         "items": [
             {
-                "id": 1,
-                "product_id": 1,
+                "id": 19,
+                "product_id": 1732,
                 "product": {
-                    "id": 1,
-                    "name": "API 문서 샘플 상품",
-                    "thumbnail_url": null,
-                    "url": "/shop/products/1"
+                    "id": 1732,
+                    "product_code": "CJTFHBL8SLRQ8ILM",
+                    "name": "면 손수건 3매입 #1",
+                    "thumbnail_url": "/api/modules/sirsoft-ecommerce/product-image/7df7761cdf16",
+                    "url": "/shop/products/CJTFHBL8SLRQ8ILM"
                 },
-                "product_name": "iste et inventore",
+                "product_name": "면 손수건 3매입 #1",
+                "is_answered": true,
+                "...": "(9개 키 생략, 총 14개)"
+            },
+            {
+                "id": 20,
+                "product_id": 1732,
+                "product": {
+                    "id": 1732,
+                    "product_code": "CJTFHBL8SLRQ8ILM",
+                    "name": "면 손수건 3매입 #1",
+                    "thumbnail_url": "/api/modules/sirsoft-ecommerce/product-image/7df7761cdf16",
+                    "url": "/shop/products/CJTFHBL8SLRQ8ILM"
+                },
+                "product_name": "면 손수건 3매입 #1",
+                "is_answered": true,
+                "...": "(9개 키 생략, 총 14개)"
+            },
+            {
+                "id": 21,
+                "product_id": 1732,
+                "product": {
+                    "id": 1732,
+                    "product_code": "CJTFHBL8SLRQ8ILM",
+                    "name": "면 손수건 3매입 #1",
+                    "thumbnail_url": "/api/modules/sirsoft-ecommerce/product-image/7df7761cdf16",
+                    "url": "/shop/products/CJTFHBL8SLRQ8ILM"
+                },
+                "product_name": "면 손수건 3매입 #1",
                 "is_answered": false,
-                "answered_at": null,
-                "created_at": "2026-07-08T01:44:49+00:00",
-                "updated_at": "2026-07-08T01:44:49+00:00",
-                "title": null,
-                "category": null,
-                "content": null,
-                "is_secret": "{MASKED}",
-                "reply": null,
-                "attachments": []
-            }
+                "...": "(9개 키 생략, 총 14개)"
+            },
+            {
+                "id": 22,
+                "product_id": 1732,
+                "product": {
+                    "id": 1732,
+                    "product_code": "CJTFHBL8SLRQ8ILM",
+                    "name": "면 손수건 3매입 #1",
+                    "thumbnail_url": "/api/modules/sirsoft-ecommerce/product-image/7df7761cdf16",
+                    "url": "/shop/products/CJTFHBL8SLRQ8ILM"
+                },
+                "product_name": "면 손수건 3매입 #1",
+                "is_answered": true,
+                "...": "(9개 키 생략, 총 14개)"
+            },
+            {
+                "id": 23,
+                "product_id": 1732,
+                "product": {
+                    "id": 1732,
+                    "product_code": "CJTFHBL8SLRQ8ILM",
+                    "name": "면 손수건 3매입 #1",
+                    "thumbnail_url": "/api/modules/sirsoft-ecommerce/product-image/7df7761cdf16",
+                    "url": "/shop/products/CJTFHBL8SLRQ8ILM"
+                },
+                "product_name": "면 손수건 3매입 #1",
+                "is_answered": false,
+                "...": "(9개 키 생략, 총 14개)"
+            },
+            "... (총 25건 중 5건 표시)"
         ],
         "meta": {
             "current_page": 1,
             "per_page": 25,
-            "total": 1,
-            "last_page": 1,
+            "total": 39,
+            "last_page": 2,
             "from": 1,
-            "to": 1,
-            "inquiry_available": false,
-            "abilities": {
-                "can_update": true,
-                "can_delete": true
-            },
-            "board_settings": {
-                "secret_mode": "{MASKED}",
-                "categories": [],
-                "use_file_upload": false,
-                "max_file_count": 5,
-                "max_file_size": 10485760,
-                "allowed_extensions": [],
-                "min_title_length": 2,
-                "max_title_length": 200,
-                "min_content_length": 10,
-                "max_content_length": 10000
-            }
+            "...": "(4개 키 생략, 총 9개)"
         }
     }
 }
@@ -295,12 +333,13 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
 **요청 파라미터**
 
-| 이름 | 타입 | 필수 | 기본값 | 설명 |
+| 이름 | 타입 | 필수 | 기본값 | 용도 |
 | --- | --- | :---: | --- | --- |
 | `page` | integer | - | 1 | 페이지 번호 (최소 1) |
 | `per_page` | integer | - | 10 | 페이지당 건수 (1~100). 범위를 벗어나면 422 |
@@ -333,7 +372,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -362,9 +401,9 @@ Authorization: Bearer {YOUR_TOKEN}
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
-| title | body | string | 아니오 | — | 제목 |
+| title | body | string | 아니오 | min 2, max 200 | 제목 |
 | category | body | string | 아니오 | — | 문의 분류 (게시판 설정 기반 유형 슬러그, 연동 게시판 Post 로 저장) |
-| content | body | string | 예 | — | 본문 내용 |
+| content | body | string | 예 | min 10, max 10000 | 본문 내용 |
 | is_secret | body | boolean | 아니오 | — | secret 여부 |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.inquiry.update_validation_rules`).
@@ -388,7 +427,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -430,7 +469,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -477,7 +516,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -525,7 +564,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 

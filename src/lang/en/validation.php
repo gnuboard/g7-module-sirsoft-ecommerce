@@ -128,6 +128,9 @@ return [
         'shipping_policy_id' => [
             'integer' => 'Shipping policy ID must be a number.',
         ],
+        'with_options' => [
+            'boolean' => 'Include-options flag must be true or false.',
+        ],
         // Filters
         'is_active' => [
             'boolean' => 'Active status must be true or false.',
@@ -1913,5 +1916,17 @@ return [
         'first_must_be_default' => 'The first currency must be the default currency (:currency).',
         'currency_not_registered' => 'Currency (:currency) is not registered. Please add it in Language/Currency settings first.',
         'earn_rate_required_when_enabled' => 'The default earn rate must be greater than 0 to use mileage.',
+    ],
+
+    // Product option batch fetch validation
+    'options_list' => [
+        'product_ids' => [
+            'required' => 'Please select the products to look up.',
+            'array' => 'The product ID list must be an array.',
+            'min' => 'Please specify at least one product.',
+            'max' => 'You can look up at most :max products at a time.',
+            'integer' => 'Product ID must be a number.',
+            'item_min' => 'Product ID must be at least 1.',
+        ],
     ],
 ];

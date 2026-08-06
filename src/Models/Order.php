@@ -225,6 +225,21 @@ class Order extends Model
     }
 
     /**
+     * 대표 주문 옵션 관계 (가장 먼저 담긴 1건)
+     *
+     * 목록 화면은 대표 상품 1건만 그린다. `options` 를 통째로 eager load 한 뒤 `first()` 로
+     * 1건만 쓰면 한 페이지를 여는 것만으로 그 페이지 전 주문의 모든 옵션이 메모리에 올라온다.
+     * eager load 의 `limit(1)` 은 부모별이 아니라 배치 쿼리 전체에 걸리므로 쓸 수 없고,
+     * 관계 자체를 "가장 오래된 1건" 으로 좁히는 이 방식이라야 주문별 1건이 보장된다.
+     *
+     * @return HasOne 대표 주문 옵션과의 관계
+     */
+    public function firstOption(): HasOne
+    {
+        return $this->hasOne(OrderOption::class, 'order_id')->oldestOfMany();
+    }
+
+    /**
      * 배송지 관계 (모든 주소 유형)
      *
      * @return HasMany 배송지 모델과의 관계
@@ -284,6 +299,21 @@ class Order extends Model
     public function shippings(): HasMany
     {
         return $this->hasMany(OrderShipping::class, 'order_id');
+    }
+
+    /**
+     * 대표 배송 관계 (가장 먼저 생성된 1건)
+     *
+     * 목록 화면은 배송 정보 중 대표 1건(배송유형·배송방법·택배사·송장번호)만 그린다.
+     * `shippings` 를 통째로 eager load 한 뒤 `first()` 로 1건만 쓰면, 분할 배송이 많은 주문일수록
+     * 쓰지 않는 배송 행이 페이지 전체에 실린다. `firstOption` 과 같은 이유로 `oldestOfMany()` 를
+     * 쓴다 — eager load 의 `limit(1)` 은 배치 쿼리 전체에 걸려 첫 주문만 대표를 갖게 된다.
+     *
+     * @return HasOne 대표 배송과의 관계
+     */
+    public function firstShipping(): HasOne
+    {
+        return $this->hasOne(OrderShipping::class, 'order_id')->oldestOfMany();
     }
 
     /**

@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Cart 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -42,7 +42,7 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -88,10 +88,10 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| items | array | `[{"id":962,"product_id":201,"product_option_id":1086,"qua…` | 장바구니 라인 아이템 목록 (상품·옵션·수량 등 — CartItemResource 파생) |
-| item_ids | array | `[962]` | item 식별자 배열 (연관 리소스 참조) |
-| item_count | integer | `1` | item 개수 (집계) |
-| calculation | object | `{"items":[{"product_id":201,"product_option_id":1086,"pro…` | 선택 아이템 기준 금액 계산 결과 (상품 소계·할인·배송비 등 — OrderCalculationResult 파생) |
+| items | array | `[]` | 장바구니 라인 아이템 목록 (상품·옵션·수량 등 — CartItemResource 파생) |
+| item_ids | array | `[]` | item 식별자 배열 (연관 리소스 참조) |
+| item_count | integer | `0` | item 개수 (집계) |
+| calculation | object | `{"items":[],"summary":{"subtotal":0,"subtotal_formatted":…` | 선택 아이템 기준 금액 계산 결과 (상품 소계·할인·배송비 등 — OrderCalculationResult 파생) |
 | has_unshippable_items | boolean | `false` | unshippable items 여부 |
 | selected_shipping_country | string | `KR` | 배송비 계산에 적용된 배송 국가 코드 (ResolveShippingCountry 해석 결과) |
 
@@ -113,39 +113,40 @@ HTTP/1.1 200
             "items": [],
             "summary": {
                 "subtotal": 0,
-                "subtotal_formatted": "0원",
+                "subtotal_formatted": "¥0",
                 "product_coupon_discount": 0,
-                "product_coupon_discount_formatted": "0원",
+                "product_coupon_discount_formatted": "¥0",
                 "code_discount": 0,
-                "code_discount_formatted": "0원",
+                "code_discount_formatted": "¥0",
                 "order_coupon_discount": 0,
-                "order_coupon_discount_formatted": "0원",
+                "order_coupon_discount_formatted": "¥0",
                 "total_coupon_discount": 0,
-                "total_coupon_discount_formatted": "0원",
+                "total_coupon_discount_formatted": "¥0",
                 "total_discount": 0,
-                "discount_formatted": "0원",
+                "discount_formatted": "¥0",
                 "base_shipping_total": 0,
                 "extra_shipping_total": 0,
                 "total_shipping": 0,
                 "total_shipping_fee": 0,
-                "shipping_fee_formatted": "0원",
+                "shipping_fee_formatted": "¥0",
                 "shipping_discount": 0,
-                "shipping_discount_formatted": "0원",
+                "shipping_discount_formatted": "¥0",
                 "taxable_amount": 0,
                 "tax_free_amount": 0,
+                "vat_amount": 0,
                 "points_earning": 0,
                 "total_mileage": 0,
                 "mileage_formatted": "0P",
                 "points_used": 0,
-                "points_used_formatted": "0원",
+                "points_used_formatted": "¥0",
                 "payment_amount": 0,
-                "payment_amount_formatted": "0원",
+                "payment_amount_formatted": "¥0",
                 "final_amount": 0,
-                "final_amount_formatted": "0원",
+                "final_amount_formatted": "¥0",
                 "coupon_discount": 0,
-                "coupon_discount_formatted": "0원",
+                "coupon_discount_formatted": "¥0",
                 "order_discount": 0,
-                "order_discount_formatted": "0원"
+                "order_discount_formatted": "¥0"
             },
             "promotions": {
                 "coupon_issue_ids": [],
@@ -215,7 +216,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -313,7 +314,7 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| count | integer | `1` | 장바구니에 담긴 아이템 개수 (`selected_ids` 지정 시 해당 항목만 집계) |
+| count | integer | `0` | 장바구니에 담긴 아이템 개수 (`selected_ids` 지정 시 해당 항목만 집계) |
 
 **응답 예시**
 
@@ -367,7 +368,7 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| cart_key | string | `ck_QBQT80EINHHXLO8HYHntMpmUZrPujPka` | 비회원 장바구니 식별 키 (`ck_` + 32자 영숫자. 이후 요청의 `X-Cart-Key` 헤더에 실어 자신의 장바구니를 식별) |
+| cart_key | string | `ck_F2M15LD5Wu9UQsOwvOVrfp1UeECn3q6f` | 비회원 장바구니 식별 키 (`ck_` + 32자 영숫자. 이후 요청의 `X-Cart-Key` 헤더에 실어 자신의 장바구니를 식별) |
 
 **응답 예시**
 
@@ -380,7 +381,7 @@ HTTP/1.1 200
     "success": true,
     "message": "장바구니 키가 발급되었습니다.",
     "data": {
-        "cart_key": "ck_QBQT80EINHHXLO8HYHntMpmUZrPujPka"
+        "cart_key": "ck_F2M15LD5Wu9UQsOwvOVrfp1UeECn3q6f"
     }
 }
 ```
@@ -415,41 +416,11 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **응답 필드** (`data` 내부)
 
-| 필드 | 타입 | 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| merged_count | integer | `2` | 회원 장바구니로 옮겨진 비회원 아이템 수 |
-| adjustments | array | `[]` | 병합 과정에서 수량이 상한으로 줄어든 항목 목록 (조정이 없으면 빈 배열) |
-| adjustments[].product_id | integer | `12` | 조정된 상품 ID |
-| adjustments[].product_option_id | integer | `34` | 조정된 상품 옵션 ID |
-| adjustments[].requested | integer | `10` | 병합 시 합산된 수량 |
-| adjustments[].applied | integer | `5` | 상한 적용 후 실제 저장된 수량 |
-
-> 병합은 로그인 흐름에서 자동 수행되므로 수량 상한을 넘겨도 예외를 던지지 않고 상한까지 줄입니다.
-> 줄어든 사실을 사용자에게 알릴 수 있도록 `adjustments` 를 확인해 안내하세요.
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "장바구니를 병합했습니다.",
-    "data": {
-        "merged_count": 2,
-        "adjustments": [
-            {
-                "product_id": 12,
-                "product_option_id": 34,
-                "requested": 10,
-                "applied": 5
-            }
-        ]
-    }
-}
-```
+<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -524,39 +495,40 @@ HTTP/1.1 200
             "items": [],
             "summary": {
                 "subtotal": 0,
-                "subtotal_formatted": "0원",
+                "subtotal_formatted": "¥0",
                 "product_coupon_discount": 0,
-                "product_coupon_discount_formatted": "0원",
+                "product_coupon_discount_formatted": "¥0",
                 "code_discount": 0,
-                "code_discount_formatted": "0원",
+                "code_discount_formatted": "¥0",
                 "order_coupon_discount": 0,
-                "order_coupon_discount_formatted": "0원",
+                "order_coupon_discount_formatted": "¥0",
                 "total_coupon_discount": 0,
-                "total_coupon_discount_formatted": "0원",
+                "total_coupon_discount_formatted": "¥0",
                 "total_discount": 0,
-                "discount_formatted": "0원",
+                "discount_formatted": "¥0",
                 "base_shipping_total": 0,
                 "extra_shipping_total": 0,
                 "total_shipping": 0,
                 "total_shipping_fee": 0,
-                "shipping_fee_formatted": "0원",
+                "shipping_fee_formatted": "¥0",
                 "shipping_discount": 0,
-                "shipping_discount_formatted": "0원",
+                "shipping_discount_formatted": "¥0",
                 "taxable_amount": 0,
                 "tax_free_amount": 0,
+                "vat_amount": 0,
                 "points_earning": 0,
                 "total_mileage": 0,
                 "mileage_formatted": "0P",
                 "points_used": 0,
-                "points_used_formatted": "0원",
+                "points_used_formatted": "¥0",
                 "payment_amount": 0,
-                "payment_amount_formatted": "0원",
+                "payment_amount_formatted": "¥0",
                 "final_amount": 0,
-                "final_amount_formatted": "0원",
+                "final_amount_formatted": "¥0",
                 "coupon_discount": 0,
-                "coupon_discount_formatted": "0원",
+                "coupon_discount_formatted": "¥0",
                 "order_discount": 0,
-                "order_discount_formatted": "0원"
+                "order_discount_formatted": "¥0"
             },
             "promotions": {
                 "coupon_issue_ids": [],
@@ -615,7 +587,7 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -644,7 +616,7 @@ Authorization: Bearer {YOUR_TOKEN}   (optional.sanctum: 비회원은 헤더 생�
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
 | product_option_id | body | integer | 예 | — | product option 식별자 |
-| quantity | body | integer | 예 | min 1, max: 장바구니 수량 상한 설정 | 변경할 구매 수량 (1 ~ 관리자 설정 상한, 기본 99) |
+| quantity | body | integer | 예 | min 1, max 99 | 변경할 구매 수량 (1 ~ 관리자 설정 상한, 기본 99) |
 | additional_option_selections | body | array | 아니오 | — | 추가 옵션 재선택 목록 (항목별 additional_option_id/value_id, 직접입력 custom_text — 미전달 시 기존 선택 유지) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.change_option_validation_rules`).
@@ -669,7 +641,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -698,7 +670,7 @@ Content-Type: application/json
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | id | path | string | 예 | — | 대상 리소스의 식별자 |
-| quantity | body | integer | 예 | min 1, max: 장바구니 수량 상한 설정 | 변경할 구매 수량 (1 ~ 관리자 설정 상한, 기본 99) |
+| quantity | body | integer | 예 | min 1, max 99 | 변경할 구매 수량 (1 ~ 관리자 설정 상한, 기본 99) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.cart.update_quantity_validation_rules`).
 
@@ -718,7 +690,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 

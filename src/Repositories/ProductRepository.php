@@ -83,7 +83,35 @@ class ProductRepository implements ProductRepositoryInterface
         PermissionHelper::applyPermissionScope($query, 'sirsoft-ecommerce.products.read');
 
         // 지연 조인 outer 전용 관계 (inner 는 id 만 훑으므로 여기서 with() 를 걸지 않는다)
-        $listRelations = ['options', 'categories', 'images', 'brand', 'shippingPolicy'];
+        //
+        // 옵션은 기본적으로 로드하지 않는다. 목록 한 페이지(최대 100행)를 여는 것만으로 그 페이지
+        // 전 상품의 옵션 행이 모두 적재·직렬화되기 때문이다. 목록이 실제로 쓰는 것은 개수와 재고
+        // 합계뿐이라 아래 DB 집계로 대체하고, 옵션 상세는 행을 펼칠 때 배치 엔드포인트
+        // (`GET admin/products/options`)로 가져간다. `?with_options=1` 은 종전 동작을 위한 opt-in.
+        $listRelations = ['categories', 'images', 'brand', 'shippingPolicy'];
+
+        if (! empty($filters['with_options'])) {
+            $listRelations[] = 'options';
+        }
+
+        // 옵션 집계 — PHP 컬렉션 연산 대신 DB 집계로 계산한다.
+        //   options_count       : 활성 옵션 수 (화면 표시용)
+        //   options_total_count : 비활성 포함 전체 옵션 수. 일괄 변경 확인 모달이 서버의
+        //                         적용 모집단(ProductOptionRepository::getIdsByProductIds — is_active
+        //                         무필터)과 같은 수를 세려면 이쪽이어야 한다
+        // 별칭을 생략하면 두 카운트의 기본 별칭이 `options_count` 로 같아져 뒤엣것이 앞엣것을
+        // 조용히 덮으므로 `as` 로 반드시 구분한다.
+        $listWithCount = [
+            'options as options_count' => fn ($q) => $q->where('is_active', true),
+            'options as options_total_count',
+        ];
+
+        // withSum 은 트레이트 인자가 없으므로 outer 전용 클로저로 붙인다. inner 에 붙으면
+        // 건너뛸 행 전체에 대해 실행된다.
+        $listOuterUsing = fn (Builder $outer) => $outer->withSum(
+            ['options as option_stock_sum' => fn ($q) => $q->where('is_active', true)],
+            'stock_quantity'
+        );
 
         // 문자열 검색
         if (! empty($filters['search_keyword'])) {
@@ -130,6 +158,8 @@ class ProductRepository implements ProductRepositoryInterface
                     sort: $this->resolveAdminSortSpec($filters),
                     perPage: $perPage,
                     relations: $listRelations,
+                    withCount: $listWithCount,
+                    outerUsing: $listOuterUsing,
                 );
             }
 
@@ -156,7 +186,56 @@ class ProductRepository implements ProductRepositoryInterface
             sort: $this->resolveAdminSortSpec($filters),
             perPage: $perPage,
             relations: $listRelations,
+            withCount: $listWithCount,
+            outerUsing: $listOuterUsing,
         );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getOptionsGroupedByProductIds(array $productIds): array
+    {
+        $requested = array_values(array_unique(array_map('intval', $productIds)));
+
+        if ($requested === []) {
+            return ['product_ids' => [], 'options' => []];
+        }
+
+        // ① 권한 스코프를 적용한 상품 쿼리로 허용 ID 를 먼저 확정한다. 옵션 테이블을 바로
+        //    조회하면 scope=self 사용자가 남의 상품 ID 를 실어보내는 것만으로 옵션을 읽을 수 있다.
+        $scoped = $this->model->newQuery();
+        PermissionHelper::applyPermissionScope($scoped, 'sirsoft-ecommerce.products.read');
+
+        $allowedIds = $scoped->whereIn('id', $requested)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if ($allowedIds === []) {
+            return ['product_ids' => [], 'options' => []];
+        }
+
+        // 요청 순서를 유지한다 (프론트가 요청 배열과 그대로 대조할 수 있도록)
+        $allowedSet = array_flip($allowedIds);
+        $allowedIds = array_values(array_filter($requested, fn ($id) => isset($allowedSet[$id])));
+
+        // ② 옵션은 상품 수와 무관하게 쿼리 1개. 비활성 옵션도 포함한다 — 인라인 편집기가
+        //    `is_active` 토글을 다루므로 활성만 내려주면 비활성 옵션을 편집할 수 없게 된다.
+        //    정렬은 상품폼/activeOptions 와 같은 `sort_order` 기준으로 통일한다.
+        //
+        //    `product` 를 함께 로드하는 이유: 옵션 리소스의 가격 필드는 상품 정가/판매가에
+        //    조정액을 더해 만든다(ProductOption::getListPrice/getFinalPrice). 부모를 로드하지
+        //    않으면 옵션 1건마다 상품 조회가 한 번씩 나가 옵션 수만큼 N+1 이 된다.
+        $options = ProductOption::with('product')
+            ->whereIn('product_id', $allowedIds)
+            ->orderBy('product_id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('product_id');
+
+        return ['product_ids' => $allowedIds, 'options' => $options];
     }
 
     /**
@@ -570,6 +649,9 @@ class ProductRepository implements ProductRepositoryInterface
         $paginator = $this->model->newQuery()
             ->whereIn('id', $matchedIds ?: [0])
             ->where('display_status', ProductDisplayStatus::VISIBLE->value)
+            // audit:allow list-repository-eager-load-vs-resource reason: 통합검색 결과는 Resource 가
+            // 아니라 SearchProductsListener 가 직렬화한다 — 그 안에서 primaryCategory 를 행마다
+            // 읽으므로(`$product->primaryCategory->first()`) 여기서 미리 로드하지 않으면 N+1 이 된다
             ->with(['images', 'primaryCategory', 'brand', 'activeLabelAssignments.label'])
             ->withCount('visibleReviews as review_count')
             ->withAvg('visibleReviews as rating_avg', 'rating')
