@@ -6,6 +6,7 @@ use App\Http\Resources\BaseApiResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Modules\Sirsoft\Ecommerce\Http\Resources\Traits\HasMultiCurrencyPrices;
 
 /**
@@ -117,9 +118,13 @@ class ProductListResource extends BaseApiResource
                 ])->values()
             ),
 
-            // 리뷰 통계 (visibleReviews withCount/withAvg eager loading 필요)
-            'review_count' => (int) ($this->review_count ?? 0),
-            'rating_avg' => $this->rating_avg !== null ? round((float) $this->rating_avg, 1) : 0.0,
+            // 리뷰 통계 — 조회 시 조인으로 붙는 집계다.
+            // 값이 null 인지가 아니라 **집계 컬럼이 붙었는지**로 판정한다. 리뷰 0건이면 COUNT/AVG
+            // 별칭은 존재하고 값만 null 이므로 종전대로 0 으로 표기되고, 집계를 아예 붙이지 않은
+            // 경로에서는 필드를 생략한다 — 0 으로 채우면 "세어보니 0" 과 구분되지 않아
+            // 리뷰가 달린 상품도 평점 0.0 으로 나간다.
+            'review_count' => $this->resolveReviewCount(),
+            'rating_avg' => $this->resolveRatingAvg(),
 
             // 날짜
             'created_at' => $this->formatDateTimeStringForUser($this->created_at),
@@ -173,6 +178,34 @@ class ProductListResource extends BaseApiResource
         }
 
         return $this->whenLoaded('activeOptions', fn () => $this->activeOptions->count());
+    }
+
+    /**
+     * 노출 리뷰 수를 반환합니다.
+     *
+     * 집계를 붙이지 않은 조회 경로에서는 0 을 지어내지 않고 필드를 생략합니다.
+     *
+     * @return mixed 리뷰 수(int) 또는 집계 부재 시 MissingValue
+     */
+    protected function resolveReviewCount(): mixed
+    {
+        return $this->hasAggregateAttribute('review_count')
+            ? (int) $this->review_count
+            : new MissingValue;
+    }
+
+    /**
+     * 노출 리뷰의 평균 평점을 반환합니다.
+     *
+     * 리뷰가 0건이면 AVG 는 null 이고 별칭은 존재하므로 0.0 으로 표기합니다.
+     *
+     * @return mixed 평균 평점(float) 또는 집계 부재 시 MissingValue
+     */
+    protected function resolveRatingAvg(): mixed
+    {
+        return $this->hasAggregateAttribute('rating_avg')
+            ? round((float) $this->rating_avg, 1)
+            : new MissingValue;
     }
 
     /**

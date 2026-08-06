@@ -894,11 +894,14 @@ class ProductRepository implements ProductRepositoryInterface
             return $this->model->newCollection();
         }
 
-        $products = $this->model->newQuery()
+        $query = $this->model->newQuery()
             ->with(['images', 'categories', 'activeLabelAssignments.label'])
             ->where('display_status', 'visible')
-            ->whereIn('id', $ids)
-            ->get();
+            ->whereIn($this->model->getTable().'.id', $ids);
+
+        // 다른 목록 경로와 같은 집계를 붙인다. 붙이지 않으면 평점·리뷰 수 별칭이 아예 없어
+        // 목록 표현에서 그 필드가 빠지고, 화면은 리뷰가 달린 상품도 통계 없이 그리게 된다.
+        $products = $this->joinReviewAggregate($query)->get();
 
         // 클라이언트 요청 순서 유지 (DB 독립적 정렬)
         $idOrder = array_flip($ids);
