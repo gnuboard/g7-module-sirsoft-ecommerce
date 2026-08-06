@@ -96,6 +96,7 @@ class Order extends Model
         'total_deposit_used_amount',
         'total_paid_amount',
         'total_due_amount',
+        'total_cash_equivalent_amount',
         'total_cancelled_amount',
         'total_refunded_amount',
         'total_refunded_points_amount',
@@ -132,6 +133,7 @@ class Order extends Model
         'mc_total_tax_free_amount',
         'mc_total_amount',
         'mc_total_paid_amount',
+        'mc_total_cash_equivalent_amount',
     ];
 
     /**
@@ -165,6 +167,7 @@ class Order extends Model
         'total_deposit_used_amount' => 'decimal:2',
         'total_paid_amount' => 'decimal:2',
         'total_due_amount' => 'decimal:2',
+        'total_cash_equivalent_amount' => 'decimal:2',
         'total_cancelled_amount' => 'decimal:2',
         'total_refunded_amount' => 'decimal:2',
         'total_refunded_points_amount' => 'decimal:2',
@@ -202,6 +205,7 @@ class Order extends Model
         'mc_total_tax_free_amount' => 'array',
         'mc_total_amount' => 'array',
         'mc_total_paid_amount' => 'array',
+        'mc_total_cash_equivalent_amount' => 'array',
     ];
 
     /**
@@ -289,6 +293,16 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(OrderPayment::class, 'order_id');
+    }
+
+    /**
+     * 현금영수증 이력 관계
+     *
+     * @return HasMany 현금영수증 이력 모델과의 관계
+     */
+    public function cashReceipts(): HasMany
+    {
+        return $this->hasMany(OrderCashReceipt::class, 'order_id');
     }
 
     /**

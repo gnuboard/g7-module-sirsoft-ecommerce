@@ -22,12 +22,6 @@ return [
         'status_changed' => 'Category status has been changed.',
         'order_updated' => 'Category order has been changed.',
     ],
-    'category_images' => [
-        'uploaded' => 'Category image has been uploaded.',
-        'not_found' => 'Category image not found.',
-        'deleted' => 'Category image has been deleted.',
-        'reordered' => 'Category image order has been changed.',
-    ],
     'settings' => [
         'fetch_success' => 'Settings retrieved successfully.',
         'fetch_failed' => 'Failed to retrieve settings.',
@@ -89,6 +83,12 @@ return [
         'reordered' => 'Image order has been changed.',
         'thumbnail_set' => 'Thumbnail has been set.',
         'not_found' => 'Product image not found.',
+    ],
+    'category_images' => [
+        'uploaded' => 'Image has been uploaded.',
+        'deleted' => 'Image has been deleted.',
+        'reordered' => 'Image order has been changed.',
+        'not_found' => 'Category image not found.',
     ],
     'brands' => [
         'list_retrieved' => 'Brand list retrieved successfully.',

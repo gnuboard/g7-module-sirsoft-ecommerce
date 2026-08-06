@@ -133,8 +133,19 @@ describe('주문설정 탭 구조 검증 (_tab_order_settings.json)', () => {
             expect(tab.if).toContain('order_settings');
         });
 
-        it('8개 카드 섹션을 포함해야 한다 (기본 PG / 결제수단 / 계좌 / 자동취소 / 취소가능상태 / 확정가능상태 / 장바구니 / 재고)', () => {
-            expect(tab.children).toHaveLength(8);
+        it('카드 섹션이 정해진 순서로 배치된다', () => {
+            // 개수가 아니라 id 를 고정한다 — 카드가 추가·제거되면 어느 카드인지 바로 드러난다.
+            expect(tab.children.map((c: any) => c.id)).toEqual([
+                'default_pg_card',
+                'cash_receipt_card',
+                'payment_methods_card',
+                'bank_accounts_card',
+                'auto_cancel_card',
+                'cancellable_statuses_card',
+                'confirmable_statuses_card',
+                'cart_expiry_card',
+                'stock_management_card',
+            ]);
         });
     });
 

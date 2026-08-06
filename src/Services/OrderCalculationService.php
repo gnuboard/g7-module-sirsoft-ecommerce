@@ -29,6 +29,7 @@ use Modules\Sirsoft\Ecommerce\Enums\ProductTaxStatus;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiAuthType;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiHttpMethod;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiResponseType;
+use Modules\Sirsoft\Ecommerce\Enums\ShippingFeeTaxPolicy;
 use Modules\Sirsoft\Ecommerce\Models\Coupon;
 use Modules\Sirsoft\Ecommerce\Models\CouponIssue;
 use Modules\Sirsoft\Ecommerce\Models\ShippingPolicy;
@@ -985,6 +986,98 @@ class OrderCalculationService
     }
 
     /**
+     * 배송비 할인을 반영한 실질 배송비를 반환합니다.
+     *
+     * @param  array  $paymentCalculation  결제금액 계산 결과
+     * @return int 할인 후 배송비 (0 이상)
+     */
+    protected function resolveNetShippingFee(array $paymentCalculation): int
+    {
+        $totalShipping = (int) ($paymentCalculation['total_shipping'] ?? 0);
+        $shippingDiscount = (int) ($paymentCalculation['shipping_discount'] ?? 0);
+
+        return max(0, $totalShipping - $shippingDiscount);
+    }
+
+    /**
+     * 단계 2-c: 배송비를 과세/면세로 분류합니다.
+     *
+     * 부가가치세법 제14조는 주된 재화에 부수되는 용역이 주된 재화의 과세/면세를 따른다고 정할 뿐,
+     * 과세·면세 상품이 혼합된 장바구니의 배송비 안분에 관한 명문 규정은 없다.
+     * 상점의 세무 판단에 따라 3가지 정책 중 선택한다.
+     *
+     * 상품 분류(classifyTaxStatus)와 달리 이 메서드는 배송비 할인이 확정된 뒤에 호출되어야 한다.
+     *
+     * @param  int  $netShippingFee  할인 후 배송비
+     * @param  int  $productTaxable  상품 과세금액 합계
+     * @param  int  $productTaxFree  상품 면세금액 합계
+     * @return array{taxable_amount: int, tax_free_amount: int} 배송비 과세/면세 분류
+     */
+    protected function classifyShippingFeeTaxStatus(
+        int $netShippingFee,
+        int $productTaxable,
+        int $productTaxFree,
+    ): array {
+        if ($netShippingFee <= 0) {
+            return ['taxable_amount' => 0, 'tax_free_amount' => 0];
+        }
+
+        $policy = $this->resolveShippingFeeTaxPolicy();
+        $productTotal = $productTaxable + $productTaxFree;
+
+        // 상품 금액이 전부 0 이면 안분 기준이 없다 — 전액 과세로 처리한다.
+        if ($productTotal <= 0) {
+            return ['taxable_amount' => $netShippingFee, 'tax_free_amount' => 0];
+        }
+
+        return match ($policy) {
+            ShippingFeeTaxPolicy::TAXABLE => [
+                'taxable_amount' => $netShippingFee,
+                'tax_free_amount' => 0,
+            ],
+            ShippingFeeTaxPolicy::FOLLOW_MAIN_ITEM => $productTaxable >= $productTaxFree
+                ? ['taxable_amount' => $netShippingFee, 'tax_free_amount' => 0]
+                : ['taxable_amount' => 0, 'tax_free_amount' => $netShippingFee],
+            ShippingFeeTaxPolicy::PROPORTIONAL => $this->apportionShippingFeeTax(
+                $netShippingFee,
+                $productTaxable,
+                $productTotal,
+            ),
+        };
+    }
+
+    /**
+     * 배송비를 과세상품 비율만큼 안분합니다.
+     *
+     * 면세분을 반올림해 산출한 뒤 잔차를 과세 쪽에 귀속시켜 합계를 보존한다.
+     *
+     * @param  int  $netShippingFee  할인 후 배송비
+     * @param  int  $productTaxable  상품 과세금액 합계
+     * @param  int  $productTotal  상품 총액 (과세 + 면세)
+     * @return array{taxable_amount: int, tax_free_amount: int} 안분 결과
+     */
+    protected function apportionShippingFeeTax(int $netShippingFee, int $productTaxable, int $productTotal): array
+    {
+        $taxableShipping = (int) round($netShippingFee * $productTaxable / $productTotal);
+        $taxableShipping = max(0, min($taxableShipping, $netShippingFee));
+
+        return [
+            'taxable_amount' => $taxableShipping,
+            'tax_free_amount' => $netShippingFee - $taxableShipping,
+        ];
+    }
+
+    /**
+     * 배송비 과세 정책을 조회합니다.
+     *
+     * @return ShippingFeeTaxPolicy 배송비 과세 정책
+     */
+    protected function resolveShippingFeeTaxPolicy(): ShippingFeeTaxPolicy
+    {
+        return app(EcommerceSettingsService::class)->getShippingFeeTaxPolicy();
+    }
+
+    /**
      * 단계 3: 배송비를 계산합니다 (정책별 그룹).
      *
      * 스냅샷 모드 시 DB 조회 대신 shippingPolicySnapshots의 정책 데이터를 사용합니다.
@@ -1498,6 +1591,20 @@ class OrderCalculationService
         // 부가세는 옵션별 부가세의 합 — 세율이 섞인 주문에서는 이것만이 정확하다
         // (전체 과세표준에 단일 세율을 적용하면 면세·영세·다른 세율 상품이 섞였을 때 어긋난다)
         $totalVat = VatCalculator::sumFromClassification($taxClassification);
+
+        // 배송비 과세 분류 — 상품 분류(단계 2-b)와 달리 할인 후 최종 배송비가 확정된 이 시점에서만
+        // 계산할 수 있다. 옵션별 taxable_amount 는 상품분만 담으므로 배송비는 Summary 에만 합산한다.
+        $shippingTax = $this->classifyShippingFeeTaxStatus(
+            $this->resolveNetShippingFee($paymentCalculation),
+            $totalTaxable,
+            $totalTaxFree,
+        );
+        $totalTaxable += $shippingTax['taxable_amount'];
+        $totalTaxFree += $shippingTax['tax_free_amount'];
+
+        // 배송비 과세분에 내재된 부가세도 합산 — 배송비는 옵션별 세율이 없으므로 기본 세율을 적용한다
+        // (과세표준(taxableAmount)에 배송비가 포함되므로 부가세도 같은 기준을 따라야 정합)
+        $totalVat += VatCalculator::fromTaxableAmount($shippingTax['taxable_amount']);
 
         $summary = new Summary(
             subtotal: $paymentCalculation['subtotal'],

@@ -11,6 +11,7 @@ use Modules\Sirsoft\Ecommerce\Models\Category;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Seo\EcommerceSitemapContributor;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * EcommerceSitemapContributor 단위 테스트
@@ -19,11 +20,10 @@ use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
  * - getIdentifier: 'sirsoft-ecommerce' 반환
  * - getUrls: 기본(토글 ON) 상태에서 목록/카테고리/상품 URL 포함
  * - getUrls: SEO 제공 페이지 토글 OFF 시 해당 URL 유형 제외 (회귀)
- *
- * @group ecommerce
- * @group unit
- * @group seo
  */
+#[Group('ecommerce')]
+#[Group('unit')]
+#[Group('seo')]
 class EcommerceSitemapContributorTest extends ModuleTestCase
 {
     private EcommerceSitemapContributor $contributor;

@@ -3713,6 +3713,15 @@
                 "virtual_account",
                 "mobile"
               ]
+            },
+            {
+              "id": "tosspayments",
+              "name_key": "sirsoft-tosspayments::provider.name",
+              "name": "토스페이먼츠",
+              "icon": "credit-card",
+              "supported_methods": [
+                "card"
+              ]
             }
           ],
           "abilities": {

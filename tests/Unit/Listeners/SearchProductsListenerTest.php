@@ -11,12 +11,12 @@ use App\Support\Query\BoundedCount;
 use Illuminate\Support\Facades\Gate;
 use Modules\Sirsoft\Ecommerce\Listeners\SearchProductsListener;
 use Modules\Sirsoft\Ecommerce\Services\ProductService;
-use Tests\TestCase;
+use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 
 /**
  * SearchProductsListener 단위 테스트
  */
-class SearchProductsListenerTest extends TestCase
+class SearchProductsListenerTest extends ModuleTestCase
 {
     private SearchProductsListener $listener;
 

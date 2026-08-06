@@ -203,19 +203,62 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ExtraFeeTemplateResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| zipcode | string | `06234` | 추가배송비를 적용할 우편번호 (단일 또는 `-` 로 이은 범위) |
+| fee | integer | `3000` | 해당 우편번호에 부과할 추가 배송비 (상점 기본 통화 기준 반올림) |
+| fee_formatted | string | `3,000원` | `fee` 값의 표시용 포맷 문자열 (기본 통화 포맷) |
+| region | string \| null | `경기 안산 풍도동` | 지역명 (도서산간 등 관리자 참고용 표시 라벨, 미입력 시 null) |
+| description | string \| null | `도서산간 지역` | 설명 (미입력 시 null) |
+| is_active | boolean | `true` | 활성 여부 (true 이면 배송비 계산에 할증 반영) |
+| created_by | string \| null | `a234c2b1-cde8-437f-b28b-23323be2b98d` | 등록자 UUID (creator 관계 파생, 없으면 null) |
+| updated_by | string \| null | `a234c2b1-cde8-437f-b28b-23323be2b98d` | 최종 수정자 UUID (updater 관계 파생, 없으면 null) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 포맷) |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 (사용자 타임존 기준 포맷) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (모두 `sirsoft-ecommerce.settings.update` 권한 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "추가배송비 템플릿이 등록되었습니다.",
+    "data": {
+        "id": 1,
+        "zipcode": "06234",
+        "fee": 3000,
+        "fee_formatted": "3,000원",
+        "region": "경기 안산 풍도동",
+        "description": "도서산간 지역",
+        "is_active": true,
+        "created_by": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "updated_by": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 저장 중 예외 발생 시 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.shipping-policies.create`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `zipcode` 는 숫자 또는 `숫자-숫자` 범위 형식이어야 하며 이미 등록된 우편번호면 중복 오류 |
 
 <!-- @generated:end -->
 
@@ -479,19 +522,38 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (일괄 삭제 결과 요약)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted_count | integer | `3` | 실제로 삭제된 템플릿 건수 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": ":count개 추가배송비 템플릿이 삭제되었습니다.",
+    "data": {
+        "deleted_count": 3
+    }
+}
+```
+
+> 컨트롤러가 메시지 치환 파라미터를 전달하지 않으므로 `message` 의 `:count` 자리표시자는 치환되지 않은 채로 내려갑니다. 실제 삭제 건수는 `data.deleted_count` 를 사용하세요.
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 삭제 중 예외 발생 시 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.shipping-policies.delete`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `ids` 는 1건 이상이어야 하며 각 값은 존재하는 템플릿 ID 여야 함 |
 
 <!-- @generated:end -->
 
@@ -528,19 +590,38 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (일괄 등록 결과 요약)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| created_count | integer | `2` | 실제로 등록(또는 갱신)된 템플릿 건수 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": ":count개 추가배송비 템플릿이 등록되었습니다.",
+    "data": {
+        "created_count": 2
+    }
+}
+```
+
+> 컨트롤러가 메시지 치환 파라미터를 전달하지 않으므로 `message` 의 `:count` 자리표시자는 치환되지 않은 채로 내려갑니다. 실제 등록 건수는 `data.created_count` 를 사용하세요.
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 일괄 등록 중 예외 발생 시 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.shipping-policies.create`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). 항목별로 `items.*.zipcode` (필수, 숫자 또는 `숫자-숫자` 범위, 최대 20자) 와 `items.*.fee` (필수, 0 이상) 가 검증됨 |
 
 <!-- @generated:end -->
 
@@ -579,19 +660,38 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (일괄 변경 결과 요약)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| updated_count | integer | `3` | 활성 여부가 실제로 변경된 템플릿 건수 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": ":count개 추가배송비 템플릿의 사용여부가 변경되었습니다.",
+    "data": {
+        "updated_count": 3
+    }
+}
+```
+
+> 컨트롤러가 메시지 치환 파라미터를 전달하지 않으므로 `message` 의 `:count` 자리표시자는 치환되지 않은 채로 내려갑니다. 실제 변경 건수는 `data.updated_count` 를 사용하세요.
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 일괄 변경 중 예외 발생 시 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.shipping-policies.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `ids` 는 1건 이상이며 각 값은 존재하는 템플릿 ID, `is_active` 는 필수 boolean |
 
 <!-- @generated:end -->
 
@@ -621,7 +721,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`)._
 
 **응답 예시**
 
@@ -719,20 +819,63 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ExtraFeeTemplateResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 기본 키 (내부 식별자) |
+| zipcode | string | `06234` | 추가배송비를 적용할 우편번호 (단일 또는 `-` 로 이은 범위) |
+| fee | integer | `5000` | 해당 우편번호에 부과할 추가 배송비 (상점 기본 통화 기준 반올림) |
+| fee_formatted | string | `5,000원` | `fee` 값의 표시용 포맷 문자열 (기본 통화 포맷) |
+| region | string \| null | `경기 안산 풍도동` | 지역명 (도서산간 등 관리자 참고용 표시 라벨, 미입력 시 null) |
+| description | string \| null | `도서산간 지역` | 설명 (미입력 시 null) |
+| is_active | boolean | `true` | 활성 여부 (true 이면 배송비 계산에 할증 반영) |
+| created_by | string \| null | `null` | 등록자 UUID (creator 관계 파생, 없으면 null) |
+| updated_by | string \| null | `a234c2b1-cde8-437f-b28b-23323be2b98d` | 최종 수정자 UUID (수정 시 현재 로그인 사용자로 갱신) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 포맷) |
+| updated_at | string | `2026-07-08 15:00:20` | 최종 수정 일시 (사용자 타임존 기준 포맷) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (모두 `sirsoft-ecommerce.settings.update` 권한 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "추가배송비 템플릿이 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "zipcode": "06234",
+        "fee": 5000,
+        "fee_formatted": "5,000원",
+        "region": "경기 안산 풍도동",
+        "description": "도서산간 지역",
+        "is_active": true,
+        "created_by": null,
+        "updated_by": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:20",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 수정 중 예외 발생 시 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.shipping-policies.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `zipcode` 는 숫자 또는 `숫자-숫자` 범위 형식이어야 하며 자신을 제외한 다른 템플릿과 중복될 수 없음 |
 
 <!-- @generated:end -->
 

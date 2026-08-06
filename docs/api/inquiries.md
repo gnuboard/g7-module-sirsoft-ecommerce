@@ -40,11 +40,23 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 삭제 성공 여부 (컨트롤러가 상수 `true` 로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "문의가 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -53,6 +65,8 @@ Authorization: Bearer {YOUR_TOKEN}
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.inquiries.delete`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 문의 게시판이 설정되지 않은 경우(`문의 게시판이 설정되지 않았습니다.`) — `ProductInquiryService::deleteInquiry()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 삭제 처리 중 예기치 못한 예외 (`문의 삭제에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -82,11 +96,23 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 답변 삭제 성공 여부 (컨트롤러가 상수 `true` 로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "답변이 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -95,6 +121,8 @@ Authorization: Bearer {YOUR_TOKEN}
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.inquiries.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 문의 게시판이 설정되지 않은 경우(`문의 게시판이 설정되지 않았습니다.`) — `ProductInquiryService::deleteReply()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 답변 삭제 처리 중 예기치 못한 예외 (`답변 삭제에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -130,11 +158,25 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 답변이 등록된 문의(피벗 `product_inquiries`)의 기본 키 |
+| is_answered | boolean | `true` | 답변 등록 후의 문의 답변 완료 여부 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "답변이 등록되었습니다.",
+    "data": {
+        "id": 1,
+        "is_answered": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -142,8 +184,9 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.inquiries.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) / 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 답변 게시글 생성에 실패한 경우(`답변 등록에 실패했습니다.`) — `ProductInquiryService::createReply()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 답변 등록 처리 중 예기치 못한 예외 (`답변 등록에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -179,11 +222,23 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 답변을 수정한 문의(피벗 `product_inquiries`)의 기본 키 (요청 path 의 `inquiryId` 를 그대로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "답변이 수정되었습니다.",
+    "data": {
+        "id": 1
+    }
+}
+```
 
 **에러 응답**
 
@@ -191,8 +246,9 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.inquiries.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) / 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 문의 게시판이 설정되지 않은 경우(`문의 게시판이 설정되지 않았습니다.`) — `ProductInquiryService::updateReply()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 답변 수정 처리 중 예기치 못한 예외 (`답변 수정에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -372,18 +428,32 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 삭제 성공 여부 (컨트롤러가 상수 `true` 로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "문의가 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 403 | Forbidden | 문의 작성자(`user_id`)가 로그인 사용자와 다른 경우 (`해당 문의에 대한 권한이 없습니다.`) |
+| 404 | Not Found | 해당 ID 의 문의가 존재하지 않는 경우 (`문의를 찾을 수 없습니다.`) |
+| 500 | Internal Server Error | 삭제 처리 중 예기치 못한 예외 (`문의 삭제에 실패했습니다.`) — 문의 게시판 미설정 등 서비스 `RuntimeException` 포함 |
 
 <!-- @generated:end -->
 
@@ -401,10 +471,10 @@ Authorization: Bearer {YOUR_TOKEN}
 | 이름 | 위치 | 타입 | 필수 | 허용값 | 용도 |
 | --- | --- | --- | --- | --- | --- |
 | inquiryId | path | string | 예 | — | 대상 inquiry의 식별자 |
-| title | body | string | 아니오 | min 2, max 200 | 제목 |
+| title | body | string | 아니오 | — | 문의 제목 (연동 게시판 Post 의 제목으로 저장. 게시판 설정에 따라 min/max 길이 규칙이 Filter 훅으로 추가됨) |
 | category | body | string | 아니오 | — | 문의 분류 (게시판 설정 기반 유형 슬러그, 연동 게시판 Post 로 저장) |
-| content | body | string | 예 | min 10, max 10000 | 본문 내용 |
-| is_secret | body | boolean | 아니오 | — | secret 여부 |
+| content | body | string | 예 | — | 문의 본문 (필수. 게시판 설정에 따라 min/max 길이 규칙이 Filter 훅으로 추가됨) |
+| is_secret | body | boolean | 아니오 | — | 비밀글 여부 (게시판 비밀글 모드 설정에 따라 적용) |
 
 > 이 엔드포인트는 확장이 파라미터를 추가할 수 있습니다 (`sirsoft-ecommerce.inquiry.update_validation_rules`).
 
@@ -427,19 +497,33 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 수정한 문의(피벗 `product_inquiries`)의 기본 키 (요청 path 의 `inquiryId` 를 그대로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "문의가 수정되었습니다.",
+    "data": {
+        "id": 1
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 403 | Forbidden | 문의 작성자(`user_id`)가 로그인 사용자와 다른 경우 (`해당 문의에 대한 권한이 없습니다.`) |
+| 404 | Not Found | 해당 ID 의 문의가 존재하지 않는 경우 (`문의를 찾을 수 없습니다.`) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) / 문의 게시판이 설정되지 않은 경우(`문의 게시판이 설정되지 않았습니다.`) — `ProductInquiryService::updateInquiry()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 수정 처리 중 예기치 못한 예외 (`문의 수정에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -469,18 +553,33 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 답변 삭제 성공 여부 (컨트롤러가 상수 `true` 로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "답변이 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
+| 403 | Forbidden | 답변 권한(`sirsoft-ecommerce.inquiries.update`)이 없는 경우 (`해당 문의에 대한 권한이 없습니다.`) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 문의 게시판이 설정되지 않은 경우(`문의 게시판이 설정되지 않았습니다.`) — `ProductInquiryService::deleteReply()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 답변 삭제 처리 중 예기치 못한 예외 (`답변 삭제에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -516,19 +615,35 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 답변이 등록된 문의(피벗 `product_inquiries`)의 기본 키 |
+| is_answered | boolean | `true` | 답변 등록 후의 문의 답변 완료 여부 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "답변이 등록되었습니다.",
+    "data": {
+        "id": 1,
+        "is_answered": true
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 403 | Forbidden | 답변 권한(`sirsoft-ecommerce.inquiries.update`)이 없는 경우 (`해당 문의에 대한 권한이 없습니다.`) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) / 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 답변 게시글 생성에 실패한 경우(`답변 등록에 실패했습니다.`) — `ProductInquiryService::createReply()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 답변 등록 처리 중 예기치 못한 예외 (`답변 등록에 실패했습니다.`) |
 
 <!-- @generated:end -->
 
@@ -564,19 +679,33 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 답변을 수정한 문의(피벗 `product_inquiries`)의 기본 키 (요청 path 의 `inquiryId` 를 그대로 반환) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```json
+{
+    "success": true,
+    "message": "답변이 수정되었습니다.",
+    "data": {
+        "id": 1
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 403 | Forbidden | 답변 권한(`sirsoft-ecommerce.inquiries.update`)이 없는 경우 (`해당 문의에 대한 권한이 없습니다.`) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) / 문의를 찾을 수 없거나(`문의를 찾을 수 없습니다.`) 문의 게시판이 설정되지 않은 경우(`문의 게시판이 설정되지 않았습니다.`) — `ProductInquiryService::updateReply()` 의 `RuntimeException` |
+| 500 | Internal Server Error | 답변 수정 처리 중 예기치 못한 예외 (`답변 수정에 실패했습니다.`) |
 
 <!-- @generated:end -->
 

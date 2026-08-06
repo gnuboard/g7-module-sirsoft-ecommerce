@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\AdminUserCurrencyController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\AdminUserShippingCountryController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\BrandController;
+use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\CashReceiptController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\CategoryController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\ClaimReasonController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\CouponController;
@@ -23,6 +24,7 @@ use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\SearchPresetController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\ShippingCarrierController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Admin\ShippingPolicyController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CartController;
+use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CashReceiptController as GuestCashReceiptController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CategoryController as PublicCategoryController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CategoryImageController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\CheckoutController;
@@ -35,6 +37,7 @@ use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\ProductReviewController as
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\PublicCouponController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\WishlistController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Shop\PaymentConfigController;
+use Modules\Sirsoft\Ecommerce\Http\Controllers\User\CashReceiptController as UserCashReceiptController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\User\OrderController as UserOrderController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\User\ProductInquiryController as UserProductInquiryController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\User\ProductReviewController as UserProductReviewController;
@@ -288,6 +291,15 @@ Route::prefix('guest/orders/{orderNumber}')
         Route::post('/options/{optionId}/confirm', [PublicOrderController::class, 'confirmOption'])
             ->whereNumber('optionId')
             ->name('guest.orders.confirm-option');
+
+        // GET /guest/orders/{orderNumber}/cash-receipt - 현금영수증 상태 조회
+        Route::get('/cash-receipt', [GuestCashReceiptController::class, 'show'])
+            ->name('guest.orders.cash-receipt.show');
+
+        // POST /guest/orders/{orderNumber}/cash-receipt - 현금영수증 사후 발급
+        // 발급취소는 제공하지 않는다 (관리자 전용).
+        Route::post('/cash-receipt', [GuestCashReceiptController::class, 'issue'])
+            ->name('guest.orders.cash-receipt.issue');
     });
 
 // 회원/비회원 공유 주문 상세 조회 (optional.sanctum)
@@ -416,6 +428,17 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/reorder', [UserOrderController::class, 'reorder'])
             ->whereNumber('id')
             ->name('user.orders.reorder');
+
+        // GET /api/modules/sirsoft-ecommerce/user/orders/{id}/cash-receipt - 현금영수증 상태 조회
+        Route::get('/{id}/cash-receipt', [UserCashReceiptController::class, 'show'])
+            ->whereNumber('id')
+            ->name('user.orders.cash-receipt.show');
+
+        // POST /api/modules/sirsoft-ecommerce/user/orders/{id}/cash-receipt - 현금영수증 사후 발급
+        // 발급취소는 제공하지 않는다 (관리자 전용).
+        Route::post('/{id}/cash-receipt', [UserCashReceiptController::class, 'issue'])
+            ->whereNumber('id')
+            ->name('user.orders.cash-receipt.issue');
     });
 
     // 리뷰 API (인증 사용자)
@@ -1312,6 +1335,24 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::post('/{order}/reset-guest-lookup-password', [OrderController::class, 'resetGuestLookupPassword'])
             ->middleware('permission:admin,sirsoft-ecommerce.orders.update')
             ->name('admin.orders.reset-guest-lookup-password');
+
+        // 현금영수증 발급 (주문 시 미신청 건의 사후 발급 포함)
+        // POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt
+        Route::post('/{order}/cash-receipt', [CashReceiptController::class, 'issue'])
+            ->middleware('permission:admin,sirsoft-ecommerce.orders.update')
+            ->name('admin.orders.cash-receipt.issue');
+
+        // 현금영수증 발급취소 (전액취소)
+        // DELETE /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt
+        Route::delete('/{order}/cash-receipt', [CashReceiptController::class, 'cancel'])
+            ->middleware('permission:admin,sirsoft-ecommerce.orders.update')
+            ->name('admin.orders.cash-receipt.cancel');
+
+        // 현금영수증 재동기화 ("취소 성공 + 재발급 실패" 중간 상태 복구)
+        // POST /api/modules/sirsoft-ecommerce/admin/orders/{order}/cash-receipt/reissue
+        Route::post('/{order}/cash-receipt/reissue', [CashReceiptController::class, 'reissue'])
+            ->middleware('permission:admin,sirsoft-ecommerce.orders.update')
+            ->name('admin.orders.cash-receipt.reissue');
     });
 
     // 리뷰 관리 API (관리자)

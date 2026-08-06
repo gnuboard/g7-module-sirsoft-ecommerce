@@ -39,17 +39,41 @@ Accept: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 JSON 봉투(`data`)를 반환하지 않습니다. 성공 시 이미지 원본 바이너리를 `StreamedResponse` 로 스트리밍합니다 (`CategoryImageService::download()` → `StorageInterface::response()`)._
+
+| 응답 요소 | 값 | 용도/설명 |
+| --- | --- | --- |
+| 본문 | 이미지 원본 바이너리 | `category_images.path` 에 저장된 파일을 스토리지에서 스트리밍 |
+| `Content-Type` 헤더 | `image/jpeg` (레코드의 `mime_type` 값) | 업로드 시 저장된 MIME 타입을 그대로 사용 |
+| `Cache-Control` 헤더 | `public, max-age=31536000` | 브라우저/CDN 1년 캐싱 |
+| `Content-Disposition` 헤더 | 원본 파일명(`original_filename`) 포함 | 다운로드 시 표시될 파일명 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200 OK
+Content-Type: image/jpeg
+Cache-Control: public, max-age=31536000
+Content-Disposition: inline; filename="category-main.jpg"
+
+<이미지 바이너리 데이터>
+```
+
+실패 시에는 JSON 봉투로 응답합니다.
+
+```json
+{
+    "success": false,
+    "message": "카테고리 이미지를 찾을 수 없습니다."
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 400 | Bad Request | 스트리밍 처리 중 예외 발생 (`exceptions.operation_failed` → "작업 처리 중 오류가 발생했습니다.") |
+| 404 | Not Found | `hash` 에 해당하는 카테고리 이미지 레코드가 없거나, 레코드는 있으나 스토리지에 실제 파일이 없는 경우 (`CategoryImageService::download()` 가 `null` 반환) |
 
 <!-- @generated:end -->
 

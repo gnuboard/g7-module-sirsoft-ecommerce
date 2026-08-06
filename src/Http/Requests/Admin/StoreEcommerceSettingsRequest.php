@@ -5,6 +5,8 @@ namespace Modules\Sirsoft\Ecommerce\Http\Requests\Admin;
 use App\Rules\LocaleRequiredTranslatable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
+use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
+use Modules\Sirsoft\Ecommerce\Enums\ShippingFeeTaxPolicy;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
@@ -245,6 +247,11 @@ class StoreEcommerceSettingsRequest extends FormRequest
             // order_settings 섹션
             'order_settings' => ['sometimes', 'array'],
             'order_settings.default_pg_provider' => ['nullable', 'string', 'max:50'],
+            // 현금영수증 — 발급 프로바이더는 결제 PG 와 독립 선택한다 (빈 문자열 = 미사용).
+            // 규칙을 명시하지 않으면 validated() 가 키를 떨궈 저장이 조용히 무효화된다.
+            'order_settings.cash_receipt_provider' => ['nullable', 'string', 'max:50'],
+            'order_settings.cash_receipt_self_issue' => ['nullable', 'boolean'],
+            'order_settings.shipping_fee_tax_policy' => ['nullable', 'string', 'in:'.implode(',', ShippingFeeTaxPolicy::values())],
             'order_settings.payment_methods' => ['nullable', 'array'],
             'order_settings.payment_methods.*.id' => ['required_with:order_settings.payment_methods', 'string', 'max:50'],
             'order_settings.payment_methods.*.pg_provider' => ['nullable', 'string', 'max:50'],

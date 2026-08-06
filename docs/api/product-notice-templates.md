@@ -272,16 +272,67 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductNoticeTemplateResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `3` | 생성된 템플릿의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"의류 고시","en":"Clothing Notice"}` | 템플릿명 (로케일별 값 객체) |
+| localized_name | string | `의류 고시` | `name` 의 현재 로케일 해석 값 |
+| category | string\|null | `clothing` | 이 템플릿이 적용되는 품목 카테고리 식별자 (미지정 시 `null`) |
+| fields | array | `[{"label":"품명","value":"샘플"}]` | 고시 항목 정의 배열 (요청의 `fields` 가 그대로 저장됨) |
+| fields_count | integer | `1` | `fields` 배열의 개수 (집계값) |
+| is_active | boolean | `true` | 활성 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `file-alt` | 목록 UI(SortableMenuList)용 고정 아이콘 식별자 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 (사용자 타임존 기준 문자열) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시가 생성되었습니다.",
+    "data": {
+        "id": 3,
+        "name": {
+            "ko": "의류 고시",
+            "en": "Clothing Notice"
+        },
+        "localized_name": "의류 고시",
+        "category": "clothing",
+        "fields": [
+            {
+                "label": "품명",
+                "value": "샘플"
+            }
+        ],
+        "fields_count": 1,
+        "is_active": true,
+        "sort_order": 0,
+        "icon": "file-alt",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 생성 처리 중 예외 발생 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.product-notice-templates.create`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
@@ -418,20 +469,71 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductNoticeTemplateResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 수정된 템플릿의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"의류 고시(수정)","en":"Clothing Notice (Updated)"}` | 템플릿명 (로케일별 값 객체) |
+| localized_name | string | `의류 고시(수정)` | `name` 의 현재 로케일 해석 값 |
+| category | string\|null | `clothing` | 이 템플릿이 적용되는 품목 카테고리 식별자 (미지정 시 `null`) |
+| fields | array | `[{"label":"품명","value":"샘플"}]` | 고시 항목 정의 배열 (요청의 `fields` 로 대체됨) |
+| fields_count | integer | `1` | `fields` 배열의 개수 (집계값) |
+| is_active | boolean | `true` | 활성 여부 |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `file-alt` | 목록 UI(SortableMenuList)용 고정 아이콘 식별자 |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 15:00:27` | 최종 수정 일시 (사용자 타임존 기준 문자열) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품정보제공고시가 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "의류 고시(수정)",
+            "en": "Clothing Notice (Updated)"
+        },
+        "localized_name": "의류 고시(수정)",
+        "category": "clothing",
+        "fields": [
+            {
+                "label": "품명",
+                "value": "샘플"
+            }
+        ],
+        "fields_count": 1,
+        "is_active": true,
+        "sort_order": 0,
+        "icon": "file-alt",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:27",
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 수정 처리 중 예외 발생 (`exceptions.operation_failed`) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.product-notice-templates.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

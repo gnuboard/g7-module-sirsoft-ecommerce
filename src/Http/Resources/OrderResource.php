@@ -6,6 +6,7 @@ use App\Helpers\PermissionHelper;
 use App\Http\Resources\BaseApiResource;
 use Illuminate\Http\Request;
 use Modules\Sirsoft\Ecommerce\Http\Resources\Traits\HasMultiCurrencyPrices;
+use Modules\Sirsoft\Ecommerce\Models\OrderCashReceipt;
 use Modules\Sirsoft\Ecommerce\Support\ShippingPolicySnapshot;
 
 /**
@@ -178,6 +179,19 @@ class OrderResource extends BaseApiResource
             'payments' => $this->whenLoaded('payments', fn () => OrderPaymentResource::collection($this->payments)->each(
                 fn ($r) => $r->withOrderCurrency($orderCurrency)
             )),
+
+            // 현금영수증 — 현재 활성 영수증 1건(없으면 null). 발급 카드의 "발급완료" 상태 근거.
+            'cash_receipt' => $this->whenLoaded('cashReceipts', function () use ($orderCurrency) {
+                $active = OrderCashReceipt::filterActive($this->cashReceipts)[0] ?? null;
+
+                return $active
+                    ? (new CashReceiptResource($active))->withOrderCurrency($orderCurrency)
+                    : null;
+            }),
+            // 발급/취소 전체 이력 — 관리자 화면의 "취소 성공 + 재발급 실패" 경고 배지 판정 근거.
+            'cash_receipts' => $this->whenLoaded('cashReceipts', fn () => CashReceiptResource::collection(
+                $this->cashReceipts->sortByDesc('id')->values()
+            )->each(fn ($r) => $r->withOrderCurrency($orderCurrency))),
 
             // 배송 정보
             'shippings' => $this->whenLoaded('shippings', fn () => OrderShippingResource::collection($this->shippings)->each(

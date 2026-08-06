@@ -758,7 +758,8 @@ class OrderOptionService
         $orderUpdate = ['order_status' => $newStatus->value];
         // 주문 전체가 구매확정으로 전이되면 헤더에도 확정 시점 기록 (유저 셀프 확정 OrderService::confirmOption 과 대칭).
         // 멱등: 이미 값이 있으면 유지(최초 확정 시점 보존).
-        if ($newStatus === OrderStatusEnum::CONFIRMED && $order->confirmed_at === null) {
+        $purchaseConfirmed = $newStatus === OrderStatusEnum::CONFIRMED && $order->confirmed_at === null;
+        if ($purchaseConfirmed) {
             $orderUpdate['confirmed_at'] = now();
         }
         $order->update($orderUpdate);
@@ -767,6 +768,13 @@ class OrderOptionService
         // OrderStatusNotificationListener 가 결제완료/배송중/배송완료/구매확정 알림으로 매핑한다.
         // 목표 상태($newStatus->value)를 스칼라로 명시 전달 — 큐 지연 재로드 오매핑 방지 (N1).
         HookManager::doAction('sirsoft-ecommerce.order.after_status_change', $order->fresh(), $previousStatus, $newStatus->value);
+
+        // 구매확정 훅 — order.confirmed_at 이 최초로 세팅된 순간에만 1회 발화(멱등).
+        // 기존 order.after_confirm 은 completePayment 안의 "결제완료" 훅이지 구매확정 훅이 아니다(이름 혼동 주의).
+        // PurgeCashReceiptIdentifierListener 가 구독해 재발급용 식별번호 암호문을 폐기한다.
+        if ($purchaseConfirmed) {
+            HookManager::doAction('sirsoft-ecommerce.order.after_purchase_confirmed', $order->fresh());
+        }
     }
 
     /**

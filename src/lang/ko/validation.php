@@ -912,6 +912,13 @@ return [
         'guest_lookup_password_min' => '주문 조회 비밀번호는 8자 이상이어야 합니다.',
         'guest_lookup_password_confirmed' => '주문 조회 비밀번호가 일치하지 않습니다.',
         'guest_lookup_password_confirmation_required' => '주문 조회 비밀번호 확인을 입력해주세요.',
+        'cash_receipt_type_required' => '현금영수증 발급 용도를 선택해주세요.',
+        'cash_receipt_type_invalid' => '현금영수증 발급 용도가 올바르지 않습니다.',
+        'cash_receipt_identifier_type_required' => '현금영수증 발급수단을 선택해주세요.',
+        'cash_receipt_identifier_type_invalid' => '현금영수증 발급수단이 올바르지 않습니다.',
+        'cash_receipt_identifier_required' => '현금영수증 발급에 사용할 번호를 입력해주세요.',
+        'refund_bank_required_with' => '환불 계좌는 은행·계좌번호·예금주를 모두 입력해야 합니다.',
+        'refund_bank_required_for_vbank' => '입금이 완료된 가상계좌 주문은 환불 계좌가 필요합니다.',
     ],
 
     // 비회원 주문 조회 인증 검증 메시지

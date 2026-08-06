@@ -167,6 +167,9 @@ class OrderRepository implements OrderRepositoryInterface
                 'shippings',
                 // 취소 이력 — 주문상세 화면의 취소 사유/일시 표시용 (최근 취소 먼저)
                 'cancels' => fn ($q) => $q->latest('cancelled_at'),
+                // 현금영수증 이력 — 주문상세의 발급 카드가 활성 영수증 1건과 전체 이력을 함께 표시한다.
+                // 미로드 시 OrderResource 의 whenLoaded 가드로 응답에 키 자체가 나타나지 않는다.
+                'cashReceipts',
             ])
             ->find($id);
     }
@@ -182,6 +185,8 @@ class OrderRepository implements OrderRepositoryInterface
                 'options',
                 'shippingAddress',
                 'payment',
+                // 비회원 주문상세도 현금영수증 카드를 렌더하므로 함께 로드한다.
+                'cashReceipts',
             ])
             ->where('order_number', $orderNumber)
             ->first();

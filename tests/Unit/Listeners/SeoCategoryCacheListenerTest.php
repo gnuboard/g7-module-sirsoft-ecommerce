@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoCategoryCacheListener;
-use Tests\TestCase;
+use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 
 /**
  * SeoCategoryCacheListener 테스트
  *
  * 카테고리 변경 시 SEO 캐시 무효화 리스너의 동작을 검증합니다.
  */
-class SeoCategoryCacheListenerTest extends TestCase
+class SeoCategoryCacheListenerTest extends ModuleTestCase
 {
     protected SeoCategoryCacheListener $listener;
 

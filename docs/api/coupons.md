@@ -534,19 +534,55 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (생성된 쿠폰 발급 내역 `CouponIssue` 모델 직렬화 — 전용 Resource 를 거치지 않고 모델의 컬럼/캐스트가 그대로 노출됩니다)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `8611` | 발급 내역 ID (기본 키) |
+| coupon_id | integer | `157` | 발급된 쿠폰 정의(마스터)의 식별자 |
+| user_id | integer | `1` | 발급받은 회원 식별자 |
+| coupon_code | string | `DL-8QK2ZX4M` | 발급 시 생성된 쿠폰 코드 (다운로드 발급은 `DL-` + 8자리 랜덤 대문자) |
+| status | string | `available` | 발급 건 상태 (available=사용가능, used=사용완료, expired=만료, cancelled=취소) |
+| issued_at | string | `2026-07-14T02:24:18.000000Z` | 발급일시 (발급 처리 시각) |
+| expired_at | string \| null | `2026-08-07T02:24:18.000000Z` | 만료일시 (valid_type=period 이면 쿠폰의 `valid_to`, days_from_issue 이면 발급일 + `valid_days`, 둘 다 아니면 null) |
+| used_at | null | `null` | 사용일시 (발급 직후에는 항상 null) |
+| order_id | null | `null` | 사용된 주문 식별자 (발급 직후에는 항상 null) |
+| discount_amount | string \| null | `null` | 실제 적용된 할인 금액 (사용 전에는 null, decimal(15,2)) |
+| created_at | string | `2026-07-14T02:24:18.000000Z` | 생성 일시 |
+| updated_at | string | `2026-07-14T02:24:18.000000Z` | 최종 수정 일시 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "쿠폰이 다운로드되었습니다.",
+    "data": {
+        "coupon_id": 157,
+        "user_id": 1,
+        "coupon_code": "DL-8QK2ZX4M",
+        "status": "available",
+        "issued_at": "2026-07-14T02:24:18.000000Z",
+        "expired_at": "2026-08-07T02:24:18.000000Z",
+        "updated_at": "2026-07-14T02:24:18.000000Z",
+        "created_at": "2026-07-14T02:24:18.000000Z",
+        "id": 8611
+    }
+}
+```
 
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | 쿠폰 다운로드 제한 횟수를 초과했습니다. | 회원 1인당 발급 제한(`per_user_limit`) 을 이미 채운 경우 |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | `coupon_id` 가 정수가 아니거나 존재하지 않는 쿠폰인 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

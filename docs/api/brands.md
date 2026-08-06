@@ -192,11 +192,60 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`BrandResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 생성된 브랜드의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 브랜드","en":"API Doc Sample Brand"}` | 브랜드 이름 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 브랜드` | `name` 의 현재 로케일 해석 값 (표시용 문자열) |
+| slug | string | `apidoc-sample-brand` | URL 친화 식별자 (slug) |
+| url | string | `apidoc-sample-brand` | SortableMenuItem 표시용 URL (slug 값을 그대로 노출) |
+| website | string \| null | `null` | 브랜드 공식 웹사이트 URL (미입력 시 null) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| is_active | boolean | `true` | 활성 여부 |
+| icon | string | `tag` | SortableMenuList 컴포넌트용 아이콘 식별자 (고정값 `tag`) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 (사용자 타임존 기준 문자열) |
+| products_count | integer | `0` | 브랜드에 연결된 상품 수 (생성 직후이므로 0) |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
+
+> 생성 직후에는 `creator`/`updater` 관계가 로드되지 않으므로(`whenLoaded`) 응답에서 생략됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "브랜드가 등록되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 브랜드",
+            "en": "API Doc Sample Brand"
+        },
+        "localized_name": "API 문서 샘플 브랜드",
+        "slug": "apidoc-sample-brand",
+        "url": "apidoc-sample-brand",
+        "website": null,
+        "sort_order": 0,
+        "is_active": true,
+        "icon": "tag",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "products_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -294,11 +343,60 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`BrandResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 수정된 브랜드의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 브랜드","en":"API Doc Sample Brand"}` | 브랜드 이름 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 브랜드` | `name` 의 현재 로케일 해석 값 (표시용 문자열) |
+| slug | string | `apidoc-sample-brand` | URL 친화 식별자 (slug) |
+| url | string | `apidoc-sample-brand` | SortableMenuItem 표시용 URL (slug 값을 그대로 노출) |
+| website | string \| null | `https://www.asus.com` | 브랜드 공식 웹사이트 URL (미입력 시 null) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| is_active | boolean | `true` | 활성 여부 |
+| icon | string | `tag` | SortableMenuList 컴포넌트용 아이콘 식별자 (고정값 `tag`) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 (사용자 타임존 기준 문자열) |
+| updated_at | string | `2026-07-08 15:00:16` | 최종 수정 일시 (이번 수정 시각으로 갱신) |
+| products_count | integer | `0` | 브랜드에 연결된 상품 수 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 |
+
+> 수정 직후에는 `creator`/`updater` 관계가 로드되지 않으므로(`whenLoaded`) 응답에서 생략됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "브랜드가 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 브랜드",
+            "en": "API Doc Sample Brand"
+        },
+        "localized_name": "API 문서 샘플 브랜드",
+        "slug": "apidoc-sample-brand",
+        "url": "apidoc-sample-brand",
+        "website": "https://www.asus.com",
+        "sort_order": 0,
+        "is_active": true,
+        "icon": "tag",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:16",
+        "products_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -306,8 +404,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

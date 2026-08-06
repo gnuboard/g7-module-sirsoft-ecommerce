@@ -22,12 +22,6 @@ return [
         'status_changed' => '카테고리 상태가 변경되었습니다.',
         'order_updated' => '카테고리 순서가 변경되었습니다.',
     ],
-    'category_images' => [
-        'uploaded' => '카테고리 이미지가 업로드되었습니다.',
-        'not_found' => '카테고리 이미지를 찾을 수 없습니다.',
-        'deleted' => '카테고리 이미지가 삭제되었습니다.',
-        'reordered' => '카테고리 이미지 순서가 변경되었습니다.',
-    ],
     'settings' => [
         'fetch_success' => '설정을 조회했습니다.',
         'fetch_failed' => '설정 조회에 실패했습니다.',
@@ -89,6 +83,12 @@ return [
         'reordered' => '이미지 순서가 변경되었습니다.',
         'thumbnail_set' => '대표 이미지가 설정되었습니다.',
         'not_found' => '상품 이미지를 찾을 수 없습니다.',
+    ],
+    'category_images' => [
+        'uploaded' => '이미지가 업로드되었습니다.',
+        'deleted' => '이미지가 삭제되었습니다.',
+        'reordered' => '이미지 순서가 변경되었습니다.',
+        'not_found' => '카테고리 이미지를 찾을 수 없습니다.',
     ],
     'brands' => [
         'list_retrieved' => '브랜드 목록을 조회했습니다.',

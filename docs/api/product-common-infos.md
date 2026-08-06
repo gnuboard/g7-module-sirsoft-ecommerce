@@ -206,11 +206,62 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductCommonInfoResource`)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 생성된 공통정보의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 공통정보","en":"API Doc Sample Common Info"}` | 공통정보 이름 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 공통정보` | `name` 의 현재 로케일 해석 값 |
+| content | object\|array | `[]` | 안내 본문 내용 (로케일별 값 객체, 미입력 시 빈 배열) |
+| localized_content | string | `` | `content` 의 현재 로케일 해석 값 |
+| content_mode | string | `text` | 내용 표시 모드 (`text` 일반 텍스트 / `html` HTML, 기본값 `text`) |
+| is_default | boolean | `false` | 신규 상품에 기본으로 사용할 공통정보인지 여부 |
+| is_active | boolean | `true` | 활성 여부 (false 이면 상품에 노출되지 않음) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `info-circle` | 아이콘 식별자 (목록 UI 표시용 고정값) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
+| products_count | integer | `0` | 이 공통정보를 사용 중인 상품 수 (생성 직후 0) |
+| language_count | integer | `0` | 값이 입력된 로케일 개수 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (권한 맵 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 201
+```
+
+```json
+{
+    "success": true,
+    "message": "공통정보가 생성되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 공통정보",
+            "en": "API Doc Sample Common Info"
+        },
+        "localized_name": "API 문서 샘플 공통정보",
+        "content": [],
+        "localized_content": "",
+        "content_mode": "text",
+        "is_default": false,
+        "is_active": true,
+        "sort_order": 0,
+        "icon": "info-circle",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 10:44:49",
+        "products_count": 0,
+        "language_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -354,11 +405,64 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`ProductCommonInfoResource` — 수정 반영 후 값)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `1` | 수정된 공통정보의 기본 키 (내부 식별자) |
+| name | object | `{"ko":"API 문서 샘플 공통정보(수정)","en":"API Doc Sample Common Info (updated)"}` | 공통정보 이름 (로케일별 값 객체) |
+| localized_name | string | `API 문서 샘플 공통정보(수정)` | `name` 의 현재 로케일 해석 값 |
+| content | object\|array | `{"ko":"배송은 결제 후 1~3일 이내 출고됩니다."}` | 안내 본문 내용 (로케일별 값 객체) |
+| localized_content | string | `배송은 결제 후 1~3일 이내 출고됩니다.` | `content` 의 현재 로케일 해석 값 |
+| content_mode | string | `text` | 내용 표시 모드 (`text` 일반 텍스트 / `html` HTML, 기본값 `text`) |
+| is_default | boolean | `false` | 신규 상품에 기본으로 사용할 공통정보인지 여부 |
+| is_active | boolean | `true` | 활성 여부 (false 이면 상품에 노출되지 않음) |
+| sort_order | integer | `0` | 표시 정렬 순서 값 (작을수록 우선) |
+| icon | string | `info-circle` | 아이콘 식별자 (목록 UI 표시용 고정값) |
+| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
+| updated_at | string | `2026-07-08 15:00:26` | 최종 수정 일시 (이번 수정 시각) |
+| products_count | integer | `0` | 이 공통정보를 사용 중인 상품 수 |
+| language_count | integer | `1` | 값이 입력된 로케일 개수 |
+| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (권한 맵 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "공통정보가 수정되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 공통정보(수정)",
+            "en": "API Doc Sample Common Info (updated)"
+        },
+        "localized_name": "API 문서 샘플 공통정보(수정)",
+        "content": {
+            "ko": "배송은 결제 후 1~3일 이내 출고됩니다."
+        },
+        "localized_content": "배송은 결제 후 1~3일 이내 출고됩니다.",
+        "content_mode": "text",
+        "is_default": false,
+        "is_active": true,
+        "sort_order": 0,
+        "icon": "info-circle",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-07-08 15:00:26",
+        "products_count": 0,
+        "language_count": 1,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -366,8 +470,8 @@ Content-Type: application/json
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.product-common-infos.update`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 

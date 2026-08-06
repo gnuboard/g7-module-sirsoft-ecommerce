@@ -26,12 +26,14 @@ use Modules\Sirsoft\Ecommerce\Listeners\EcommerceAdminActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\EcommerceNotificationDataListener;
 use Modules\Sirsoft\Ecommerce\Listeners\EcommerceUserActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\InjectAppConfigDeviceListener;
+use Modules\Sirsoft\Ecommerce\Listeners\IssueCashReceiptOnDepositListener;
 use Modules\Sirsoft\Ecommerce\Listeners\MergeCartOnLoginListener;
 use Modules\Sirsoft\Ecommerce\Listeners\MileageTransactionListener;
 use Modules\Sirsoft\Ecommerce\Listeners\OrderActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\OrderStatusNotificationListener;
 use Modules\Sirsoft\Ecommerce\Listeners\ProductActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\ProductInquiryBoardListener;
+use Modules\Sirsoft\Ecommerce\Listeners\PurgeCashReceiptIdentifierListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SearchProductsListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoCategoryCacheListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoProductCacheListener;
@@ -2100,6 +2102,8 @@ class Module extends AbstractModule
             EcommerceNotificationDataListener::class,
             OrderStatusNotificationListener::class,
             InjectAppConfigDeviceListener::class,
+            IssueCashReceiptOnDepositListener::class,
+            PurgeCashReceiptIdentifierListener::class,
         ];
     }
 

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoProductCacheListener;
-use Tests\TestCase;
+use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 
 /**
  * SeoProductCacheListener 테스트
@@ -21,7 +21,7 @@ use Tests\TestCase;
  * - 생성/수정 시 단건 캐시 재생성
  * - 삭제 시 재생성 없이 무효화만
  */
-class SeoProductCacheListenerTest extends TestCase
+class SeoProductCacheListenerTest extends ModuleTestCase
 {
     protected SeoProductCacheListener $listener;
 

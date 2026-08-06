@@ -45,10 +45,65 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| id | integer | `2` | 기본 키 (내부 식별자) |
-| product_id | integer | `1732` | product 식별자 (연관 리소스 참조) |
-| created_at | string | `2026-07-31T12:45:03.000000Z` | 생성 일시 |
-| product | object | `{"id":1732,"name":{"ko":"면 손수건 3매입 #1","en":"Cotton Handk…` | <!-- TODO: 설명 --> |
+| id | integer | `1` | 찜(위시리스트) 레코드 식별자 (DELETE `/wishlist/{id}` 의 `id`) |
+| product_id | integer | `10` | 찜한 상품의 식별자 |
+| created_at | string | `2026-07-14T09:12:33.000000Z` | 찜한 일시 (목록은 최신순 정렬) |
+| product | object | `{ "id": 10, ... }` | 찜한 상품 정보 (`ProductListResource` 형식, 아래 하위 필드) |
+
+`product` 하위 필드 (찜 목록에서는 상품의 브랜드·카테고리·라벨 관계만 로드되므로 옵션/배송정책 관련 필드는 응답에 포함되지 않습니다):
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| id | integer | `10` | 상품 식별자 |
+| name | object | `{"ko":"상품명","en":"Product"}` | 상품명 다국어 원본 |
+| name_localized | string | `상품명` | 현재 로케일로 해석된 상품명 |
+| product_code | string | `P0000001` | 상품 코드 |
+| sku | string \| null | `SKU-001` | 재고 관리 코드 |
+| thumbnail_url | string \| null | `/storage/products/thumb.jpg` | 대표 썸네일 이미지 URL |
+| list_price | number | `30000` | 정가 (기본 통화 기준 반올림) |
+| list_price_formatted | string | `30,000원` | 정가 표시용 포맷 문자열 |
+| selling_price | number | `24000` | 판매가 (기본 통화 기준 반올림) |
+| selling_price_formatted | string | `24,000원` | 판매가 표시용 포맷 문자열 |
+| discount_rate | integer | `20` | 정가 대비 할인율(%) |
+| multi_currency_list_price | object | `{"KRW":30000,"USD":22.5}` | 통화별 정가 |
+| multi_currency_selling_price | object | `{"KRW":24000,"USD":18}` | 통화별 판매가 |
+| stock_quantity | integer | `100` | 재고 수량 |
+| safe_stock_quantity | integer | `10` | 안전 재고 수량 |
+| is_below_safe_stock | boolean | `false` | 재고가 안전 재고 미만인지 여부 |
+| sales_status | string | `on_sale` | 판매 상태 값 (`on_sale`/`sold_out`/`stop_sale` 등) |
+| sales_status_label | string | `판매중` | 판매 상태 라벨 (다국어) |
+| sales_status_variant | string | `success` | 판매 상태 배지 색상 변형 |
+| display_status | string | `visible` | 진열 상태 값 |
+| display_status_label | string | `진열` | 진열 상태 라벨 (다국어) |
+| display_status_variant | string | `success` | 진열 상태 배지 색상 변형 |
+| categories | array | `[{"id":3,"name":"의류","is_primary":true}]` | 소속 카테고리 목록 (id/name/is_primary) |
+| primary_category | string \| null | `의류` | 대표 카테고리명 |
+| categories_with_path | array | `[{"id":3,"path":[...],"path_string":"패션 > 의류","is_primary":true}]` | 카테고리 경로(브레드크럼) 포함 목록 |
+| brand_name | string \| null | `나이키` | 브랜드명 (현재 로케일) |
+| shipping_policy_id | integer \| null | `1` | 배송 정책 식별자 |
+| min_purchase_qty | integer | `1` | 최소 구매 수량 |
+| max_purchase_qty | integer \| null | `10` | 최대 구매 수량 (없으면 `null`) |
+| has_options | boolean | `true` | 옵션 보유 여부 |
+| options | array | `[]` | 옵션 목록 (찜 목록에서는 옵션 관계 미로드로 빈 배열) |
+| labels | array | `[{"name":"NEW","color":"#ff0000"}]` | 활성 라벨 목록 (정렬순) |
+| review_count | integer | `0` | 리뷰 수 (리뷰 집계 미로드 시 `0`) |
+| rating_avg | number | `0.0` | 평균 평점 (리뷰 집계 미로드 시 `0.0`) |
+| created_at | string | `2026-07-01 10:00:00` | 상품 등록 일시 (사용자 타임존 기준) |
+| updated_at | string | `2026-07-10 15:30:00` | 상품 수정 일시 (사용자 타임존 기준) |
+| is_owner | boolean | `false` | 요청자가 상품 등록자(`created_by`)인지 여부 |
+| abilities | object | `{"can_update":false,"can_delete":false}` | 상품 수정/삭제 권한 (권한 없으면 키 자체가 생략될 수 있음) |
+
+`data.pagination` 필드:
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| current_page | integer | `1` | 현재 페이지 번호 |
+| last_page | integer | `1` | 마지막 페이지 번호 |
+| per_page | integer | `20` | 페이지당 항목 수 (기본 20, 최대 100) |
+| total | integer | `0` | 전체 찜 항목 수 |
+| from | integer \| null | `null` | 현재 페이지 첫 항목의 순번 (없으면 `null`) |
+| to | integer \| null | `null` | 현재 페이지 마지막 항목의 순번 (없으면 `null`) |
+| has_more_pages | boolean | `false` | 다음 페이지 존재 여부 |
 
 **응답 예시**
 
@@ -198,11 +253,21 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_이 엔드포인트는 `data` 를 반환하지 않습니다 (성공 메시지만 — `data` 는 `null`)._
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 찜 목록에서 제거되었습니다.",
+    "data": null
+}
+```
 
 **에러 응답**
 

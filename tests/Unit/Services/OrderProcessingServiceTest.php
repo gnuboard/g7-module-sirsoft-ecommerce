@@ -35,6 +35,7 @@ use Modules\Sirsoft\Ecommerce\Services\OrderCalculationService;
 use Modules\Sirsoft\Ecommerce\Services\OrderProcessingService;
 use Modules\Sirsoft\Ecommerce\Services\StockService;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -1197,9 +1198,8 @@ class OrderProcessingServiceTest extends ModuleTestCase
      * 하도록 바뀌었으나, validatePaymentAmount 2단계가 base(total_due_amount)를 직접 비교해
      * base≠order_currency(예: base JPY 500 → 결제 KRW 4,750) 에서 "결제금액 불일치"로 오차단됐다.
      * 검증 기준을 결제 통화 환산액으로 통일했으므로, 환산 청구액은 통과하고 base 금액은 거부되어야 한다.
-     *
-     * @dataProvider providePaymentCurrencyCombinations
      */
+    #[DataProvider('providePaymentCurrencyCombinations')]
     public function test_validate_payment_amount_uses_payment_currency_charge(
         string $baseCurrency,
         string $orderCurrency,

@@ -12,6 +12,7 @@ use Modules\Sirsoft\Ecommerce\DTO\CalculationInput;
 use Modules\Sirsoft\Ecommerce\DTO\CalculationItem;
 use Modules\Sirsoft\Ecommerce\DTO\OrderCalculationResult;
 use Modules\Sirsoft\Ecommerce\DTO\ShippingAddress;
+use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIdentifierType;
 use Modules\Sirsoft\Ecommerce\Enums\DeliveryMemoPresetEnum;
 use Modules\Sirsoft\Ecommerce\Enums\DeviceTypeEnum;
 use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
@@ -86,6 +87,8 @@ class OrderProcessingService
      * @param  string|null  $depositorName  입금자명 (무통장입금 시)
      * @param  array|null  $dbankInfo  무통장 수동입금 정보 (dbank 결제 시)
      * @param  string|null  $guestLookupPassword  비회원 조회 비밀번호 평문 (해시로 저장, 회원 주문은 null)
+     * @param  array|null  $cashReceiptInfo  현금영수증 신청 정보 (type/identifier_type/identifier, 미신청 시 null)
+     * @param  array|null  $refundBankInfo  환불 계좌 정보 (bank_code/account_number/holder, 미입력 시 null)
      * @return Order 생성된 주문
      *
      * @throws OrderAmountChangedException 재계산 금액 변동 시
@@ -101,7 +104,9 @@ class OrderProcessingService
         ?string $shippingMemo = null,
         ?string $depositorName = null,
         ?array $dbankInfo = null,
-        ?string $guestLookupPassword = null
+        ?string $guestLookupPassword = null,
+        ?array $cashReceiptInfo = null,
+        ?array $refundBankInfo = null
     ): Order {
         // 생성 전 훅
         HookManager::doAction('sirsoft-ecommerce.order.before_create', $tempOrder, $ordererInfo, $shippingInfo, $paymentMethod);
@@ -169,19 +174,21 @@ class OrderProcessingService
             $initialStatus,
             $currencySnapshot,
             $guestLookupPassword,
-            $isZeroPayable
+            $isZeroPayable,
+            $cashReceiptInfo,
+            $refundBankInfo
         ) {
             // 주문 생성
-            $order = $this->createOrder($tempOrder, $calculationResult, $initialStatus, $currencySnapshot, $guestLookupPassword, $shippingInfo);
+            $order = $this->createOrder($tempOrder, $calculationResult, $initialStatus, $currencySnapshot, $guestLookupPassword, $shippingInfo, $paymentMethod);
 
             // 주문 옵션 생성 (배송 정보 연결을 위해 옵션 ID 매핑 반환)
-            $createdOptions = $this->createOrderOptions($order, $tempOrder, $calculationResult, $currencySnapshot);
+            $createdOptions = $this->createOrderOptions($order, $tempOrder, $calculationResult, $currencySnapshot, $paymentMethod);
 
             // 주문 주소 생성 (주문자 + 배송지)
             $this->createOrderAddresses($order, $ordererInfo, $shippingInfo, $shippingMemo);
 
             // 결제 정보 생성
-            $this->createOrderPayment($order, $paymentMethod, $depositorName, $dbankInfo, $calculationResult, $currencySnapshot, $ordererInfo);
+            $this->createOrderPayment($order, $paymentMethod, $depositorName, $dbankInfo, $calculationResult, $currencySnapshot, $ordererInfo, $cashReceiptInfo, $refundBankInfo);
 
             // 배송 정보 생성 (주문 옵션과 연결)
             $this->createOrderShippings($order, $tempOrder, $calculationResult, $currencySnapshot, $createdOptions);
@@ -505,6 +512,9 @@ class OrderProcessingService
      * @param  OrderCalculationResult  $calculationResult  계산 결과
      * @param  OrderStatusEnum  $initialStatus  초기 상태
      * @param  array  $currencySnapshot  통화 스냅샷
+     * @param  string|null  $guestLookupPassword  비회원 조회 비밀번호
+     * @param  array  $shippingInfo  배송 정보
+     * @param  string|null  $paymentMethod  결제수단 (현금성 금액 산정용)
      */
     protected function createOrder(
         TempOrder $tempOrder,
@@ -512,9 +522,11 @@ class OrderProcessingService
         OrderStatusEnum $initialStatus,
         array $currencySnapshot,
         ?string $guestLookupPassword = null,
-        array $shippingInfo = []
+        array $shippingInfo = [],
+        ?string $paymentMethod = null
     ): Order {
         $summary = $calculationResult->summary;
+        $cashEquivalent = $this->resolveCashEquivalentAmount($paymentMethod, (int) ($summary->finalAmount ?? 0));
 
         // 다중 통화 변환
         $mcAmounts = $this->buildOrderMultiCurrency($summary, $currencySnapshot);
@@ -555,6 +567,10 @@ class OrderProcessingService
             // PG(KG 이니시스 등) 결제 요청 금액·무통장 입금 안내액의 SSoT 이므로 차감 전 paymentAmount 를 쓰면
             // 마일리지 사용분만큼 과다 청구된다. total_amount 와 동일한 차감 후 금액으로 둔다.
             'total_due_amount' => $summary->finalAmount ?? 0,
+            // 현금성 금액 = 현금영수증 발급 대상액. 무통장(dbank)만 실입금액 전액이 현금이며,
+            // 마일리지 사용분은 현금이 아니므로 차감 후 금액(finalAmount)을 쓴다.
+            // 가상계좌는 PG 가 자동 발급하므로 0, 카드/계좌이체/휴대폰도 0.
+            'total_cash_equivalent_amount' => $cashEquivalent,
             'total_cancelled_amount' => 0,
             'total_refunded_amount' => 0,
             'total_refunded_points_amount' => 0,
@@ -588,6 +604,7 @@ class OrderProcessingService
             'mc_total_tax_free_amount' => $mcAmounts['mc_total_tax_free_amount'],
             'mc_total_amount' => $mcAmounts['mc_total_amount'],
             'mc_total_paid_amount' => $mcAmounts['mc_total_paid_amount'],
+            'mc_total_cash_equivalent_amount' => $this->buildAllCurrencyConverter($currencySnapshot)($cashEquivalent),
         ];
 
         // 훅을 통한 데이터 가공
@@ -647,6 +664,32 @@ class OrderProcessingService
     }
 
     /**
+     * 결제수단별 현금성 금액을 산정합니다.
+     *
+     * 현금성 금액 = 현금영수증 발급 대상이 되는 실제 현금 입금액.
+     *
+     * | 결제수단          | 현금성 금액                                  |
+     * |------------------|--------------------------------------------|
+     * | dbank (무통장)    | 실입금액 전액 (마일리지 차감 후 finalAmount)  |
+     * | vbank (가상계좌)  | 0 — PG 가 자동 발급                          |
+     * | card/bank/phone  | 0                                           |
+     * | point/deposit    | 0 (현금이 아님)                              |
+     *
+     * 산정 규칙은 PaymentMethodEnum::resolveCashEquivalentAmount() 가 SSoT 다 —
+     * 취소 재계산(OrderAdjustmentService)도 같은 규칙을 써야 부분환불 후 재발급액이 맞는다.
+     *
+     * @param  string|null  $paymentMethod  결제수단 식별자
+     * @param  int  $finalAmount  마일리지/예치금 차감 후 실결제액
+     * @return int 현금성 금액
+     */
+    protected function resolveCashEquivalentAmount(?string $paymentMethod, int $finalAmount): int
+    {
+        return PaymentMethodEnum::tryFrom((string) $paymentMethod)
+            ?->resolveCashEquivalentAmount($finalAmount)
+            ?? 0;
+    }
+
+    /**
      * 주문 옵션 생성
      *
      * @param  Order  $order  주문
@@ -668,7 +711,8 @@ class OrderProcessingService
         Order $order,
         TempOrder $tempOrder,
         OrderCalculationResult $calculationResult,
-        array $currencySnapshot
+        array $currencySnapshot,
+        ?string $paymentMethod = null
     ): array {
         $createdOptions = [];
 
@@ -715,6 +759,12 @@ class OrderProcessingService
                 'subtotal_points_used_amount' => $item->pointsUsedShare ?? 0,
                 'subtotal_deposit_used_amount' => $item->depositUsedShare ?? 0,
                 'subtotal_paid_amount' => $item->finalAmount ?? 0,
+                // 옵션별 현금성 안분액. 옵션 finalAmount 합 = 주문 finalAmount 이므로
+                // 안분 잔차 없이 합계가 그대로 보존된다.
+                'subtotal_cash_equivalent_amount' => $this->resolveCashEquivalentAmount(
+                    $paymentMethod,
+                    (int) ($item->finalAmount ?? 0),
+                ),
                 'subtotal_tax_amount' => $item->taxableAmount ?? 0,
                 'subtotal_tax_free_amount' => $item->taxFreeAmount ?? 0,
                 'subtotal_earned_points_amount' => $item->pointsEarning ?? 0,
@@ -736,6 +786,9 @@ class OrderProcessingService
                 'mc_subtotal_tax_amount' => $mcAmounts['mc_subtotal_tax_amount'],
                 'mc_subtotal_tax_free_amount' => $mcAmounts['mc_subtotal_tax_free_amount'],
                 'mc_final_amount' => $mcAmounts['mc_final_amount'],
+                'mc_subtotal_cash_equivalent_amount' => $this->buildAllCurrencyConverter($currencySnapshot)(
+                    $this->resolveCashEquivalentAmount($paymentMethod, (int) ($item->finalAmount ?? 0)),
+                ),
             ]);
 
             // productOptionId → OrderOption 매핑 저장
@@ -879,6 +932,8 @@ class OrderProcessingService
      * @param  OrderCalculationResult  $calculationResult  계산 결과
      * @param  array  $currencySnapshot  통화 스냅샷
      * @param  array  $ordererInfo  주문자 정보 (name/email/phone — 결제 구매자 정보로 기록)
+     * @param  array|null  $cashReceiptInfo  현금영수증 신청 정보 (type/identifier_type/identifier, 미신청 시 null)
+     * @param  array|null  $refundBankInfo  환불 계좌 정보 (bank_code/account_number/holder, 미입력 시 null)
      */
     protected function createOrderPayment(
         Order $order,
@@ -887,7 +942,9 @@ class OrderProcessingService
         ?array $dbankInfo,
         OrderCalculationResult $calculationResult,
         array $currencySnapshot,
-        array $ordererInfo = []
+        array $ordererInfo = [],
+        ?array $cashReceiptInfo = null,
+        ?array $refundBankInfo = null
     ): void {
         $paymentAmount = $calculationResult->summary->paymentAmount ?? $calculationResult->summary->finalAmount ?? 0;
         // 결제액 0원(전액 비현금 충당: 마일리지/예치금 등) → 결제 레코드도 즉시 PAID, PG/현금 결제액 0.
@@ -948,10 +1005,7 @@ class OrderProcessingService
             // bank_name이 없으면 설정에서 은행코드 기반으로 조회
             $bankName = $dbankInfo['bank_name'] ?? null;
             if (! $bankName && $bankCode) {
-                $orderSettings = module_setting('sirsoft-ecommerce', 'order_settings');
-                $banks = collect($orderSettings['banks'] ?? []);
-                $bank = $banks->firstWhere('code', $bankCode);
-                $bankName = $bank ? ($bank['name'][app()->getLocale()] ?? $bank['name']['ko'] ?? $bankCode) : $bankCode;
+                $bankName = $this->resolveBankName($bankCode);
             }
 
             $paymentData['dbank_code'] = $bankCode;
@@ -963,6 +1017,28 @@ class OrderProcessingService
             // 클라이언트가 보낸 due_days 는 무시한다 — 기한은 서버 정책이며, 이를 받아들이면
             // 미입금 자동취소 스케줄러와 안내 기한이 어긋난다.
             $paymentData['deposit_due_at'] = Carbon::now()->addDays($this->resolveAutoCancelDays());
+        }
+
+        // 현금영수증 신청 정보 — 발급은 입금완료 시점에 리스너가 수행하고, 여기서는 신청 내역만 보관한다.
+        // 원본 식별번호는 암호화 컬럼에만 두고 평문 컬럼에는 마스킹본을 저장한다(응답·로그 노출 방지).
+        // 구매확정 시점에 PurgeCashReceiptIdentifierListener 가 암호문을 폐기한다.
+        if ($cashReceiptInfo !== null) {
+            $identifier = $cashReceiptInfo['identifier'];
+
+            $paymentData['is_cash_receipt_requested'] = true;
+            $paymentData['cash_receipt_type'] = $cashReceiptInfo['type']->value;
+            $paymentData['cash_receipt_identifier_type'] = $cashReceiptInfo['identifier_type'];
+            $paymentData['cash_receipt_identifier'] = CashReceiptIdentifierType::mask($identifier);
+            $paymentData['cash_receipt_identifier_encrypted'] = $identifier;
+        }
+
+        // 환불 계좌 — 무통장은 관리자 수동 이체 대상 계좌, 가상계좌는 PG 환불 API 의 refundReceiveAccount.
+        // 미입력 시 관리자 취소 모달에서 다시 받는다.
+        if ($refundBankInfo !== null) {
+            $paymentData['refund_bank_code'] = $refundBankInfo['bank_code'];
+            $paymentData['refund_bank_name'] = $this->resolveBankName($refundBankInfo['bank_code']);
+            $paymentData['refund_bank_account'] = $refundBankInfo['account_number'];
+            $paymentData['refund_bank_holder'] = $refundBankInfo['holder'];
         }
 
         $order->payment()->create($paymentData);
@@ -1002,6 +1078,20 @@ class OrderProcessingService
         );
 
         return max($min, min($max, $days));
+    }
+
+    /**
+     * 은행코드로 은행명을 조회합니다.
+     *
+     * 조회 규칙의 SSoT 는 EcommerceSettingsService 다 — 무통장 입금 계좌와 환불 계좌가
+     * 같은 은행 목록을 공유하므로 규칙을 복제하지 않고 위임한다.
+     *
+     * @param  string  $bankCode  은행코드
+     * @return string 은행명 (미등록 코드는 코드 그대로)
+     */
+    protected function resolveBankName(string $bankCode): string
+    {
+        return $this->settingsService->resolveBankName($bankCode);
     }
 
     /**
@@ -1759,6 +1849,11 @@ class OrderProcessingService
             'paid_amount_local' => (int) round($amount),
             'paid_amount_base' => (float) $order->total_due_amount,
         ]);
+
+        // 입금 기록 훅 — 관리자가 "결제완료 전이 없이 입금만 기록"한 경로.
+        // 이 경로는 completePayment 를 타지 않으므로 after_payment_complete 가 발화하지 않는다.
+        // 현금영수증 자동발급 리스너가 두 훅을 모두 구독해 입금 확인 경로 전체를 덮는다.
+        HookManager::doAction('sirsoft-ecommerce.order.after_deposit_recorded', $order->fresh(), $amount);
     }
 
     /**

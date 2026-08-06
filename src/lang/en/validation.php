@@ -912,6 +912,13 @@ return [
         'guest_lookup_password_min' => 'The order lookup password must be at least 8 characters.',
         'guest_lookup_password_confirmed' => 'The order lookup password confirmation does not match.',
         'guest_lookup_password_confirmation_required' => 'Please confirm the order lookup password.',
+        'cash_receipt_type_required' => 'Please select the cash receipt purpose.',
+        'cash_receipt_type_invalid' => 'The selected cash receipt purpose is invalid.',
+        'cash_receipt_identifier_type_required' => 'Please select the cash receipt identifier type.',
+        'cash_receipt_identifier_type_invalid' => 'The selected cash receipt identifier type is invalid.',
+        'cash_receipt_identifier_required' => 'Please enter the number to use for the cash receipt.',
+        'refund_bank_required_with' => 'The refund account requires the bank, account number, and account holder.',
+        'refund_bank_required_for_vbank' => 'A refund account is required for a paid virtual account order.',
     ],
 
     // Guest order lookup verification validation messages

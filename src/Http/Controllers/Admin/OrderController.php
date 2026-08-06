@@ -338,6 +338,7 @@ class OrderController extends AdminBaseController
                     cancelledBy: $cancelledBy,
                     cancelPg: $request->shouldCancelPg(),
                     refundPriority: $request->getRefundPriority(),
+                    refundBankInfo: $request->getRefundBankInfo(),
                 );
             } else {
                 $result = $this->cancellationService->cancelOrderOptions(
@@ -348,6 +349,7 @@ class OrderController extends AdminBaseController
                     cancelledBy: $cancelledBy,
                     cancelPg: $request->shouldCancelPg(),
                     refundPriority: $request->getRefundPriority(),
+                    refundBankInfo: $request->getRefundBankInfo(),
                 );
             }
 

@@ -53,6 +53,9 @@ class EcommerceSettingsController extends AdminBaseController
             $settings = $this->appendClaimReasonsToSettings($settings);
             $settings = $this->appendMileageNotificationChannelsToSettings($settings);
             $settings['available_pg_providers'] = $this->settingsService->getRegisteredPgProviders();
+            // 현금영수증 발급 프로바이더 후보 — 결제 플러그인이 훅으로 자신을 등록한다.
+            // 발급 PG 와 결제 PG 는 독립 선택이므로 목록도 별도로 내린다 (KG 결제 + 토스 발급 등).
+            $settings['available_cash_receipt_providers'] = $this->settingsService->getRegisteredCashReceiptProviders();
             $settings['abilities'] = [
                 'can_update' => PermissionHelper::check('sirsoft-ecommerce.settings.update', request()->user()),
             ];
@@ -167,6 +170,7 @@ class EcommerceSettingsController extends AdminBaseController
                 $updatedSettings = $this->appendClaimReasonsToSettings($updatedSettings);
                 $updatedSettings = $this->appendMileageNotificationChannelsToSettings($updatedSettings);
                 $updatedSettings['available_pg_providers'] = $this->settingsService->getRegisteredPgProviders();
+                $updatedSettings['available_cash_receipt_providers'] = $this->settingsService->getRegisteredCashReceiptProviders();
 
                 return ResponseHelper::moduleSuccess(
                     'sirsoft-ecommerce',

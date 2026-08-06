@@ -229,11 +229,29 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| max_usable | integer | `1000` | 해당 주문금액(`order_amount`)에 사용 가능한 최대 마일리지. 보유 잔액·최대 사용 한도(percent/fixed)·주문금액 상한 중 최솟값을 취한 뒤 사용 단위(`use_unit`)로 내림 보정한 값 (기본 통화 사용 규칙 미설정 시 `0`) |
+| available | integer | `12910` | 현재 사용 가능한 마일리지 잔액 (`getBalance()` 의 `available` 값과 동일) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "사용 가능한 최대 마일리지를 조회했습니다.",
+    "data": {
+        "max_usable": 1000,
+        "available": 12910
+    }
+}
+```
 
 **에러 응답**
 
