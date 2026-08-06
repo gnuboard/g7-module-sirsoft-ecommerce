@@ -184,16 +184,6 @@ class OrderPayment extends Model
     }
 
     /**
-     * 무통장입금 결제 여부 확인
-     *
-     * @return bool 무통장입금 결제 여부
-     */
-    public function isBankDeposit(): bool
-    {
-        return $this->payment_method === PaymentMethodEnum::DBANK;
-    }
-
-    /**
      * 카드 결제 여부 확인
      *
      * @return bool 카드 결제 여부

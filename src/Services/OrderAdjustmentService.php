@@ -12,6 +12,7 @@ use Modules\Sirsoft\Ecommerce\DTO\OrderCalculationResult;
 use Modules\Sirsoft\Ecommerce\DTO\ShippingAddress;
 use Modules\Sirsoft\Ecommerce\Enums\CouponIssueRecordStatus;
 use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
+use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\RefundPriorityEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterface;
@@ -833,7 +834,11 @@ class OrderAdjustmentService
     {
         $order->loadMissing('payment');
 
-        return $order->payment?->payment_method?->resolveCashEquivalentAmount($finalAmount) ?? 0;
+        // payment_method 는 순수 string (#475 — 확장 결제수단 ID 허용). 코어 enum 에 없는
+        // 확장 결제수단은 현금성 0 으로 판정한다 (OrderProcessingService 와 동일 idiom).
+        return PaymentMethodEnum::tryFrom($order->payment?->paymentMethodId() ?? '')
+            ?->resolveCashEquivalentAmount($finalAmount)
+            ?? 0;
     }
 
     /**

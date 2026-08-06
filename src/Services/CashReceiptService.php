@@ -8,7 +8,6 @@ use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIdentifierType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptIssueStatus;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptTransactionType;
 use Modules\Sirsoft\Ecommerce\Enums\CashReceiptType;
-use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentStatusEnum;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderCashReceipt;
@@ -461,7 +460,7 @@ class CashReceiptService
             return 'PAYMENT_NOT_FOUND';
         }
 
-        if ($payment->payment_method !== PaymentMethodEnum::DBANK) {
+        if (! $payment->isBankTransfer()) {
             return 'NOT_CASH_PAYMENT';
         }
 
