@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Mileage Transactions 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -52,45 +52,45 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| number | integer | `68` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
-| id | integer | `528` | 기본 키 (내부 식별자) |
-| user_id | integer | `166` | user 식별자 (연관 리소스 참조) |
+| number | integer | `21` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
+| id | integer | `830` | 기본 키 (내부 식별자) |
+| user_id | integer | `1209` | user 식별자 (연관 리소스 참조) |
 | currency | string | `KRW` | 거래 기록 통화 코드 (주문 기준통화 스냅샷, 금액 표기·잔액 집계 단위) |
-| type | string | `admin_earn` | 거래 유형 (MileageTransactionTypeEnum 8종: purchase_earn·admin_earn·order_use·admin_deduct·expired·refund_restore·order_cancel_restore·earn_cancel) |
-| type_label | string | `관리자 지급` | `type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
+| type | string | `admin_deduct` | 거래 유형 (MileageTransactionTypeEnum 8종: purchase_earn·admin_earn·order_use·admin_deduct·expired·refund_restore·order_cancel_restore·earn_cancel) |
+| type_label | string | `관리자 차감` | `type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | admin_badge_group | string | `amber` | 관리자 내역 화면 배지 색상 그룹 (적립계=green·사용계=blue·소멸=gray·복원계=teal·수동/회수계=amber) |
 | user_display_category | string | `adjust` | 회원 마이페이지 표시용 4분류 (earn·use·expire·adjust — 복원·수동·회수는 adjust 로 통합) |
-| amount | integer | `1000` | 거래 금액 (양수=적립, 음수=차감) |
-| amount_formatted | string | `1,000원` | `amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| amount | integer | `-300` | 거래 금액 (양수=적립, 음수=차감) |
+| amount_formatted | string | `-300원` | `amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | remaining_amount | integer | `0` | 잔여 금액 (적립건만 양수, FIFO 차감으로 소진 — 미만료 잔여 합이 잔액 SSoT) |
 | remaining_amount_formatted | string | `0원` | `remaining_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| balance_after | integer | `1000` | 거래 직후 잔액 (감사용 스냅샷, 베스트에포트) |
-| order_id | integer | `436` | order 식별자 (연관 리소스 참조) |
-| order_option_id | integer | `824` | order option 식별자 (연관 리소스 참조) |
-| order_cancel_id | integer | `18` | order cancel 식별자 (연관 리소스 참조) |
-| source_transaction_id | integer | `523` | source transaction 식별자 (연관 리소스 참조) |
-| granted_by | integer | `1` | 부여 주체 식별자 (NULL=시스템 자동, user ID=관리자 수동 부여) |
-| granted_by_name | string | `관리자` | 부여 관리자 이름 (grantedByUser 관계 eager load 시에만 노출) |
-| granted_by_uuid | string | `a1e0a91a-fba6-491c-a53e-7285a5686857` | 부여 관리자 UUID (grantedByUser 관계 eager load 시에만 노출) |
-| user_name | string | `API 문서 샘플 사용자` | 거래 대상 회원 이름 (user 관계 eager load 시에만 노출) |
-| user_uuid | string | `a231747f-e82e-4cf2-9ae1-a261849dce40` | 거래 대상 회원 UUID (user 관계 eager load 시에만 노출) |
-| order_number | string | `20260619-1425382147` | 연관 주문번호 (order 관계 eager load 시에만 노출) |
-| description | string | `마일리지 적립 (660원)` | 설명 (다국어 필드는 로케일별 값 객체) |
-| memo | string | `111` | 관리자 메모 (수동 지급/차감·적립건 편집 시 입력) |
-| expires_at | string | `2027-07-02T15:29:30+00:00` | expires 일시 |
-| expires_at_formatted | string | `2027-07-03 00:29:30` | `expires_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| expires_at_date | string | `2027-07-03` | `expires_at` 의 사이트 타임존 기준 날짜 부분 (시각 제외) |
+| balance_after | integer | `102200` | 거래 직후 잔액 (감사용 스냅샷, 베스트에포트) |
+| order_id | null | `null` | order 식별자 (연관 리소스 참조) |
+| order_option_id | null | `null` | order option 식별자 (연관 리소스 참조) |
+| order_cancel_id | null | `null` | order cancel 식별자 (연관 리소스 참조) |
+| source_transaction_id | integer | `802` | source transaction 식별자 (연관 리소스 참조) |
+| granted_by | integer | `1209` | 부여 주체 식별자 (NULL=시스템 자동, user ID=관리자 수동 부여) |
+| granted_by_name | string | `최고관리자` | 부여 관리자 이름 (grantedByUser 관계 eager load 시에만 노출) |
+| granted_by_uuid | string | `a26219fc-94a0-4f63-9404-04c2a6ac99e4` | 부여 관리자 UUID (grantedByUser 관계 eager load 시에만 노출) |
+| user_name | string | `최고관리자` | 거래 대상 회원 이름 (user 관계 eager load 시에만 노출) |
+| user_uuid | string | `a26219fc-94a0-4f63-9404-04c2a6ac99e4` | 거래 대상 회원 UUID (user 관계 eager load 시에만 노출) |
+| order_number | null | `null` | 연관 주문번호 (order 관계 eager load 시에만 노출) |
+| description | string | `관리자 마일리지 차감 (300원)` | 설명 (다국어 필드는 로케일별 값 객체) |
+| memo | string | `D-30 재실측` | 관리자 메모 (수동 지급/차감·적립건 편집 시 입력) |
+| expires_at | string | `2027-07-31T12:56:55+00:00` | expires 일시 |
+| expires_at_formatted | string | `2027-07-31 21:56:55` | `expires_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| expires_at_date | string | `2027-07-31` | `expires_at` 의 사이트 타임존 기준 날짜 부분 (시각 제외) |
 | expired_at | null | `null` | expired 일시 |
 | expired_at_formatted | null | `null` | `expired_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| created_at | string | `2026-07-07T05:47:31+00:00` | 생성 일시 |
-| created_at_formatted | string | `2026-07-07 14:47:31` | `created_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| created_at_date | string | `2026-07-07` | `created_at` 의 사이트 타임존 기준 날짜 부분 (시각 제외) |
-| is_earning | boolean | `true` | earning 여부 |
+| created_at | string | `2026-07-31T13:36:05+00:00` | 생성 일시 |
+| created_at_formatted | string | `2026-07-31 22:36:05` | `created_at` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| created_at_date | string | `2026-07-31` | `created_at` 의 사이트 타임존 기준 날짜 부분 (시각 제외) |
+| is_earning | boolean | `false` | earning 여부 |
 | can_edit_expiry | boolean | `false` | edit expiry 수행 가능 여부 (권한 기반) |
 | expired_amount | integer | `0` | 이 적립 lot 을 source 로 소멸(expired)된 금액 합계 (목록 조회 시 eager 집계, 단건 조회 시 0 폴백) |
 | expired_amount_formatted | string | `0원` | `expired_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | expiry_state | string | `active` | 적립건 소멸 상태 (active=미소멸, partial_expired=일부 소멸, fully_expired=전액 소멸 — 적립계만 의미) |
-| abilities | object | `{"can_manage":true,"can_edit":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+| abilities | object | `{"can_manage":true,"can_edit":false}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
 **응답 예시**
 
@@ -105,49 +105,94 @@ HTTP/1.1 200
     "data": {
         "data": [
             {
-                "number": 1,
-                "id": 1,
-                "user_id": 6,
+                "number": 21,
+                "id": 830,
+                "user_id": 1209,
                 "currency": "KRW",
-                "type": "admin_earn",
-                "type_label": "관리자 지급",
+                "type": "admin_deduct",
+                "type_label": "관리자 차감",
                 "admin_badge_group": "amber",
                 "user_display_category": "adjust",
-                "amount": 1000,
-                "amount_formatted": "1,000원",
+                "amount": -300,
+                "amount_formatted": "-300원",
                 "remaining_amount": 0,
                 "remaining_amount_formatted": "0원",
-                "balance_after": 1000,
+                "balance_after": 102200,
                 "order_id": null,
                 "order_option_id": null,
                 "order_cancel_id": null,
-                "source_transaction_id": null,
-                "granted_by": null,
-                "granted_by_name": null,
-                "granted_by_uuid": null,
-                "user_name": "API 문서 샘플 사용자",
-                "user_uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+                "source_transaction_id": 802,
+                "granted_by": 1209,
+                "granted_by_name": "최고관리자",
+                "granted_by_uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
+                "user_name": "최고관리자",
+                "user_uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
                 "order_number": null,
-                "description": null,
-                "memo": null,
+                "description": "관리자 마일리지 차감 (300원)",
+                "memo": "D-30 재실측",
                 "expires_at": null,
                 "expires_at_formatted": null,
                 "expires_at_date": null,
                 "expired_at": null,
                 "expired_at_formatted": null,
-                "created_at": "2026-07-08T01:44:49+00:00",
-                "created_at_formatted": "2026-07-08 10:44:49",
-                "created_at_date": "2026-07-08",
-                "is_earning": true,
+                "created_at": "2026-07-31T13:36:05+00:00",
+                "created_at_formatted": "2026-07-31 22:36:05",
+                "created_at_date": "2026-07-31",
+                "is_earning": false,
                 "can_edit_expiry": false,
                 "expired_amount": 0,
                 "expired_amount_formatted": "0원",
                 "expiry_state": "active",
                 "abilities": {
                     "can_manage": true,
-                    "can_edit": true
+                    "can_edit": false
                 }
-            }
+            },
+            {
+                "number": 20,
+                "id": 829,
+                "user_id": 1209,
+                "currency": "KRW",
+                "type": "admin_deduct",
+                "type_label": "관리자 차감",
+                "admin_badge_group": "amber",
+                "user_display_category": "adjust",
+                "amount": -2500,
+                "amount_formatted": "-2,500원",
+                "remaining_amount": 0,
+                "remaining_amount_formatted": "0원",
+                "balance_after": 102500,
+                "order_id": null,
+                "order_option_id": null,
+                "order_cancel_id": null,
+                "source_transaction_id": 801,
+                "granted_by": 1209,
+                "granted_by_name": "최고관리자",
+                "granted_by_uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
+                "user_name": "최고관리자",
+                "user_uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
+                "order_number": null,
+                "description": "관리자 마일리지 차감 (2500원)",
+                "memo": "검수 차감 #5",
+                "expires_at": null,
+                "expires_at_formatted": null,
+                "expires_at_date": null,
+                "expired_at": null,
+                "expired_at_formatted": null,
+                "created_at": "2026-07-31T12:50:13+00:00",
+                "created_at_formatted": "2026-07-31 21:50:13",
+                "created_at_date": "2026-07-31",
+                "is_earning": false,
+                "can_edit_expiry": false,
+                "expired_amount": 0,
+                "expired_amount_formatted": "0원",
+                "expiry_state": "active",
+                "abilities": {
+                    "can_manage": true,
+                    "can_edit": false
+                }
+            },
+            "... (총 21건 중 2건 표시)"
         ],
         "abilities": {
             "can_manage": true
@@ -159,9 +204,9 @@ HTTP/1.1 200
             "current_page": 1,
             "last_page": 1,
             "per_page": 25,
-            "total": 1,
+            "total": 21,
             "from": 1,
-            "to": 1,
+            "to": 21,
             "has_more_pages": false
         }
     }
@@ -223,7 +268,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -276,7 +321,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -312,7 +357,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/mileage-transactions/1 HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/mileage-transactions/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -326,11 +371,11 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -361,7 +406,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/mileage-transactions/1/linked HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/mileage-transactions/{id}/linked HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -369,29 +414,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_목록 응답: `data.data[]` 배열 항목의 필드._
-
-<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "연결 거래를 조회했습니다.",
-    "data": {
-        "data": [],
-        "abilities": {
-            "can_manage": true
-        },
-        "currencies": []
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Extra Fee Templates 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -50,9 +50,9 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| number | integer | `37` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
-| id | integer | `109` | 기본 키 (내부 식별자) |
-| zipcode | string | `00000` | 추가배송비를 적용할 우편번호 (단일 또는 `-` 로 이은 범위) |
+| number | integer | `36` | 목록에서의 순번 (페이지네이션 반영 행 번호 — HasRowNumber 파생) |
+| id | integer | `399` | 기본 키 (내부 식별자) |
+| zipcode | string | `15654` | 추가배송비를 적용할 우편번호 (단일 또는 `-` 로 이은 범위) |
 | fee | integer | `3000` | 해당 우편번호에 부과할 추가 배송비 (상점 기본 통화 기준 반올림) |
 | fee_formatted | string | `3,000원` | `fee` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | region | string | `경기 안산 풍도동` | 지역명 (도서산간 등 관리자 참고용 표시 라벨) |
@@ -60,8 +60,8 @@ _목록 응답: `data.data[]` 배열 항목의 필드 + `data.pagination`._
 | is_active | boolean | `true` | active 여부 |
 | created_by | null | `null` | 등록자 UUID (creator 관계 파생, 없으면 null) |
 | updated_by | null | `null` | 최종 수정자 UUID (updater 관계 파생, 없으면 null) |
-| created_at | string | `2026-07-07 14:47:31` | 생성 일시 |
-| updated_at | string | `2026-07-07 14:47:31` | 최종 수정 일시 |
+| created_at | string | `2026-07-30 23:35:47` | 생성 일시 |
+| updated_at | string | `2026-07-30 23:35:47` | 최종 수정 일시 |
 | abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 
 **응답 예시**
@@ -77,24 +77,22 @@ HTTP/1.1 200
     "data": {
         "data": [
             {
-                "number": 1,
-                "id": 1,
-                "zipcode": "00000",
+                "number": 36,
+                "id": 399,
+                "zipcode": "15654",
                 "fee": 3000,
                 "fee_formatted": "3,000원",
-                "region": null,
-                "description": null,
-                "is_active": true,
-                "created_by": null,
-                "updated_by": null,
-                "created_at": "2026-07-08 10:44:49",
-                "updated_at": "2026-07-08 10:44:49",
-                "abilities": {
-                    "can_create": true,
-                    "can_update": true,
-                    "can_delete": true
-                }
-            }
+                "...": "(8개 키 생략, 총 13개)"
+            },
+            {
+                "number": 35,
+                "id": 400,
+                "zipcode": "23008-23010",
+                "fee": 3000,
+                "fee_formatted": "3,000원",
+                "...": "(8개 키 생략, 총 13개)"
+            },
+            "... (총 25건 중 2건 표시)"
         ],
         "abilities": {
             "can_create": true,
@@ -102,19 +100,55 @@ HTTP/1.1 200
             "can_delete": true
         },
         "statistics": {
-            "total": 1,
-            "active": 1,
+            "total": 36,
+            "active": 36,
             "inactive": 0,
-            "by_region": []
+            "by_region": [
+                {
+                    "region": "경기 안산 풍도동",
+                    "count": 1,
+                    "avg_fee": 3000,
+                    "min_fee": "3000.00",
+                    "max_fee": "3000.00"
+                },
+                {
+                    "region": "경남 사천 섬지역",
+                    "count": 1,
+                    "avg_fee": 3000,
+                    "min_fee": "3000.00",
+                    "max_fee": "3000.00"
+                },
+                {
+                    "region": "경남 통영 산양/한산/욕지/사량면",
+                    "count": 1,
+                    "avg_fee": 3000,
+                    "min_fee": "3000.00",
+                    "max_fee": "3000.00"
+                },
+                {
+                    "region": "경남 통영 용남면",
+                    "count": 1,
+                    "avg_fee": 3000,
+                    "min_fee": "3000.00",
+                    "max_fee": "3000.00"
+                },
+                {
+                    "region": "경북 울릉도",
+                    "count": 1,
+                    "avg_fee": 3000,
+                    "min_fee": "3000.00",
+                    "max_fee": "3000.00"
+                },
+                "... (총 34건 중 5건 표시)"
+            ]
         },
         "pagination": {
             "current_page": 1,
-            "last_page": 1,
+            "last_page": 2,
             "per_page": 25,
-            "total": 1,
+            "total": 36,
             "from": 1,
-            "to": 1,
-            "has_more_pages": false
+            "...": "(2개 키 생략, 총 7개)"
         }
     }
 }
@@ -169,7 +203,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -211,9 +245,9 @@ Authorization: Bearer {YOUR_TOKEN}
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| zipcode | string | `00000` | 추가배송비 적용 우편번호 (배송정책 설정용 축약 필드) |
+| zipcode | string | `15654` | 추가배송비 적용 우편번호 (배송정책 설정용 축약 필드) |
 | fee | integer | `3000` | 해당 우편번호의 추가 배송비 (float 변환값) |
-| region | string | `` | 지역명 (없으면 빈 문자열) |
+| region | string | `경기 안산 풍도동` | 지역명 (없으면 빈 문자열) |
 
 **응답 예시**
 
@@ -227,9 +261,184 @@ HTTP/1.1 200
     "message": "활성 추가배송비 템플릿 설정을 조회했습니다.",
     "data": [
         {
-            "zipcode": "00000",
+            "zipcode": "15654",
             "fee": 3000,
-            "region": ""
+            "region": "경기 안산 풍도동"
+        },
+        {
+            "zipcode": "23008-23010",
+            "fee": 3000,
+            "region": "인천 강화 섬지역"
+        },
+        {
+            "zipcode": "23100-23116",
+            "fee": 3000,
+            "region": "인천 옹진 백령/대청/연평/북도면"
+        },
+        {
+            "zipcode": "23124-23136",
+            "fee": 3000,
+            "region": "인천 옹진 자월/덕적면"
+        },
+        {
+            "zipcode": "32133",
+            "fee": 3000,
+            "region": "충남 태안 섬지역"
+        },
+        {
+            "zipcode": "33411",
+            "fee": 3000,
+            "region": "충남 보령 섬지역"
+        },
+        {
+            "zipcode": "40200-40240",
+            "fee": 3000,
+            "region": "경북 울릉도"
+        },
+        {
+            "zipcode": "52570-52571",
+            "fee": 3000,
+            "region": "경남 사천 섬지역"
+        },
+        {
+            "zipcode": "53031-53033",
+            "fee": 3000,
+            "region": "경남 통영 용남면"
+        },
+        {
+            "zipcode": "53088-53104",
+            "fee": 3000,
+            "region": "경남 통영 산양/한산/욕지/사량면"
+        },
+        {
+            "zipcode": "54000",
+            "fee": 3000,
+            "region": "전북 군산 옥도면"
+        },
+        {
+            "zipcode": "56347-56349",
+            "fee": 3000,
+            "region": "전북 부안 위도면"
+        },
+        {
+            "zipcode": "57068-57069",
+            "fee": 3000,
+            "region": "전남 영광 낙월면"
+        },
+        {
+            "zipcode": "58760-58761",
+            "fee": 3000,
+            "region": "전남 목포 섬지역"
+        },
+        {
+            "zipcode": "58800-58804",
+            "fee": 3000,
+            "region": "전남 신안 임자면"
+        },
+        {
+            "zipcode": "58809-58810",
+            "fee": 3000,
+            "region": "전남 신안 증도/지도"
+        },
+        {
+            "zipcode": "58816-58818",
+            "fee": 3000,
+            "region": "전남 신안 지도/압해"
+        },
+        {
+            "zipcode": "58826",
+            "fee": 3000,
+            "region": "전남 신안 압해"
+        },
+        {
+            "zipcode": "58832",
+            "fee": 3000,
+            "region": "전남 신안 암태면"
+        },
+        {
+            "zipcode": "58839-58841",
+            "fee": 3000,
+            "region": "전남 신안 안좌면"
+        },
+        {
+            "zipcode": "58843-58866",
+            "fee": 3000,
+            "region": "전남 신안 비금/도초/하의/신의/장산/흑산면"
+        },
+        {
+            "zipcode": "58953-58958",
+            "fee": 3000,
+            "region": "전남 진도 조도면"
+        },
+        {
+            "zipcode": "59102-59103",
+            "fee": 3000,
+            "region": "전남 완도 군외면"
+        },
+        {
+            "zipcode": "59127",
+            "fee": 3000,
+            "region": "전남 완도 군외면"
+        },
+        {
+            "zipcode": "59137-59145",
+            "fee": 3000,
+            "region": "전남 완도 금당/금일/생일면"
+        },
+        {
+            "zipcode": "59149-59170",
+            "fee": 3000,
+            "region": "전남 완도 청산/소안/노화/보길/군외/금일면"
+        },
+        {
+            "zipcode": "59421",
+            "fee": 3000,
+            "region": "전남 보성 벌교"
+        },
+        {
+            "zipcode": "59531",
+            "fee": 3000,
+            "region": "전남 고흥 도화면"
+        },
+        {
+            "zipcode": "59551",
+            "fee": 3000,
+            "region": "전남 고흥 도양읍"
+        },
+        {
+            "zipcode": "59563",
+            "fee": 3000,
+            "region": "전남 고흥 도양읍"
+        },
+        {
+            "zipcode": "59568",
+            "fee": 3000,
+            "region": "전남 고흥 봉래면"
+        },
+        {
+            "zipcode": "59650",
+            "fee": 3000,
+            "region": "전남 여수 화정면"
+        },
+        {
+            "zipcode": "59766",
+            "fee": 3000,
+            "region": "전남 여수 경호동"
+        },
+        {
+            "zipcode": "59781-59790",
+            "fee": 3000,
+            "region": "전남 여수 화정/남/삼산면"
+        },
+        {
+            "zipcode": "63000-63365",
+            "fee": 3000,
+            "region": "제주 제주시"
+        },
+        {
+            "zipcode": "63500-63644",
+            "fee": 3000,
+            "region": "제주 서귀포시"
         }
     ]
 }
@@ -270,7 +479,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -319,7 +528,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -370,7 +579,7 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -404,7 +613,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-DELETE /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1 HTTP/1.1
+DELETE /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -412,23 +621,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-
-
-<!-- 실측 응답에 필드 없음(빈 목록 등) — 데이터가 있는 상태로 재실측하거나 사람이 작성. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "추가배송비 템플릿이 삭제되었습니다.",
-    "data": null
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -458,7 +655,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1 HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -466,53 +663,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| id | integer | `1` | 기본 키 (내부 식별자) |
-| zipcode | string | `00000` | 우편번호 (단일 또는 범위) |
-| fee | integer | `3000` | 추가 배송비 |
-| fee_formatted | string | `3,000원` | `fee` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| region | null | `null` | 지역명 (예: 제주도, 울릉도) |
-| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
-| is_active | boolean | `true` | active 여부 |
-| created_by | null | `null` | 생성자 ID |
-| updated_by | null | `null` | 최종 수정한 사용자 정보 (uuid/name — updated_by 관계 파생, 없으면 null) |
-| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
-| updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
-| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "추가배송비 템플릿 정보를 조회했습니다.",
-    "data": {
-        "id": 1,
-        "zipcode": "00000",
-        "fee": 3000,
-        "fee_formatted": "3,000원",
-        "region": null,
-        "description": null,
-        "is_active": true,
-        "created_by": null,
-        "updated_by": null,
-        "created_at": "2026-07-08 10:44:49",
-        "updated_at": "2026-07-08 10:44:49",
-        "abilities": {
-            "can_create": true,
-            "can_update": true,
-            "can_delete": true
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -547,7 +702,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-PUT /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1 HTTP/1.1
+PUT /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/{id} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -564,11 +719,11 @@ Content-Type: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -599,7 +754,7 @@ Content-Type: application/json
 **요청 예시**
 
 ```http
-PATCH /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/1/toggle-active HTTP/1.1
+PATCH /api/modules/sirsoft-ecommerce/admin/extra-fee-templates/{id}/toggle-active HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -607,53 +762,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| id | integer | `1` | 기본 키 (내부 식별자) |
-| zipcode | string | `00000` | 우편번호 (단일 또는 범위) |
-| fee | integer | `3000` | 추가 배송비 |
-| fee_formatted | string | `3,000원` | `fee` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
-| region | null | `null` | 지역명 (예: 제주도, 울릉도) |
-| description | null | `null` | 설명 (다국어 필드는 로케일별 값 객체) |
-| is_active | boolean | `false` | active 여부 |
-| created_by | null | `null` | 생성자 ID |
-| updated_by | string | `a234c2b1-cde8-437f-b28b-23323be2b98d` | 최종 수정한 사용자 정보 (uuid/name — updated_by 관계 파생, 없으면 null) |
-| created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
-| updated_at | string | `2026-07-08 15:00:20` | 최종 수정 일시 |
-| abilities | object | `{"can_create":true,"can_update":true,"can_delete":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "추가배송비 템플릿 사용여부가 변경되었습니다.",
-    "data": {
-        "id": 1,
-        "zipcode": "00000",
-        "fee": 3000,
-        "fee_formatted": "3,000원",
-        "region": null,
-        "description": null,
-        "is_active": false,
-        "created_by": null,
-        "updated_by": "a234c2b1-cde8-437f-b28b-23323be2b98d",
-        "created_at": "2026-07-08 10:44:49",
-        "updated_at": "2026-07-08 15:00:20",
-        "abilities": {
-            "can_create": true,
-            "can_update": true,
-            "can_delete": true
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 

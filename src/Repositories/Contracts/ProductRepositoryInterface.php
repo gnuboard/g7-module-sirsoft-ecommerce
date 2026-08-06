@@ -49,6 +49,19 @@ interface ProductRepositoryInterface
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator;
 
     /**
+     * 여러 상품의 옵션을 상품 ID 로 묶어 한 번에 조회합니다 (비활성 옵션 포함).
+     *
+     * 목록에서 펼친 행들의 옵션을 가져오기 위한 배치 조회입니다. 권한 스코프를 통과하지 못했거나
+     * 존재하지 않는 상품 ID 는 결과에서 빠지며, 반환된 `product_ids` 를 요청 배열과 대조하면
+     * 어떤 ID 가 제외됐는지 알 수 있습니다.
+     *
+     * @param  array<int, int|string>  $productIds  조회할 상품 ID 목록
+     * @return array{product_ids: array<int, int>, options: \Illuminate\Support\Collection|array<int, mixed>}
+     *                                                                                                        스코프를 통과한 상품 ID(요청 순서 유지) 와 상품 ID 로 그룹핑된 옵션
+     */
+    public function getOptionsGroupedByProductIds(array $productIds): array;
+
+    /**
      * 상품 생성
      *
      * @param  array  $data  상품 데이터

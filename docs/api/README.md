@@ -4,7 +4,7 @@
 > 아래 표는 자동 생성됩니다. 각 문서를 열면 엔드포인트별 파라미터·응답·예시를 볼 수 있습니다.
 
 <!-- @generated:start:api-readme-index -->
-- **문서 수**: 33 · **엔드포인트 수**: 231
+- **문서 수**: 33 · **엔드포인트 수**: 232
 
 | 문서 | 도메인 | 엔드포인트 |
 | --- | --- | --- |
@@ -31,7 +31,7 @@
 | [product-image.md](product-image.md) | `product-image` | 1 |
 | [product-labels.md](product-labels.md) | `product-labels` | 6 |
 | [product-notice-templates.md](product-notice-templates.md) | `product-notice-templates` | 7 |
-| [products.md](products.md) | `products` | 30 |
+| [products.md](products.md) | `products` | 31 |
 | [promotion-coupons.md](promotion-coupons.md) | `promotion-coupons` | 9 |
 | [review-image.md](review-image.md) | `review-image` | 1 |
 | [reviews.md](reviews.md) | `reviews` | 12 |

@@ -128,6 +128,9 @@ return [
         'shipping_policy_id' => [
             'integer' => '배송정책 ID는 숫자여야 합니다.',
         ],
+        'with_options' => [
+            'boolean' => '옵션 포함 여부는 true 또는 false여야 합니다.',
+        ],
         // 필터
         'is_active' => [
             'boolean' => '사용여부는 true 또는 false여야 합니다.',
@@ -1913,5 +1916,17 @@ return [
         'first_must_be_default' => '첫 번째 통화는 기본 통화(:currency)여야 합니다.',
         'currency_not_registered' => '등록되지 않은 통화(:currency)입니다. 언어/통화 설정에 먼저 추가하세요.',
         'earn_rate_required_when_enabled' => '마일리지를 사용하려면 기본 적립률은 0보다 커야 합니다.',
+    ],
+
+    // 상품 옵션 배치 조회 검증
+    'options_list' => [
+        'product_ids' => [
+            'required' => '조회할 상품을 선택해주세요.',
+            'array' => '상품 ID 목록은 배열이어야 합니다.',
+            'min' => '조회할 상품을 1개 이상 지정해주세요.',
+            'max' => '한 번에 조회할 수 있는 상품은 최대 :max개입니다.',
+            'integer' => '상품 ID는 숫자여야 합니다.',
+            'item_min' => '상품 ID는 1 이상이어야 합니다.',
+        ],
     ],
 ];

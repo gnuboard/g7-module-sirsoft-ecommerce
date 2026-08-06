@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Http\Controllers\Public;
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Database\Factories\CartFactory;
 use Modules\Sirsoft\Ecommerce\Database\Factories\ProductFactory;
 use Modules\Sirsoft\Ecommerce\Database\Factories\ProductOptionFactory;
@@ -11,6 +12,7 @@ use Modules\Sirsoft\Ecommerce\Models\Cart;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Models\ProductOption;
 use Modules\Sirsoft\Ecommerce\Models\ShippingPolicy;
+use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 
 /**
@@ -107,7 +109,7 @@ class CartControllerTest extends ModuleTestCase
      */
     protected function enableIntlShipping(): void
     {
-        $settings = app(\Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService::class);
+        $settings = app(EcommerceSettingsService::class);
         $settings->setSetting('shipping.international_shipping_enabled', true);
         $settings->setSetting('shipping.default_country', 'KR');
         $settings->setSetting('shipping.available_countries', [
@@ -769,5 +771,46 @@ class CartControllerTest extends ModuleTestCase
         $response->assertJsonPath('message', fn ($m) => is_string($m)
             && str_contains($m, '3')
             && ! str_contains($m, ':deleted_count'));
+    }
+
+    /**
+     * 장바구니 조회는 상품 이미지의 필요한 컬럼만 읽는다.
+     *
+     * 장바구니는 상품당 대표 이미지 1장의 URL 만 쓰는데, 종전에는 그 상품의 이미지 행을
+     * 전 컬럼으로 불러왔다. 대표 지정이 없을 때 첫 이미지로 폴백하는 동작은 그대로 유지되므로
+     * 관계는 두고 컬럼만 좁힌다.
+     *
+     * @scenario surface=cart,observation=query_shape
+     * @effects list_response_shape_is_unchanged, image_columns_stay_sufficient_for_thumbnail_assembly
+     */
+    public function test_cart_loads_only_needed_product_image_columns(): void
+    {
+        $data = $this->createProductWithCountryFees(krFee: 3000, usFee: 2000);
+        $cartKey = 'ck_'.str_repeat('i', 32);
+
+        $this->postJson('/api/modules/sirsoft-ecommerce/cart', [
+            'product_id' => $data['product']->id,
+            'items' => [
+                ['product_option_id' => $data['option']->id, 'quantity' => 1],
+            ],
+        ], ['X-Cart-Key' => $cartKey])->assertStatus(201);
+
+        $selects = [];
+        DB::listen(function ($query) use (&$selects) {
+            if (str_contains($query->sql, 'g7_ecommerce_product_images')) {
+                $selects[] = $query->sql;
+            }
+        });
+
+        $response = $this->getJson('/api/modules/sirsoft-ecommerce/cart', ['X-Cart-Key' => $cartKey]);
+        $response->assertStatus(200);
+
+        $this->assertNotEmpty($selects, '상품 이미지 조회 쿼리가 있어야 한다');
+
+        foreach ($selects as $sql) {
+            $this->assertStringNotContainsString('select *', $sql, '장바구니는 이미지 전 컬럼을 읽으면 안 된다');
+            $this->assertStringContainsString('`hash`', $sql, 'download_url 생성에 필요한 hash 는 유지되어야 한다');
+            $this->assertStringContainsString('`is_thumbnail`', $sql, '대표 이미지 판정 컬럼은 유지되어야 한다');
+        }
     }
 }

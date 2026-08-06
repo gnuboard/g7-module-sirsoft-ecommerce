@@ -29,6 +29,8 @@ type EcommerceAuthFixtures = {
   productManageToken: string;
   /** 주문 조회(`orders.read`) 권한 보유 토큰 (주문 상세 표시 검증용) */
   ordersReadToken: string;
+  /** 배송정책 조회+수정 권한 보유 토큰 (배송정책 목록 표시 검증용) */
+  shippingPolicyToken: string;
   /** 일반 쇼핑 사용자 토큰 (관리자 권한 없음 — 유저 화면 검증용) */
   userToken: string;
   /** 구매 고객 토큰 (장바구니/추가옵션 등 쇼핑 플로우 검증용) */
@@ -57,6 +59,16 @@ export const test = base.extend<EcommerceAuthFixtures>({
   },
   ordersReadToken: async ({}, use) => {
     await use(issueToken('sirsoft-ecommerce.orders.read'));
+  },
+  shippingPolicyToken: async ({}, use) => {
+    await use(
+      issueToken(
+        'sirsoft-ecommerce.shipping-policies.read',
+        'sirsoft-ecommerce.shipping-policies.create',
+        'sirsoft-ecommerce.shipping-policies.update',
+        'sirsoft-ecommerce.shipping-policies.delete',
+      ),
+    );
   },
   // userToken / customerToken 은 현재 둘 다 "관리자 권한 없는 인증 사용자" 로 동일하다.
   // 유저 화면(마이페이지/헤더)과 구매 플로우(장바구니/주문서)는 요구 권한이 갈릴 수 있어

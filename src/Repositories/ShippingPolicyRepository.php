@@ -38,7 +38,25 @@ class ShippingPolicyRepository implements ShippingPolicyRepositoryInterface
      */
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()->with('countrySettings');
+        // 국가별 설정은 목록이 실제로 그리는 컬럼만 싣는다.
+        //
+        // 이 목록의 소비자 둘(배송정책 관리 목록, 상품 등록/수정의 배송정책 선택기)은 국가 칩·
+        // 배송방법·부과정책·배송비·활성여부만 그린다. 종전에는 전체 컬럼을 실어 화면이 쓰지도
+        // 않는 `extra_fee_settings`(도서산간 지역 배열)·`api_config`·`api_request_fields` 가
+        // 정책당 국가 수만큼 응답에 실렸다.
+        //
+        // 관계를 좁히지 않고 **별도 관계**(`listCountrySettings`)를 쓰는 이유는 모델 docblock
+        // 참조 — `countrySettings` 를 좁히면 부분 로드가 배송비 계산 경로로 흘러든다.
+        //
+        // 활성 필터는 걸지 않는다. 목록이 비활성 국가 설정에 "비활성" 배지를 그리므로, 활성만
+        // 실으면 그 배지가 영영 뜨지 않는다(기능 축소). 요약 계산은 모델이 로드된 컬렉션에서
+        // 다시 활성만 걸러 쓰므로 요약값은 경로와 무관하게 같다.
+        $query = $this->model->newQuery()->with('listCountrySettings');
+
+        // 전체 컬럼이 필요한 외부 호출자를 위한 하위호환 경로 — 켜면 종전 응답 그대로다.
+        if (! empty($filters['with_country_settings'])) {
+            $query->with('countrySettings');
+        }
 
         // 권한 스코프 필터링
         PermissionHelper::applyPermissionScope($query, 'sirsoft-ecommerce.shipping-policies.read');
@@ -195,8 +213,14 @@ class ShippingPolicyRepository implements ShippingPolicyRepositoryInterface
      */
     public function getActiveList(): Collection
     {
+        // 목록용 컬럼만 실은 국가별 설정을 함께 싣는다.
+        //
+        // 이 목록의 소비자(`ShippingPolicyController::activeList`)는 정책마다
+        // `getCountriesWithFlags()` 와 `getFeeSummary()` 를 호출한다. 두 메서드는 관계가
+        // 로드돼 있지 않으면 **행마다** 국가별 설정을 다시 조회하므로, 싣지 않으면 정책 수
+        // × 2 쿼리가 된다 — 페이로드를 줄이려다 쿼리를 늘리는 맞바꿈이 된다.
         return $this->model
-            ->with('countrySettings')
+            ->with('listCountrySettings')
             ->active()
             ->orderBy('sort_order')
             ->orderBy('id')

@@ -867,6 +867,15 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
             ->middleware('permission:admin,sirsoft-ecommerce.products.create')
             ->name('admin.products.generate-code');
 
+        // 여러 상품의 옵션 배치 조회 (목록에서 행을 펼칠 때)
+        // GET /api/modules/sirsoft-ecommerce/admin/products/options?product_ids[]=1&product_ids[]=2
+        //
+        // `/{identifier}` 보다 반드시 위에 둔다 — identifier 제약이 [0-9a-zA-Z]+ 라 리터럴
+        // "options" 를 삼켜 상품 상세로 잘못 라우팅된다 (generate-code / by-code 와 같은 규칙).
+        Route::get('/options', [AdminProductController::class, 'options'])
+            ->middleware('permission:admin,sirsoft-ecommerce.products.read')
+            ->name('admin.products.options');
+
         // 상품코드로 조회
         // GET /api/modules/sirsoft-ecommerce/admin/products/by-code/{code}
         Route::get('/by-code/{code}', [AdminProductController::class, 'showByCode'])

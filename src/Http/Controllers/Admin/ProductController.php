@@ -18,6 +18,7 @@ use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStatusRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStockRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductListRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductLogsRequest;
+use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductOptionsListRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ProductShowForCopyRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ReorderProductImagesRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\StoreProductRequest;
@@ -66,6 +67,55 @@ class ProductController extends AdminBaseController
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'messages.products.fetch_failed',
+                500
+            );
+        }
+    }
+
+    /**
+     * 여러 상품의 옵션을 한 번에 조회합니다 (비활성 옵션 포함).
+     *
+     * 목록에서 행을 펼칠 때 그 행들의 옵션을 채우기 위한 배치 엔드포인트입니다. 상품 목록이
+     * 옵션을 더 이상 기본 적재하지 않으므로 이 경로가 옵션 상세의 공급자입니다.
+     *
+     * 배치는 **부분 성공**을 계약으로 합니다. 존재하지 않거나 권한 스코프 밖인 상품 ID 는
+     * 404 를 만들지 않고 응답의 `product_ids` 에서 빠집니다 — 하나가 없다고 나머지 N-1 건의
+     * 정상 조회를 버릴 이유가 없고, 배치에서 "무엇이 없었는지" 는 상태코드로 표현할 수 없기
+     * 때문입니다. 단건 404 semantics 는 `GET admin/products/{identifier}` 가 제공합니다.
+     * 호출자는 요청한 ID 배열과 응답의 `product_ids` 를 대조해 제외된 ID 를 확정할 수 있습니다.
+     *
+     * @param  ProductOptionsListRequest  $request  상품 옵션 배치 조회 요청
+     * @return JsonResponse 상품 ID 로 묶인 옵션 맵과 스코프를 통과한 상품 ID 목록
+     */
+    public function options(ProductOptionsListRequest $request): JsonResponse
+    {
+        try {
+            $result = $this->productService->getOptionsByProductIds(
+                $request->validated()['product_ids']
+            );
+
+            $grouped = [];
+            foreach ($result['product_ids'] as $productId) {
+                $options = $result['options'][$productId] ?? [];
+
+                $grouped[(string) $productId] = ProductOptionResource::collection($options)->resolve($request);
+            }
+
+            return ResponseHelper::moduleSuccess(
+                'sirsoft-ecommerce',
+                'messages.products.options_fetch_success',
+                [
+                    // 빈 맵이 JSON 배열([])로 나가지 않도록 객체로 확정한다
+                    'options' => (object) $grouped,
+                    'product_ids' => $result['product_ids'],
+                ]
+            );
+        } catch (Exception $e) {
+            Log::error('상품 옵션 배치 조회 실패', ['message' => $e->getMessage()]);
+
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'messages.products.options_fetch_failed',
                 500
             );
         }

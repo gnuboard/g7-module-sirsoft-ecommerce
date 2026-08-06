@@ -8,8 +8,8 @@
 
 ```text
 1. 이 문서는 실제 API 호출로 실측한 Settings 엔드포인트 레퍼런스입니다
-2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 실측 응답 필드 표
-3. 응답 필드의 예시값은 실제 호출 응답에서 관측된 값입니다
+2. 각 엔드포인트: 메서드/URI/권한 + 요청 파라미터 표 + 요청 예시(curl) + 실측 응답 필드 표 + 응답 예시(envelope)
+3. 응답 필드의 예시값·응답 예시 JSON 은 실제 호출 응답에서 관측된 값입니다
 4. 갱신: 코드 변경 후 php artisan api:docgen 재실행
 5. 설명(TODO) 칸은 사람이 채웁니다
 ```
@@ -42,18 +42,19 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| basic_info | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
-| language_currency | object | `{"default_currency":"KRW","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
+| basic_info | object | `{"shop_name":"111","route_path":"shop","no_route":false,"…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
+| language_currency | object | `{"default_currency":"JPY","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
 | order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 배송 설정 (기본 국가·배송 가능 국가·무료배송·DB 관리 배송사(carriers)·배송유형(types)·계산 API 후보 필드 포함) |
 | seo | object | `{"meta_category_title":"{commerce_name} - {category_name}…` | SEO 메타 설정 (카테고리·검색·상품·쇼핑몰 인덱스별 메타 타이틀/설명 및 SEO 활성 토글) |
 | review_settings | object | `{"write_deadline_days":90,"max_images":5,"max_image_size_…` | 리뷰 정책 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
-| inquiry | object | `{"board_slug":null}` | 문의 연동 설정 (문의 게시판 slug) |
+| inquiry | object | `{"board_slug":"inquiry"}` | 문의 연동 설정 (문의 게시판 slug) |
 | notifications | object | `{"channels":[{"id":"mail","is_active":true,"sort_order":1…` | 알림 채널 설정 (채널 ID·활성 여부·정렬 순서) |
 | mileage | object | `{"enabled":false,"default_earn_rate":1,"earn_trigger":"co…` | 마일리지 설정 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림·실제 활성 알림 채널 포함) |
 | claim | object | `{"refund_reasons":[{"id":1,"type":"refund","code":"order_…` | 클레임 설정 (DB 관리 대상인 환불 사유 목록: 코드·다국어명·귀책 유형·노출/활성 여부) |
 | available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
 | abilities | object | `{"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+| _meta | object | `{"limits":{"auto_cancel_days_min":1,"auto_cancel_days_max…` | <!-- TODO: 설명 --> |
 
 **응답 예시**
 
@@ -64,125 +65,71 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
+    "message": "설정을 조회했습니다.",
     "data": {
         "basic_info": {
-            "shop_name": "",
+            "shop_name": "111",
             "route_path": "shop",
             "no_route": false,
-            "company_name": "",
+            "company_name": null,
             "business_number": "",
-            "ceo_name": "",
-            "business_type": "",
-            "business_category": "",
-            "zipcode": "",
-            "base_address": "",
-            "detail_address": "",
-            "phone": "",
-            "fax": "",
-            "email": "",
-            "privacy_officer": "",
-            "privacy_officer_email": "",
-            "mail_order_number": "",
-            "telecom_number": ""
+            "...": "(13개 키 생략, 총 18개)"
         },
         "language_currency": {
-            "default_currency": "KRW",
+            "default_currency": "JPY",
             "currencies": [
                 {
                     "code": "KRW",
                     "name": {
                         "ko": "KRW (원)",
-                        "en": "KRW (Won)",
-                        "fr": "KRW (원)"
+                        "en": "KRW (Won)"
                     },
                     "symbol": "₩",
                     "exchange_rate": null,
                     "base_unit": 1000,
-                    "rounding_unit": "1",
-                    "rounding_method": "floor",
-                    "decimal_places": 0,
-                    "is_default": true,
-                    "locales": [
-                        "ko"
-                    ],
-                    "flag": "🇰🇷"
+                    "...": "(6개 키 생략, 총 11개)"
                 },
                 {
                     "code": "USD",
                     "name": {
-                        "ko": "USD (달러)",
-                        "en": "USD (Dollar)",
-                        "fr": "USD (달러)"
+                        "en": "Dollar"
                     },
-                    "symbol": "$",
-                    "exchange_rate": 0.85,
-                    "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
                     "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇺🇸"
+                    "decimal_places": 2,
+                    "base_unit": 1,
+                    "...": "(3개 키 생략, 총 8개)"
                 },
                 {
                     "code": "JPY",
                     "name": {
-                        "ko": "JPY (엔)",
-                        "en": "JPY (Yen)",
-                        "fr": "JPY (엔)"
+                        "ja": "円"
                     },
-                    "symbol": "¥",
-                    "exchange_rate": 115,
-                    "base_unit": 100,
-                    "rounding_unit": "1",
-                    "rounding_method": "floor",
+                    "is_default": true,
                     "decimal_places": 0,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇯🇵"
+                    "base_unit": 100,
+                    "...": "(3개 키 생략, 총 8개)"
                 },
                 {
                     "code": "CNY",
                     "name": {
                         "ko": "CNY (위안)",
-                        "en": "CNY (Yuan)",
-                        "fr": "CNY (위안)"
+                        "en": "CNY (Yuan)"
                     },
                     "symbol": "元",
                     "exchange_rate": 5.8,
                     "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇨🇳"
+                    "...": "(6개 키 생략, 총 11개)"
                 },
                 {
                     "code": "EUR",
                     "name": {
                         "ko": "EUR (유로)",
-                        "en": "EUR (Euro)",
-                        "fr": "EUR (유로)"
+                        "en": "EUR (Euro)"
                     },
                     "symbol": "€",
                     "exchange_rate": 0.78,
                     "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇪🇺"
+                    "...": "(6개 키 생략, 총 11개)"
                 }
             ]
         },
@@ -195,20 +142,15 @@ HTTP/1.1 200
                     "sort_order": 1,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "신용카드",
-                        "en": "Credit Card",
-                        "fr": "신용카드"
-                    },
-                    "_cached_description": {
-                        "ko": "신용카드로 안전하게 결제",
-                        "en": "Pay securely with credit card",
-                        "fr": "신용카드로 안전하게 결제"
-                    },
-                    "_cached_icon": "credit-card",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
+                },
+                {
+                    "id": "dbank",
+                    "pg_provider": null,
+                    "sort_order": 1,
+                    "is_active": true,
+                    "min_order_amount": 0,
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "vbank",
@@ -216,269 +158,27 @@ HTTP/1.1 200
                     "sort_order": 2,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "가상계좌",
-                        "en": "Virtual Account",
-                        "fr": "가상계좌"
-                    },
-                    "_cached_description": {
-                        "ko": "가상계좌로 입금",
-                        "en": "Pay via virtual account",
-                        "fr": "가상계좌로 입금"
-                    },
-                    "_cached_icon": "money-check",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "dbank",
-                    "pg_provider": null,
-                    "sort_order": 3,
-                    "is_active": true,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "무통장입금",
-                        "en": "Bank Transfer",
-                        "fr": "무통장입금"
-                    },
-                    "_cached_description": {
-                        "ko": "지정 계좌로 직접 입금",
-                        "en": "Direct bank transfer",
-                        "fr": "지정 계좌로 직접 입금"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "bank",
-                    "pg_provider": null,
-                    "sort_order": 4,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "계좌이체",
-                        "en": "Account Transfer",
-                        "fr": "계좌이체"
-                    },
-                    "_cached_description": {
-                        "ko": "실시간 계좌이체",
-                        "en": "Real-time bank transfer",
-                        "fr": "실시간 계좌이체"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "phone",
-                    "pg_provider": null,
-                    "sort_order": 5,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "휴대폰결제",
-                        "en": "Mobile Payment",
-                        "fr": "휴대폰결제"
-                    },
-                    "_cached_description": {
-                        "ko": "휴대폰 소액결제",
-                        "en": "Mobile phone payment",
-                        "fr": "휴대폰 소액결제"
-                    },
-                    "_cached_icon": "mobile-screen-button",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "point",
                     "pg_provider": null,
-                    "sort_order": 6,
-                    "is_active": false,
+                    "sort_order": 2,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "포인트결제",
-                        "en": "Points",
-                        "fr": "포인트결제"
-                    },
-                    "_cached_description": {
-                        "ko": "적립 포인트로 결제",
-                        "en": "Pay with points",
-                        "fr": "적립 포인트로 결제"
-                    },
-                    "_cached_icon": "coins",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "deposit",
                     "pg_provider": null,
-                    "sort_order": 7,
-                    "is_active": false,
+                    "sort_order": 3,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "예치금결제",
-                        "en": "Store Credit",
-                        "fr": "예치금결제"
-                    },
-                    "_cached_description": {
-                        "ko": "예치금으로 결제",
-                        "en": "Pay with store credit",
-                        "fr": "예치금으로 결제"
-                    },
-                    "_cached_icon": "wallet",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
-                {
-                    "id": "free",
-                    "pg_provider": null,
-                    "sort_order": 8,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "무료",
-                        "en": "Free",
-                        "fr": "무료"
-                    },
-                    "_cached_description": {
-                        "ko": "결제 없이 주문 완료",
-                        "en": "Order without payment",
-                        "fr": "결제 없이 주문 완료"
-                    },
-                    "_cached_icon": "gift",
-                    "_cached_source": "builtin"
-                }
+                "... (총 25건 중 5건 표시)"
             ],
-            "banks": [
-                {
-                    "code": "004",
-                    "name": {
-                        "ko": "국민은행",
-                        "en": "Kookmin Bank"
-                    }
-                },
-                {
-                    "code": "088",
-                    "name": {
-                        "ko": "신한은행",
-                        "en": "Shinhan Bank"
-                    }
-                },
-                {
-                    "code": "020",
-                    "name": {
-                        "ko": "우리은행",
-                        "en": "Woori Bank"
-                    }
-                },
-                {
-                    "code": "081",
-                    "name": {
-                        "ko": "하나은행",
-                        "en": "Hana Bank"
-                    }
-                },
-                {
-                    "code": "003",
-                    "name": {
-                        "ko": "IBK기업은행",
-                        "en": "IBK Industrial Bank"
-                    }
-                },
-                {
-                    "code": "011",
-                    "name": {
-                        "ko": "NH농협은행",
-                        "en": "NH Nonghyup Bank"
-                    }
-                },
-                {
-                    "code": "071",
-                    "name": {
-                        "ko": "우체국",
-                        "en": "Korea Post"
-                    }
-                },
-                {
-                    "code": "031",
-                    "name": {
-                        "ko": "DGB대구은행",
-                        "en": "DGB Daegu Bank"
-                    }
-                },
-                {
-                    "code": "032",
-                    "name": {
-                        "ko": "BNK부산은행",
-                        "en": "BNK Busan Bank"
-                    }
-                },
-                {
-                    "code": "034",
-                    "name": {
-                        "ko": "광주은행",
-                        "en": "Kwangju Bank"
-                    }
-                },
-                {
-                    "code": "035",
-                    "name": {
-                        "ko": "제주은행",
-                        "en": "Jeju Bank"
-                    }
-                },
-                {
-                    "code": "037",
-                    "name": {
-                        "ko": "전북은행",
-                        "en": "Jeonbuk Bank"
-                    }
-                },
-                {
-                    "code": "039",
-                    "name": {
-                        "ko": "BNK경남은행",
-                        "en": "BNK Kyongnam Bank"
-                    }
-                },
-                {
-                    "code": "045",
-                    "name": {
-                        "ko": "새마을금고",
-                        "en": "MG Community Credit Cooperatives"
-                    }
-                },
-                {
-                    "code": "048",
-                    "name": {
-                        "ko": "신협",
-                        "en": "KFCC"
-                    }
-                },
-                {
-                    "code": "090",
-                    "name": {
-                        "ko": "카카오뱅크",
-                        "en": "Kakao Bank"
-                    }
-                },
-                {
-                    "code": "092",
-                    "name": {
-                        "ko": "토스뱅크",
-                        "en": "Toss Bank"
-                    }
-                }
-            ],
+            "banks": [],
             "bank_accounts": [
                 {
                     "bank_code": "004",
@@ -489,16 +189,7 @@ HTTP/1.1 200
                 }
             ],
             "auto_cancel_expired": true,
-            "auto_cancel_days": 3,
-            "cart_expiry_days": 30,
-            "stock_restore_on_cancel": true,
-            "cancellable_statuses": [
-                "payment_complete"
-            ],
-            "confirmable_statuses": [
-                "shipping",
-                "delivered"
-            ]
+            "...": "(5개 키 생략, 총 10개)"
         },
         "shipping": {
             "default_country": "KR",
@@ -507,8 +198,7 @@ HTTP/1.1 200
                     "code": "KR",
                     "name": {
                         "ko": "대한민국",
-                        "en": "South Korea",
-                        "fr": "대한민국"
+                        "en": "South Korea"
                     },
                     "is_active": true
                 },
@@ -516,304 +206,15 @@ HTTP/1.1 200
                     "code": "US",
                     "name": {
                         "ko": "미국",
-                        "en": "United States",
-                        "fr": "미국"
+                        "en": "United States"
                     },
-                    "is_active": false
-                },
-                {
-                    "code": "JP",
-                    "name": {
-                        "ko": "일본",
-                        "en": "Japan",
-                        "fr": "일본"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "CN",
-                    "name": {
-                        "ko": "중국",
-                        "en": "China",
-                        "fr": "중국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "SG",
-                    "name": {
-                        "ko": "싱가포르",
-                        "en": "Singapore",
-                        "fr": "싱가포르"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "HK",
-                    "name": {
-                        "ko": "홍콩",
-                        "en": "Hong Kong",
-                        "fr": "홍콩"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TW",
-                    "name": {
-                        "ko": "대만",
-                        "en": "Taiwan",
-                        "fr": "대만"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "VN",
-                    "name": {
-                        "ko": "베트남",
-                        "en": "Vietnam",
-                        "fr": "베트남"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TH",
-                    "name": {
-                        "ko": "태국",
-                        "en": "Thailand",
-                        "fr": "태국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "MY",
-                    "name": {
-                        "ko": "말레이시아",
-                        "en": "Malaysia",
-                        "fr": "말레이시아"
-                    },
-                    "is_active": false
+                    "is_active": true
                 }
             ],
-            "international_shipping_enabled": false,
+            "international_shipping_enabled": true,
             "free_shipping_threshold": 50000,
             "free_shipping_enabled": true,
-            "address_validation_enabled": false,
-            "address_api_provider": "kakao",
-            "carriers": [
-                {
-                    "id": 13,
-                    "code": "apidoc",
-                    "name": {
-                        "ko": "API 문서 샘플 배송사",
-                        "en": "API Doc Sample Carrier"
-                    },
-                    "type": "domestic",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 0
-                },
-                {
-                    "id": 1,
-                    "code": "cj",
-                    "name": {
-                        "ko": "CJ대한통운",
-                        "en": "CJ Logistics"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://trace.cjlogistics.com/next/tracking.html?wblNo={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 1
-                },
-                {
-                    "id": 2,
-                    "code": "hanjin",
-                    "name": {
-                        "ko": "한진택배",
-                        "en": "Hanjin Express"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?wblnb={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 2
-                },
-                {
-                    "id": 3,
-                    "code": "lotte",
-                    "name": {
-                        "ko": "롯데택배",
-                        "en": "Lotte Global Logistics"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://www.lotteglogis.com/home/reservation/tracking/link498?InvNo={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 3
-                },
-                {
-                    "id": 4,
-                    "code": "logen",
-                    "name": {
-                        "ko": "로젠택배",
-                        "en": "Logen Logistics"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://www.ilogen.com/web/personal/trace/{tracking_number}",
-                    "is_active": true,
-                    "sort_order": 4
-                },
-                {
-                    "id": 5,
-                    "code": "ups",
-                    "name": {
-                        "ko": "UPS",
-                        "en": "UPS"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://www.ups.com/track?tracknum={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 5
-                },
-                {
-                    "id": 6,
-                    "code": "ems",
-                    "name": {
-                        "ko": "EMS",
-                        "en": "EMS"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://service.epost.go.kr/trace.RetrieveEmsRi498.postal?POST_CODE={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 6
-                },
-                {
-                    "id": 7,
-                    "code": "dhl",
-                    "name": {
-                        "ko": "DHL",
-                        "en": "DHL"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://www.dhl.com/kr-ko/home/tracking/tracking-express.html?submit=1&tracking-id={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 7
-                },
-                {
-                    "id": 8,
-                    "code": "fedex",
-                    "name": {
-                        "ko": "FedEx",
-                        "en": "FedEx"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://www.fedex.com/fedextrack/?tracknumbers={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 8
-                },
-                {
-                    "id": 9,
-                    "code": "sf",
-                    "name": {
-                        "ko": "SF Express",
-                        "en": "SF Express"
-                    },
-                    "type": "international",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 9
-                },
-                {
-                    "id": 10,
-                    "code": "yamato",
-                    "name": {
-                        "ko": "야마토운수",
-                        "en": "Yamato Transport"
-                    },
-                    "type": "international",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 10
-                },
-                {
-                    "id": 11,
-                    "code": "sagawa",
-                    "name": {
-                        "ko": "사가와익스프레스",
-                        "en": "Sagawa Express"
-                    },
-                    "type": "international",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 11
-                },
-                {
-                    "id": 12,
-                    "code": "other",
-                    "name": {
-                        "ko": "기타",
-                        "en": "Other"
-                    },
-                    "type": "domestic",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 99
-                }
-            ],
-            "types": [],
-            "api_request_fields": [
-                {
-                    "value": "policy_id",
-                    "label": "배송정책 ID"
-                },
-                {
-                    "value": "country_code",
-                    "label": "국가 코드"
-                },
-                {
-                    "value": "items",
-                    "label": "주문 항목"
-                },
-                {
-                    "value": "group_total",
-                    "label": "그룹 합계 금액"
-                },
-                {
-                    "value": "total_quantity",
-                    "label": "총 수량"
-                }
-            ],
-            "api_http_methods": [
-                {
-                    "value": "GET",
-                    "label": "GET"
-                },
-                {
-                    "value": "POST",
-                    "label": "POST"
-                }
-            ],
-            "api_auth_types": [
-                {
-                    "value": "none",
-                    "label": "인증 없음"
-                },
-                {
-                    "value": "bearer",
-                    "label": "Bearer 토큰"
-                },
-                {
-                    "value": "custom_header",
-                    "label": "커스텀 헤더"
-                }
-            ],
-            "api_response_types": [
-                {
-                    "value": "json",
-                    "label": "JSON"
-                },
-                {
-                    "value": "text",
-                    "label": "텍스트"
-                }
-            ]
+            "...": "(8개 키 생략, 총 13개)"
         },
         "seo": {
             "meta_category_title": "{commerce_name} - {category_name}",
@@ -821,13 +222,7 @@ HTTP/1.1 200
             "meta_search_title": "{commerce_name} - {keyword_name}",
             "meta_search_description": "",
             "meta_product_title": "{commerce_name} - {product_name}",
-            "meta_product_description": "",
-            "meta_shop_index_title": "{commerce_name}",
-            "meta_shop_index_description": "",
-            "seo_category": true,
-            "seo_search_result": true,
-            "seo_product_detail": true,
-            "seo_shop_index": true
+            "...": "(7개 키 생략, 총 12개)"
         },
         "review_settings": {
             "write_deadline_days": 90,
@@ -1086,17 +481,17 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| basic_info | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
-| language_currency | object | `{"default_currency":"KRW","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
+| basic_info | object | `{"shop_name":"111","route_path":"shop","no_route":false,"…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
+| language_currency | object | `{"default_currency":"JPY","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
 | order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 배송 설정 (기본 국가·배송 가능 국가·무료배송·DB 관리 배송사(carriers)·배송유형(types)·계산 API 후보 필드 포함) |
 | seo | object | `{"meta_category_title":"{commerce_name} - {category_name}…` | SEO 메타 설정 (카테고리·검색·상품·쇼핑몰 인덱스별 메타 타이틀/설명 및 SEO 활성 토글) |
 | review_settings | object | `{"write_deadline_days":90,"max_images":5,"max_image_size_…` | 리뷰 정책 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
-| inquiry | object | `{"board_slug":null}` | 문의 연동 설정 (문의 게시판 slug) |
+| inquiry | object | `{"board_slug":"inquiry"}` | 문의 연동 설정 (문의 게시판 slug) |
 | notifications | object | `{"channels":[{"id":"mail","is_active":true,"sort_order":1…` | 알림 채널 설정 (채널 ID·활성 여부·정렬 순서) |
 | mileage | object | `{"enabled":false,"default_earn_rate":1,"earn_trigger":"co…` | 마일리지 설정 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림·실제 활성 알림 채널 포함) |
 | claim | object | `{"refund_reasons":[{"id":1,"type":"refund","code":"order_…` | 클레임 설정 (DB 관리 대상인 환불 사유 목록: 코드·다국어명·귀책 유형·노출/활성 여부) |
-| available_pg_providers | array | `[]` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
+| available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
 
 **응답 예시**
 
@@ -1107,125 +502,71 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.save_success",
+    "message": "설정이 저장되었습니다.",
     "data": {
         "basic_info": {
-            "shop_name": "",
+            "shop_name": "111",
             "route_path": "shop",
             "no_route": false,
-            "company_name": "",
+            "company_name": null,
             "business_number": "",
-            "ceo_name": "",
-            "business_type": "",
-            "business_category": "",
-            "zipcode": "",
-            "base_address": "",
-            "detail_address": "",
-            "phone": "",
-            "fax": "",
-            "email": "",
-            "privacy_officer": "",
-            "privacy_officer_email": "",
-            "mail_order_number": "",
-            "telecom_number": ""
+            "...": "(13개 키 생략, 총 18개)"
         },
         "language_currency": {
-            "default_currency": "KRW",
+            "default_currency": "JPY",
             "currencies": [
                 {
                     "code": "KRW",
                     "name": {
                         "ko": "KRW (원)",
-                        "en": "KRW (Won)",
-                        "fr": "KRW (원)"
+                        "en": "KRW (Won)"
                     },
                     "symbol": "₩",
                     "exchange_rate": null,
                     "base_unit": 1000,
-                    "rounding_unit": "1",
-                    "rounding_method": "floor",
-                    "decimal_places": 0,
-                    "is_default": true,
-                    "locales": [
-                        "ko"
-                    ],
-                    "flag": "🇰🇷"
+                    "...": "(6개 키 생략, 총 11개)"
                 },
                 {
                     "code": "USD",
                     "name": {
-                        "ko": "USD (달러)",
-                        "en": "USD (Dollar)",
-                        "fr": "USD (달러)"
+                        "en": "Dollar"
                     },
-                    "symbol": "$",
-                    "exchange_rate": 0.85,
-                    "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
                     "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇺🇸"
+                    "decimal_places": 2,
+                    "base_unit": 1,
+                    "...": "(3개 키 생략, 총 8개)"
                 },
                 {
                     "code": "JPY",
                     "name": {
-                        "ko": "JPY (엔)",
-                        "en": "JPY (Yen)",
-                        "fr": "JPY (엔)"
+                        "ja": "円"
                     },
-                    "symbol": "¥",
-                    "exchange_rate": 115,
-                    "base_unit": 100,
-                    "rounding_unit": "1",
-                    "rounding_method": "floor",
+                    "is_default": true,
                     "decimal_places": 0,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇯🇵"
+                    "base_unit": 100,
+                    "...": "(3개 키 생략, 총 8개)"
                 },
                 {
                     "code": "CNY",
                     "name": {
                         "ko": "CNY (위안)",
-                        "en": "CNY (Yuan)",
-                        "fr": "CNY (위안)"
+                        "en": "CNY (Yuan)"
                     },
                     "symbol": "元",
                     "exchange_rate": 5.8,
                     "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇨🇳"
+                    "...": "(6개 키 생략, 총 11개)"
                 },
                 {
                     "code": "EUR",
                     "name": {
                         "ko": "EUR (유로)",
-                        "en": "EUR (Euro)",
-                        "fr": "EUR (유로)"
+                        "en": "EUR (Euro)"
                     },
                     "symbol": "€",
                     "exchange_rate": 0.78,
                     "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇪🇺"
+                    "...": "(6개 키 생략, 총 11개)"
                 }
             ]
         },
@@ -1238,20 +579,15 @@ HTTP/1.1 200
                     "sort_order": 1,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "신용카드",
-                        "en": "Credit Card",
-                        "fr": "신용카드"
-                    },
-                    "_cached_description": {
-                        "ko": "신용카드로 안전하게 결제",
-                        "en": "Pay securely with credit card",
-                        "fr": "신용카드로 안전하게 결제"
-                    },
-                    "_cached_icon": "credit-card",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
+                },
+                {
+                    "id": "dbank",
+                    "pg_provider": null,
+                    "sort_order": 1,
+                    "is_active": true,
+                    "min_order_amount": 0,
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "vbank",
@@ -1259,269 +595,27 @@ HTTP/1.1 200
                     "sort_order": 2,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "가상계좌",
-                        "en": "Virtual Account",
-                        "fr": "가상계좌"
-                    },
-                    "_cached_description": {
-                        "ko": "가상계좌로 입금",
-                        "en": "Pay via virtual account",
-                        "fr": "가상계좌로 입금"
-                    },
-                    "_cached_icon": "money-check",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "dbank",
-                    "pg_provider": null,
-                    "sort_order": 3,
-                    "is_active": true,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "무통장입금",
-                        "en": "Bank Transfer",
-                        "fr": "무통장입금"
-                    },
-                    "_cached_description": {
-                        "ko": "지정 계좌로 직접 입금",
-                        "en": "Direct bank transfer",
-                        "fr": "지정 계좌로 직접 입금"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "bank",
-                    "pg_provider": null,
-                    "sort_order": 4,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "계좌이체",
-                        "en": "Account Transfer",
-                        "fr": "계좌이체"
-                    },
-                    "_cached_description": {
-                        "ko": "실시간 계좌이체",
-                        "en": "Real-time bank transfer",
-                        "fr": "실시간 계좌이체"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "phone",
-                    "pg_provider": null,
-                    "sort_order": 5,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "휴대폰결제",
-                        "en": "Mobile Payment",
-                        "fr": "휴대폰결제"
-                    },
-                    "_cached_description": {
-                        "ko": "휴대폰 소액결제",
-                        "en": "Mobile phone payment",
-                        "fr": "휴대폰 소액결제"
-                    },
-                    "_cached_icon": "mobile-screen-button",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "point",
                     "pg_provider": null,
-                    "sort_order": 6,
-                    "is_active": false,
+                    "sort_order": 2,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "포인트결제",
-                        "en": "Points",
-                        "fr": "포인트결제"
-                    },
-                    "_cached_description": {
-                        "ko": "적립 포인트로 결제",
-                        "en": "Pay with points",
-                        "fr": "적립 포인트로 결제"
-                    },
-                    "_cached_icon": "coins",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "deposit",
                     "pg_provider": null,
-                    "sort_order": 7,
-                    "is_active": false,
+                    "sort_order": 3,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "예치금결제",
-                        "en": "Store Credit",
-                        "fr": "예치금결제"
-                    },
-                    "_cached_description": {
-                        "ko": "예치금으로 결제",
-                        "en": "Pay with store credit",
-                        "fr": "예치금으로 결제"
-                    },
-                    "_cached_icon": "wallet",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
-                {
-                    "id": "free",
-                    "pg_provider": null,
-                    "sort_order": 8,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "무료",
-                        "en": "Free",
-                        "fr": "무료"
-                    },
-                    "_cached_description": {
-                        "ko": "결제 없이 주문 완료",
-                        "en": "Order without payment",
-                        "fr": "결제 없이 주문 완료"
-                    },
-                    "_cached_icon": "gift",
-                    "_cached_source": "builtin"
-                }
+                "... (총 25건 중 5건 표시)"
             ],
-            "banks": [
-                {
-                    "code": "004",
-                    "name": {
-                        "ko": "국민은행",
-                        "en": "Kookmin Bank"
-                    }
-                },
-                {
-                    "code": "088",
-                    "name": {
-                        "ko": "신한은행",
-                        "en": "Shinhan Bank"
-                    }
-                },
-                {
-                    "code": "020",
-                    "name": {
-                        "ko": "우리은행",
-                        "en": "Woori Bank"
-                    }
-                },
-                {
-                    "code": "081",
-                    "name": {
-                        "ko": "하나은행",
-                        "en": "Hana Bank"
-                    }
-                },
-                {
-                    "code": "003",
-                    "name": {
-                        "ko": "IBK기업은행",
-                        "en": "IBK Industrial Bank"
-                    }
-                },
-                {
-                    "code": "011",
-                    "name": {
-                        "ko": "NH농협은행",
-                        "en": "NH Nonghyup Bank"
-                    }
-                },
-                {
-                    "code": "071",
-                    "name": {
-                        "ko": "우체국",
-                        "en": "Korea Post"
-                    }
-                },
-                {
-                    "code": "031",
-                    "name": {
-                        "ko": "DGB대구은행",
-                        "en": "DGB Daegu Bank"
-                    }
-                },
-                {
-                    "code": "032",
-                    "name": {
-                        "ko": "BNK부산은행",
-                        "en": "BNK Busan Bank"
-                    }
-                },
-                {
-                    "code": "034",
-                    "name": {
-                        "ko": "광주은행",
-                        "en": "Kwangju Bank"
-                    }
-                },
-                {
-                    "code": "035",
-                    "name": {
-                        "ko": "제주은행",
-                        "en": "Jeju Bank"
-                    }
-                },
-                {
-                    "code": "037",
-                    "name": {
-                        "ko": "전북은행",
-                        "en": "Jeonbuk Bank"
-                    }
-                },
-                {
-                    "code": "039",
-                    "name": {
-                        "ko": "BNK경남은행",
-                        "en": "BNK Kyongnam Bank"
-                    }
-                },
-                {
-                    "code": "045",
-                    "name": {
-                        "ko": "새마을금고",
-                        "en": "MG Community Credit Cooperatives"
-                    }
-                },
-                {
-                    "code": "048",
-                    "name": {
-                        "ko": "신협",
-                        "en": "KFCC"
-                    }
-                },
-                {
-                    "code": "090",
-                    "name": {
-                        "ko": "카카오뱅크",
-                        "en": "Kakao Bank"
-                    }
-                },
-                {
-                    "code": "092",
-                    "name": {
-                        "ko": "토스뱅크",
-                        "en": "Toss Bank"
-                    }
-                }
-            ],
+            "banks": [],
             "bank_accounts": [
                 {
                     "bank_code": "004",
@@ -1532,16 +626,7 @@ HTTP/1.1 200
                 }
             ],
             "auto_cancel_expired": true,
-            "auto_cancel_days": 3,
-            "cart_expiry_days": 30,
-            "stock_restore_on_cancel": true,
-            "cancellable_statuses": [
-                "payment_complete"
-            ],
-            "confirmable_statuses": [
-                "shipping",
-                "delivered"
-            ]
+            "...": "(5개 키 생략, 총 10개)"
         },
         "shipping": {
             "default_country": "KR",
@@ -1550,8 +635,7 @@ HTTP/1.1 200
                     "code": "KR",
                     "name": {
                         "ko": "대한민국",
-                        "en": "South Korea",
-                        "fr": "대한민국"
+                        "en": "South Korea"
                     },
                     "is_active": true
                 },
@@ -1559,304 +643,15 @@ HTTP/1.1 200
                     "code": "US",
                     "name": {
                         "ko": "미국",
-                        "en": "United States",
-                        "fr": "미국"
+                        "en": "United States"
                     },
-                    "is_active": false
-                },
-                {
-                    "code": "JP",
-                    "name": {
-                        "ko": "일본",
-                        "en": "Japan",
-                        "fr": "일본"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "CN",
-                    "name": {
-                        "ko": "중국",
-                        "en": "China",
-                        "fr": "중국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "SG",
-                    "name": {
-                        "ko": "싱가포르",
-                        "en": "Singapore",
-                        "fr": "싱가포르"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "HK",
-                    "name": {
-                        "ko": "홍콩",
-                        "en": "Hong Kong",
-                        "fr": "홍콩"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TW",
-                    "name": {
-                        "ko": "대만",
-                        "en": "Taiwan",
-                        "fr": "대만"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "VN",
-                    "name": {
-                        "ko": "베트남",
-                        "en": "Vietnam",
-                        "fr": "베트남"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TH",
-                    "name": {
-                        "ko": "태국",
-                        "en": "Thailand",
-                        "fr": "태국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "MY",
-                    "name": {
-                        "ko": "말레이시아",
-                        "en": "Malaysia",
-                        "fr": "말레이시아"
-                    },
-                    "is_active": false
+                    "is_active": true
                 }
             ],
-            "international_shipping_enabled": false,
+            "international_shipping_enabled": true,
             "free_shipping_threshold": 50000,
             "free_shipping_enabled": true,
-            "address_validation_enabled": false,
-            "address_api_provider": "kakao",
-            "carriers": [
-                {
-                    "id": 13,
-                    "code": "apidoc",
-                    "name": {
-                        "ko": "API 문서 샘플 배송사",
-                        "en": "API Doc Sample Carrier"
-                    },
-                    "type": "domestic",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 0
-                },
-                {
-                    "id": 1,
-                    "code": "cj",
-                    "name": {
-                        "ko": "CJ대한통운",
-                        "en": "CJ Logistics"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://trace.cjlogistics.com/next/tracking.html?wblNo={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 1
-                },
-                {
-                    "id": 2,
-                    "code": "hanjin",
-                    "name": {
-                        "ko": "한진택배",
-                        "en": "Hanjin Express"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?wblnb={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 2
-                },
-                {
-                    "id": 3,
-                    "code": "lotte",
-                    "name": {
-                        "ko": "롯데택배",
-                        "en": "Lotte Global Logistics"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://www.lotteglogis.com/home/reservation/tracking/link498?InvNo={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 3
-                },
-                {
-                    "id": 4,
-                    "code": "logen",
-                    "name": {
-                        "ko": "로젠택배",
-                        "en": "Logen Logistics"
-                    },
-                    "type": "domestic",
-                    "tracking_url": "https://www.ilogen.com/web/personal/trace/{tracking_number}",
-                    "is_active": true,
-                    "sort_order": 4
-                },
-                {
-                    "id": 5,
-                    "code": "ups",
-                    "name": {
-                        "ko": "UPS",
-                        "en": "UPS"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://www.ups.com/track?tracknum={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 5
-                },
-                {
-                    "id": 6,
-                    "code": "ems",
-                    "name": {
-                        "ko": "EMS",
-                        "en": "EMS"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://service.epost.go.kr/trace.RetrieveEmsRi498.postal?POST_CODE={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 6
-                },
-                {
-                    "id": 7,
-                    "code": "dhl",
-                    "name": {
-                        "ko": "DHL",
-                        "en": "DHL"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://www.dhl.com/kr-ko/home/tracking/tracking-express.html?submit=1&tracking-id={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 7
-                },
-                {
-                    "id": 8,
-                    "code": "fedex",
-                    "name": {
-                        "ko": "FedEx",
-                        "en": "FedEx"
-                    },
-                    "type": "international",
-                    "tracking_url": "https://www.fedex.com/fedextrack/?tracknumbers={tracking_number}",
-                    "is_active": true,
-                    "sort_order": 8
-                },
-                {
-                    "id": 9,
-                    "code": "sf",
-                    "name": {
-                        "ko": "SF Express",
-                        "en": "SF Express"
-                    },
-                    "type": "international",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 9
-                },
-                {
-                    "id": 10,
-                    "code": "yamato",
-                    "name": {
-                        "ko": "야마토운수",
-                        "en": "Yamato Transport"
-                    },
-                    "type": "international",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 10
-                },
-                {
-                    "id": 11,
-                    "code": "sagawa",
-                    "name": {
-                        "ko": "사가와익스프레스",
-                        "en": "Sagawa Express"
-                    },
-                    "type": "international",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 11
-                },
-                {
-                    "id": 12,
-                    "code": "other",
-                    "name": {
-                        "ko": "기타",
-                        "en": "Other"
-                    },
-                    "type": "domestic",
-                    "tracking_url": null,
-                    "is_active": true,
-                    "sort_order": 99
-                }
-            ],
-            "types": [],
-            "api_request_fields": [
-                {
-                    "value": "policy_id",
-                    "label": "배송정책 ID"
-                },
-                {
-                    "value": "country_code",
-                    "label": "국가 코드"
-                },
-                {
-                    "value": "items",
-                    "label": "주문 항목"
-                },
-                {
-                    "value": "group_total",
-                    "label": "그룹 합계 금액"
-                },
-                {
-                    "value": "total_quantity",
-                    "label": "총 수량"
-                }
-            ],
-            "api_http_methods": [
-                {
-                    "value": "GET",
-                    "label": "GET"
-                },
-                {
-                    "value": "POST",
-                    "label": "POST"
-                }
-            ],
-            "api_auth_types": [
-                {
-                    "value": "none",
-                    "label": "인증 없음"
-                },
-                {
-                    "value": "bearer",
-                    "label": "Bearer 토큰"
-                },
-                {
-                    "value": "custom_header",
-                    "label": "커스텀 헤더"
-                }
-            ],
-            "api_response_types": [
-                {
-                    "value": "json",
-                    "label": "JSON"
-                },
-                {
-                    "value": "text",
-                    "label": "텍스트"
-                }
-            ]
+            "...": "(8개 키 생략, 총 13개)"
         },
         "seo": {
             "meta_category_title": "{commerce_name} - {category_name}",
@@ -1864,13 +659,7 @@ HTTP/1.1 200
             "meta_search_title": "{commerce_name} - {keyword_name}",
             "meta_search_description": "",
             "meta_product_title": "{commerce_name} - {product_name}",
-            "meta_product_description": "",
-            "meta_shop_index_title": "{commerce_name}",
-            "meta_shop_index_description": "",
-            "seo_category": true,
-            "seo_search_result": true,
-            "seo_product_detail": true,
-            "seo_shop_index": true
+            "...": "(7개 키 생략, 총 12개)"
         },
         "review_settings": {
             "write_deadline_days": 90,
@@ -2107,13 +896,13 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| basic_info | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
-| language_currency | object | `{"default_currency":"KRW","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
+| basic_info | object | `{"shop_name":"111","route_path":"shop","no_route":false,"…` | 쇼핑몰 기본 정보 (쇼핑몰명·라우트 경로·상호·사업자번호·주소·연락처·이메일 등) |
+| language_currency | object | `{"default_currency":"JPY","currencies":[{"code":"KRW","na…` | 통화 설정 (기본 통화 + 등록 통화 목록: 코드·다국어명·환율·기호·국기·반올림 규칙) |
 | order_settings | object | `{"default_pg_provider":null,"payment_methods":[{"id":"car…` | 주문/결제 설정 (기본 PG·병합된 결제수단·은행/무통장 계좌·자동취소·장바구니 만료 등) |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 배송 설정 (기본 국가·배송 가능 국가·무료배송·DB 관리 배송사(carriers)·배송유형(types)·계산 API 후보 필드 포함) |
 | seo | object | `{"meta_category_title":"{commerce_name} - {category_name}…` | SEO 메타 설정 (카테고리·검색·상품·쇼핑몰 인덱스별 메타 타이틀/설명 및 SEO 활성 토글) |
 | review_settings | object | `{"write_deadline_days":90,"max_images":5,"max_image_size_…` | 리뷰 정책 (작성 기한일·이미지 최대 개수·이미지 최대 용량 MB) |
-| inquiry | object | `{"board_slug":null}` | 문의 연동 설정 (문의 게시판 slug) |
+| inquiry | object | `{"board_slug":"inquiry"}` | 문의 연동 설정 (문의 게시판 slug) |
 | notifications | object | `{"channels":[{"id":"mail","is_active":true,"sort_order":1…` | 알림 채널 설정 (채널 ID·활성 여부·정렬 순서) |
 | mileage | object | `{"enabled":false,"default_earn_rate":1,"earn_trigger":"co…` | 마일리지 설정 (사용 여부·기본 적립률·적립 트리거·통화별 규칙·소멸/소멸 알림·실제 활성 알림 채널 포함) |
 
@@ -2126,125 +915,71 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.save_success",
+    "message": "설정이 저장되었습니다.",
     "data": {
         "basic_info": {
-            "shop_name": "",
+            "shop_name": "111",
             "route_path": "shop",
             "no_route": false,
-            "company_name": "",
+            "company_name": null,
             "business_number": "",
-            "ceo_name": "",
-            "business_type": "",
-            "business_category": "",
-            "zipcode": "",
-            "base_address": "",
-            "detail_address": "",
-            "phone": "",
-            "fax": "",
-            "email": "",
-            "privacy_officer": "",
-            "privacy_officer_email": "",
-            "mail_order_number": "",
-            "telecom_number": ""
+            "...": "(13개 키 생략, 총 18개)"
         },
         "language_currency": {
-            "default_currency": "KRW",
+            "default_currency": "JPY",
             "currencies": [
                 {
                     "code": "KRW",
                     "name": {
                         "ko": "KRW (원)",
-                        "en": "KRW (Won)",
-                        "fr": "KRW (원)"
+                        "en": "KRW (Won)"
                     },
                     "symbol": "₩",
                     "exchange_rate": null,
                     "base_unit": 1000,
-                    "rounding_unit": "1",
-                    "rounding_method": "floor",
-                    "decimal_places": 0,
-                    "is_default": true,
-                    "locales": [
-                        "ko"
-                    ],
-                    "flag": "🇰🇷"
+                    "...": "(6개 키 생략, 총 11개)"
                 },
                 {
                     "code": "USD",
                     "name": {
-                        "ko": "USD (달러)",
-                        "en": "USD (Dollar)",
-                        "fr": "USD (달러)"
+                        "en": "Dollar"
                     },
-                    "symbol": "$",
-                    "exchange_rate": 0.85,
-                    "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
                     "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇺🇸"
+                    "decimal_places": 2,
+                    "base_unit": 1,
+                    "...": "(3개 키 생략, 총 8개)"
                 },
                 {
                     "code": "JPY",
                     "name": {
-                        "ko": "JPY (엔)",
-                        "en": "JPY (Yen)",
-                        "fr": "JPY (엔)"
+                        "ja": "円"
                     },
-                    "symbol": "¥",
-                    "exchange_rate": 115,
-                    "base_unit": 100,
-                    "rounding_unit": "1",
-                    "rounding_method": "floor",
+                    "is_default": true,
                     "decimal_places": 0,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇯🇵"
+                    "base_unit": 100,
+                    "...": "(3개 키 생략, 총 8개)"
                 },
                 {
                     "code": "CNY",
                     "name": {
                         "ko": "CNY (위안)",
-                        "en": "CNY (Yuan)",
-                        "fr": "CNY (위안)"
+                        "en": "CNY (Yuan)"
                     },
                     "symbol": "元",
                     "exchange_rate": 5.8,
                     "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇨🇳"
+                    "...": "(6개 키 생략, 총 11개)"
                 },
                 {
                     "code": "EUR",
                     "name": {
                         "ko": "EUR (유로)",
-                        "en": "EUR (Euro)",
-                        "fr": "EUR (유로)"
+                        "en": "EUR (Euro)"
                     },
                     "symbol": "€",
                     "exchange_rate": 0.78,
                     "base_unit": 1,
-                    "rounding_unit": "0.01",
-                    "rounding_method": "round",
-                    "decimal_places": 2,
-                    "is_default": false,
-                    "locales": [
-                        "en"
-                    ],
-                    "flag": "🇪🇺"
+                    "...": "(6개 키 생략, 총 11개)"
                 }
             ]
         },
@@ -2257,20 +992,15 @@ HTTP/1.1 200
                     "sort_order": 1,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "신용카드",
-                        "en": "Credit Card",
-                        "fr": "신용카드"
-                    },
-                    "_cached_description": {
-                        "ko": "신용카드로 안전하게 결제",
-                        "en": "Pay securely with credit card",
-                        "fr": "신용카드로 안전하게 결제"
-                    },
-                    "_cached_icon": "credit-card",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
+                },
+                {
+                    "id": "dbank",
+                    "pg_provider": null,
+                    "sort_order": 1,
+                    "is_active": true,
+                    "min_order_amount": 0,
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "vbank",
@@ -2278,147 +1008,25 @@ HTTP/1.1 200
                     "sort_order": 2,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "가상계좌",
-                        "en": "Virtual Account",
-                        "fr": "가상계좌"
-                    },
-                    "_cached_description": {
-                        "ko": "가상계좌로 입금",
-                        "en": "Pay via virtual account",
-                        "fr": "가상계좌로 입금"
-                    },
-                    "_cached_icon": "money-check",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "dbank",
-                    "pg_provider": null,
-                    "sort_order": 3,
-                    "is_active": true,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "무통장입금",
-                        "en": "Bank Transfer",
-                        "fr": "무통장입금"
-                    },
-                    "_cached_description": {
-                        "ko": "지정 계좌로 직접 입금",
-                        "en": "Direct bank transfer",
-                        "fr": "지정 계좌로 직접 입금"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "bank",
-                    "pg_provider": null,
-                    "sort_order": 4,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "계좌이체",
-                        "en": "Account Transfer",
-                        "fr": "계좌이체"
-                    },
-                    "_cached_description": {
-                        "ko": "실시간 계좌이체",
-                        "en": "Real-time bank transfer",
-                        "fr": "실시간 계좌이체"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "phone",
-                    "pg_provider": null,
-                    "sort_order": 5,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "휴대폰결제",
-                        "en": "Mobile Payment",
-                        "fr": "휴대폰결제"
-                    },
-                    "_cached_description": {
-                        "ko": "휴대폰 소액결제",
-                        "en": "Mobile phone payment",
-                        "fr": "휴대폰 소액결제"
-                    },
-                    "_cached_icon": "mobile-screen-button",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "point",
                     "pg_provider": null,
-                    "sort_order": 6,
-                    "is_active": false,
+                    "sort_order": 2,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "포인트결제",
-                        "en": "Points",
-                        "fr": "포인트결제"
-                    },
-                    "_cached_description": {
-                        "ko": "적립 포인트로 결제",
-                        "en": "Pay with points",
-                        "fr": "적립 포인트로 결제"
-                    },
-                    "_cached_icon": "coins",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "deposit",
                     "pg_provider": null,
-                    "sort_order": 7,
-                    "is_active": false,
+                    "sort_order": 3,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "예치금결제",
-                        "en": "Store Credit",
-                        "fr": "예치금결제"
-                    },
-                    "_cached_description": {
-                        "ko": "예치금으로 결제",
-                        "en": "Pay with store credit",
-                        "fr": "예치금으로 결제"
-                    },
-                    "_cached_icon": "wallet",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
-                {
-                    "id": "free",
-                    "pg_provider": null,
-                    "sort_order": 8,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "무료",
-                        "en": "Free",
-                        "fr": "무료"
-                    },
-                    "_cached_description": {
-                        "ko": "결제 없이 주문 완료",
-                        "en": "Order without payment",
-                        "fr": "결제 없이 주문 완료"
-                    },
-                    "_cached_icon": "gift",
-                    "_cached_source": "builtin"
-                }
+                "... (총 25건 중 5건 표시)"
             ],
             "banks": [],
             "bank_accounts": [
@@ -2431,16 +1039,7 @@ HTTP/1.1 200
                 }
             ],
             "auto_cancel_expired": true,
-            "auto_cancel_days": 3,
-            "cart_expiry_days": 30,
-            "stock_restore_on_cancel": true,
-            "cancellable_statuses": [
-                "payment_complete"
-            ],
-            "confirmable_statuses": [
-                "shipping",
-                "delivered"
-            ]
+            "...": "(5개 키 생략, 총 10개)"
         },
         "shipping": {
             "default_country": "KR",
@@ -2449,8 +1048,7 @@ HTTP/1.1 200
                     "code": "KR",
                     "name": {
                         "ko": "대한민국",
-                        "en": "South Korea",
-                        "fr": "대한민국"
+                        "en": "South Korea"
                     },
                     "is_active": true
                 },
@@ -2458,89 +1056,15 @@ HTTP/1.1 200
                     "code": "US",
                     "name": {
                         "ko": "미국",
-                        "en": "United States",
-                        "fr": "미국"
+                        "en": "United States"
                     },
-                    "is_active": false
-                },
-                {
-                    "code": "JP",
-                    "name": {
-                        "ko": "일본",
-                        "en": "Japan",
-                        "fr": "일본"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "CN",
-                    "name": {
-                        "ko": "중국",
-                        "en": "China",
-                        "fr": "중국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "SG",
-                    "name": {
-                        "ko": "싱가포르",
-                        "en": "Singapore",
-                        "fr": "싱가포르"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "HK",
-                    "name": {
-                        "ko": "홍콩",
-                        "en": "Hong Kong",
-                        "fr": "홍콩"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TW",
-                    "name": {
-                        "ko": "대만",
-                        "en": "Taiwan",
-                        "fr": "대만"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "VN",
-                    "name": {
-                        "ko": "베트남",
-                        "en": "Vietnam",
-                        "fr": "베트남"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TH",
-                    "name": {
-                        "ko": "태국",
-                        "en": "Thailand",
-                        "fr": "태국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "MY",
-                    "name": {
-                        "ko": "말레이시아",
-                        "en": "Malaysia",
-                        "fr": "말레이시아"
-                    },
-                    "is_active": false
+                    "is_active": true
                 }
             ],
-            "international_shipping_enabled": false,
+            "international_shipping_enabled": true,
             "free_shipping_threshold": 50000,
             "free_shipping_enabled": true,
-            "address_validation_enabled": false,
-            "address_api_provider": "kakao"
+            "...": "(2개 키 생략, 총 7개)"
         },
         "seo": {
             "meta_category_title": "{commerce_name} - {category_name}",
@@ -2548,13 +1072,7 @@ HTTP/1.1 200
             "meta_search_title": "{commerce_name} - {keyword_name}",
             "meta_search_description": "",
             "meta_product_title": "{commerce_name} - {product_name}",
-            "meta_product_description": "",
-            "meta_shop_index_title": "{commerce_name}",
-            "meta_shop_index_description": "",
-            "seo_category": true,
-            "seo_search_result": true,
-            "seo_product_detail": true,
-            "seo_shop_index": true
+            "...": "(7개 키 생략, 총 12개)"
         },
         "review_settings": {
             "write_deadline_days": 90,
@@ -2639,7 +1157,7 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: write-method — 응답 필드는 사람이 작성하세요. -->
+<!-- 실측 제외: side-effectful-write — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
@@ -2695,7 +1213,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
+    "message": "설정을 조회했습니다.",
     "data": {
         "count": 0,
         "size_bytes": 0,
@@ -2731,7 +1249,7 @@ HTTP/1.1 200
 **요청 예시**
 
 ```http
-GET /api/modules/sirsoft-ecommerce/admin/settings/basic_info HTTP/1.1
+GET /api/modules/sirsoft-ecommerce/admin/settings/{category} HTTP/1.1
 Host: api.example.com
 Accept: application/json
 Authorization: Bearer {YOUR_TOKEN}
@@ -2739,52 +1257,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
-
-| 필드 | 타입 | 실측 예시값 | 용도/설명 |
-| --- | --- | --- | --- |
-| category | string | `basic_info` | 조회한 설정 분류(탭) 식별자 (`basic_info`·`language_currency`·`shipping` 등 요청 경로의 category 값 반영) |
-| settings | object | `{"shop_name":"","route_path":"shop","no_route":false,"com…` | 해당 분류의 설정 값 객체 (분류에 따라 구조가 달라지며, 배송·클레임 등은 DB 관리 대상이 병합되어 반환) |
-| abilities | object | `{"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
+<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
 
 **응답 예시**
 
-```http
-HTTP/1.1 200
-```
-
-```json
-{
-    "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
-    "data": {
-        "category": "basic_info",
-        "settings": {
-            "shop_name": "",
-            "route_path": "shop",
-            "no_route": false,
-            "company_name": "",
-            "business_number": "",
-            "ceo_name": "",
-            "business_type": "",
-            "business_category": "",
-            "zipcode": "",
-            "base_address": "",
-            "detail_address": "",
-            "phone": "",
-            "fax": "",
-            "email": "",
-            "privacy_officer": "",
-            "privacy_officer_email": "",
-            "mail_order_number": "",
-            "telecom_number": ""
-        },
-        "abilities": {
-            "can_update": true
-        }
-    }
-}
-```
+<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
 
 **에러 응답**
 
@@ -2835,7 +1312,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
+    "message": "설정을 조회했습니다.",
     "data": {
         "shipping": {
             "default_country": "KR",
@@ -2844,8 +1321,7 @@ HTTP/1.1 200
                     "code": "KR",
                     "name": {
                         "ko": "대한민국",
-                        "en": "South Korea",
-                        "fr": "대한민국"
+                        "en": "South Korea"
                     },
                     "is_active": true
                 },
@@ -2853,89 +1329,15 @@ HTTP/1.1 200
                     "code": "US",
                     "name": {
                         "ko": "미국",
-                        "en": "United States",
-                        "fr": "미국"
+                        "en": "United States"
                     },
-                    "is_active": false
-                },
-                {
-                    "code": "JP",
-                    "name": {
-                        "ko": "일본",
-                        "en": "Japan",
-                        "fr": "일본"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "CN",
-                    "name": {
-                        "ko": "중국",
-                        "en": "China",
-                        "fr": "중국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "SG",
-                    "name": {
-                        "ko": "싱가포르",
-                        "en": "Singapore",
-                        "fr": "싱가포르"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "HK",
-                    "name": {
-                        "ko": "홍콩",
-                        "en": "Hong Kong",
-                        "fr": "홍콩"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TW",
-                    "name": {
-                        "ko": "대만",
-                        "en": "Taiwan",
-                        "fr": "대만"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "VN",
-                    "name": {
-                        "ko": "베트남",
-                        "en": "Vietnam",
-                        "fr": "베트남"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TH",
-                    "name": {
-                        "ko": "태국",
-                        "en": "Thailand",
-                        "fr": "태국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "MY",
-                    "name": {
-                        "ko": "말레이시아",
-                        "en": "Malaysia",
-                        "fr": "말레이시아"
-                    },
-                    "is_active": false
+                    "is_active": true
                 }
             ],
-            "international_shipping_enabled": false,
+            "international_shipping_enabled": true,
             "free_shipping_threshold": 50000,
             "free_shipping_enabled": true,
-            "address_validation_enabled": false,
-            "address_api_provider": "kakao"
+            "...": "(2개 키 생략, 총 7개)"
         },
         "order_settings": {
             "default_pg_provider": null,
@@ -2946,20 +1348,15 @@ HTTP/1.1 200
                     "sort_order": 1,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "신용카드",
-                        "en": "Credit Card",
-                        "fr": "신용카드"
-                    },
-                    "_cached_description": {
-                        "ko": "신용카드로 안전하게 결제",
-                        "en": "Pay securely with credit card",
-                        "fr": "신용카드로 안전하게 결제"
-                    },
-                    "_cached_icon": "credit-card",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
+                },
+                {
+                    "id": "dbank",
+                    "pg_provider": null,
+                    "sort_order": 1,
+                    "is_active": true,
+                    "min_order_amount": 0,
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "vbank",
@@ -2967,147 +1364,25 @@ HTTP/1.1 200
                     "sort_order": 2,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "가상계좌",
-                        "en": "Virtual Account",
-                        "fr": "가상계좌"
-                    },
-                    "_cached_description": {
-                        "ko": "가상계좌로 입금",
-                        "en": "Pay via virtual account",
-                        "fr": "가상계좌로 입금"
-                    },
-                    "_cached_icon": "money-check",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "dbank",
-                    "pg_provider": null,
-                    "sort_order": 3,
-                    "is_active": true,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "무통장입금",
-                        "en": "Bank Transfer",
-                        "fr": "무통장입금"
-                    },
-                    "_cached_description": {
-                        "ko": "지정 계좌로 직접 입금",
-                        "en": "Direct bank transfer",
-                        "fr": "지정 계좌로 직접 입금"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "bank",
-                    "pg_provider": null,
-                    "sort_order": 4,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "계좌이체",
-                        "en": "Account Transfer",
-                        "fr": "계좌이체"
-                    },
-                    "_cached_description": {
-                        "ko": "실시간 계좌이체",
-                        "en": "Real-time bank transfer",
-                        "fr": "실시간 계좌이체"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "phone",
-                    "pg_provider": null,
-                    "sort_order": 5,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "휴대폰결제",
-                        "en": "Mobile Payment",
-                        "fr": "휴대폰결제"
-                    },
-                    "_cached_description": {
-                        "ko": "휴대폰 소액결제",
-                        "en": "Mobile phone payment",
-                        "fr": "휴대폰 소액결제"
-                    },
-                    "_cached_icon": "mobile-screen-button",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "point",
                     "pg_provider": null,
-                    "sort_order": 6,
-                    "is_active": false,
+                    "sort_order": 2,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "포인트결제",
-                        "en": "Points",
-                        "fr": "포인트결제"
-                    },
-                    "_cached_description": {
-                        "ko": "적립 포인트로 결제",
-                        "en": "Pay with points",
-                        "fr": "적립 포인트로 결제"
-                    },
-                    "_cached_icon": "coins",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "deposit",
                     "pg_provider": null,
-                    "sort_order": 7,
-                    "is_active": false,
+                    "sort_order": 3,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "예치금결제",
-                        "en": "Store Credit",
-                        "fr": "예치금결제"
-                    },
-                    "_cached_description": {
-                        "ko": "예치금으로 결제",
-                        "en": "Pay with store credit",
-                        "fr": "예치금으로 결제"
-                    },
-                    "_cached_icon": "wallet",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
-                {
-                    "id": "free",
-                    "pg_provider": null,
-                    "sort_order": 8,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "무료",
-                        "en": "Free",
-                        "fr": "무료"
-                    },
-                    "_cached_description": {
-                        "ko": "결제 없이 주문 완료",
-                        "en": "Order without payment",
-                        "fr": "결제 없이 주문 완료"
-                    },
-                    "_cached_icon": "gift",
-                    "_cached_source": "builtin"
-                }
+                "... (총 25건 중 5건 표시)"
             ],
             "banks": [],
             "bank_accounts": [
@@ -3120,16 +1395,7 @@ HTTP/1.1 200
                 }
             ],
             "auto_cancel_expired": true,
-            "auto_cancel_days": 3,
-            "cart_expiry_days": 30,
-            "stock_restore_on_cancel": true,
-            "cancellable_statuses": [
-                "payment_complete"
-            ],
-            "confirmable_statuses": [
-                "shipping",
-                "delivered"
-            ]
+            "...": "(5개 키 생략, 총 10개)"
         }
     }
 }
@@ -3179,7 +1445,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
+    "message": "설정을 조회했습니다.",
     "data": {
         "order_settings": {
             "default_pg_provider": null,
@@ -3190,20 +1456,15 @@ HTTP/1.1 200
                     "sort_order": 1,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "신용카드",
-                        "en": "Credit Card",
-                        "fr": "신용카드"
-                    },
-                    "_cached_description": {
-                        "ko": "신용카드로 안전하게 결제",
-                        "en": "Pay securely with credit card",
-                        "fr": "신용카드로 안전하게 결제"
-                    },
-                    "_cached_icon": "credit-card",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
+                },
+                {
+                    "id": "dbank",
+                    "pg_provider": null,
+                    "sort_order": 1,
+                    "is_active": true,
+                    "min_order_amount": 0,
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "vbank",
@@ -3211,147 +1472,25 @@ HTTP/1.1 200
                     "sort_order": 2,
                     "is_active": false,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "가상계좌",
-                        "en": "Virtual Account",
-                        "fr": "가상계좌"
-                    },
-                    "_cached_description": {
-                        "ko": "가상계좌로 입금",
-                        "en": "Pay via virtual account",
-                        "fr": "가상계좌로 입금"
-                    },
-                    "_cached_icon": "money-check",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "dbank",
-                    "pg_provider": null,
-                    "sort_order": 3,
-                    "is_active": true,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "order_placed",
-                    "_cached_name": {
-                        "ko": "무통장입금",
-                        "en": "Bank Transfer",
-                        "fr": "무통장입금"
-                    },
-                    "_cached_description": {
-                        "ko": "지정 계좌로 직접 입금",
-                        "en": "Direct bank transfer",
-                        "fr": "지정 계좌로 직접 입금"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "bank",
-                    "pg_provider": null,
-                    "sort_order": 4,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "계좌이체",
-                        "en": "Account Transfer",
-                        "fr": "계좌이체"
-                    },
-                    "_cached_description": {
-                        "ko": "실시간 계좌이체",
-                        "en": "Real-time bank transfer",
-                        "fr": "실시간 계좌이체"
-                    },
-                    "_cached_icon": "building-columns",
-                    "_cached_source": "builtin"
-                },
-                {
-                    "id": "phone",
-                    "pg_provider": null,
-                    "sort_order": 5,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "payment_complete",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "휴대폰결제",
-                        "en": "Mobile Payment",
-                        "fr": "휴대폰결제"
-                    },
-                    "_cached_description": {
-                        "ko": "휴대폰 소액결제",
-                        "en": "Mobile phone payment",
-                        "fr": "휴대폰 소액결제"
-                    },
-                    "_cached_icon": "mobile-screen-button",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "point",
                     "pg_provider": null,
-                    "sort_order": 6,
-                    "is_active": false,
+                    "sort_order": 2,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "포인트결제",
-                        "en": "Points",
-                        "fr": "포인트결제"
-                    },
-                    "_cached_description": {
-                        "ko": "적립 포인트로 결제",
-                        "en": "Pay with points",
-                        "fr": "적립 포인트로 결제"
-                    },
-                    "_cached_icon": "coins",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
                 {
                     "id": "deposit",
                     "pg_provider": null,
-                    "sort_order": 7,
-                    "is_active": false,
+                    "sort_order": 3,
+                    "is_active": true,
                     "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "예치금결제",
-                        "en": "Store Credit",
-                        "fr": "예치금결제"
-                    },
-                    "_cached_description": {
-                        "ko": "예치금으로 결제",
-                        "en": "Pay with store credit",
-                        "fr": "예치금으로 결제"
-                    },
-                    "_cached_icon": "wallet",
-                    "_cached_source": "builtin"
+                    "...": "(10개 키 생략, 총 15개)"
                 },
-                {
-                    "id": "free",
-                    "pg_provider": null,
-                    "sort_order": 8,
-                    "is_active": false,
-                    "min_order_amount": 0,
-                    "stock_deduction_timing": "order_placed",
-                    "mileage_deduction_timing": "payment_complete",
-                    "_cached_name": {
-                        "ko": "무료",
-                        "en": "Free",
-                        "fr": "무료"
-                    },
-                    "_cached_description": {
-                        "ko": "결제 없이 주문 완료",
-                        "en": "Order without payment",
-                        "fr": "결제 없이 주문 완료"
-                    },
-                    "_cached_icon": "gift",
-                    "_cached_source": "builtin"
-                }
+                "... (총 25건 중 5건 표시)"
             ],
             "banks": [],
             "bank_accounts": [
@@ -3361,20 +1500,11 @@ HTTP/1.1 200
                     "account_holder": "",
                     "is_active": false,
                     "is_default": false,
-                    "bank_name": "004"
+                    "...": "(1개 키 생략, 총 6개)"
                 }
             ],
             "auto_cancel_expired": true,
-            "auto_cancel_days": 3,
-            "cart_expiry_days": 30,
-            "stock_restore_on_cancel": true,
-            "cancellable_statuses": [
-                "payment_complete"
-            ],
-            "confirmable_statuses": [
-                "shipping",
-                "delivered"
-            ]
+            "...": "(5개 키 생략, 총 10개)"
         }
     }
 }
@@ -3424,7 +1554,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
+    "message": "설정을 조회했습니다.",
     "data": {
         "review_settings": {
             "write_deadline_days": 90,
@@ -3479,7 +1609,7 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "sirsoft-ecommerce::messages.settings.fetch_success",
+    "message": "설정을 조회했습니다.",
     "data": {
         "shipping": {
             "default_country": "KR",
@@ -3488,8 +1618,7 @@ HTTP/1.1 200
                     "code": "KR",
                     "name": {
                         "ko": "대한민국",
-                        "en": "South Korea",
-                        "fr": "대한민국"
+                        "en": "South Korea"
                     },
                     "is_active": true
                 },
@@ -3497,85 +1626,12 @@ HTTP/1.1 200
                     "code": "US",
                     "name": {
                         "ko": "미국",
-                        "en": "United States",
-                        "fr": "미국"
+                        "en": "United States"
                     },
-                    "is_active": false
-                },
-                {
-                    "code": "JP",
-                    "name": {
-                        "ko": "일본",
-                        "en": "Japan",
-                        "fr": "일본"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "CN",
-                    "name": {
-                        "ko": "중국",
-                        "en": "China",
-                        "fr": "중국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "SG",
-                    "name": {
-                        "ko": "싱가포르",
-                        "en": "Singapore",
-                        "fr": "싱가포르"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "HK",
-                    "name": {
-                        "ko": "홍콩",
-                        "en": "Hong Kong",
-                        "fr": "홍콩"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TW",
-                    "name": {
-                        "ko": "대만",
-                        "en": "Taiwan",
-                        "fr": "대만"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "VN",
-                    "name": {
-                        "ko": "베트남",
-                        "en": "Vietnam",
-                        "fr": "베트남"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "TH",
-                    "name": {
-                        "ko": "태국",
-                        "en": "Thailand",
-                        "fr": "태국"
-                    },
-                    "is_active": false
-                },
-                {
-                    "code": "MY",
-                    "name": {
-                        "ko": "말레이시아",
-                        "en": "Malaysia",
-                        "fr": "말레이시아"
-                    },
-                    "is_active": false
+                    "is_active": true
                 }
             ],
-            "international_shipping_enabled": false,
+            "international_shipping_enabled": true,
             "free_shipping_threshold": 50000,
             "free_shipping_enabled": true,
             "address_validation_enabled": false,
@@ -3624,3 +1680,5 @@ _대표 에러 없음 (공개 조회). <!-- TODO: 도메인 특이 에러가 있
 확장 결제수단(간편결제)은 코어의 `card` 로 치환되지 않고 자기 ID 그대로 저장·조회된다.
 주문 생성 시 `payment_method` 로 확장 ID 를 그대로 보내면 되며, 서버는 이 카탈로그를 화이트리스트로
 사용해 검증한다.
+
+

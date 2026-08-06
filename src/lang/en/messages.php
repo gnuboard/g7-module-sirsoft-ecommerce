@@ -69,6 +69,8 @@ return [
         'code_generation_failed' => 'Failed to generate product code.',
         'logs_fetch_success' => 'Product activity logs retrieved successfully.',
         'logs_fetch_failed' => 'Failed to retrieve product activity logs.',
+        'options_fetch_success' => 'Product options retrieved successfully.',
+        'options_fetch_failed' => 'Failed to retrieve product options.',
     ],
     'presets' => [
         'created' => 'Search preset has been saved.',

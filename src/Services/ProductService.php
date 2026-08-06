@@ -65,6 +65,21 @@ class ProductService
     }
 
     /**
+     * 여러 상품의 옵션을 상품 ID 로 묶어 한 번에 조회합니다 (비활성 옵션 포함).
+     *
+     * 상품 목록에서 펼친 행들의 옵션을 채우기 위한 배치 조회입니다. 상품 수와 무관하게
+     * 쿼리 2개(허용 ID 확정 + 옵션 조회)로 끝납니다.
+     *
+     * @param  array<int, int|string>  $productIds  조회할 상품 ID 목록
+     * @return array{product_ids: array<int, int>, options: \Illuminate\Support\Collection|array<int, mixed>}
+     *                                                                                                        스코프를 통과한 상품 ID 와 상품 ID 로 그룹핑된 옵션
+     */
+    public function getOptionsByProductIds(array $productIds): array
+    {
+        return $this->repository->getOptionsGroupedByProductIds($productIds);
+    }
+
+    /**
      * 사용자(공개) 페이지용 상품 목록을 페이지네이션으로 조회합니다.
      *
      * before/after_public_list 훅과 filter_public_list_params 훅을 발화합니다.

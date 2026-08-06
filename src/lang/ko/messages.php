@@ -69,6 +69,8 @@ return [
         'code_generation_failed' => '상품코드 생성에 실패했습니다.',
         'logs_fetch_success' => '상품 처리 이력을 조회했습니다.',
         'logs_fetch_failed' => '상품 처리 이력 조회에 실패했습니다.',
+        'options_fetch_success' => '상품 옵션을 조회했습니다.',
+        'options_fetch_failed' => '상품 옵션 조회에 실패했습니다.',
     ],
     'presets' => [
         'created' => '검색 프리셋이 저장되었습니다.',
