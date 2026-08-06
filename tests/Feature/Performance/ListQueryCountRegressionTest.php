@@ -5,10 +5,6 @@ namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Performance;
 // 테스트 베이스 클래스 수동 require (autoload 전에 로드 필요)
 require_once __DIR__.'/../../ModuleTestCase.php';
 
-use App\Enums\PermissionType;
-use App\Models\Permission;
-use App\Models\Role;
-use App\Models\User;
 use Modules\Sirsoft\Ecommerce\Models\Category;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
@@ -107,68 +103,6 @@ class ListQueryCountRegressionTest extends ModuleTestCase
             grow: fn () => $this->seedCategories(6, 'tree-b'),
             context: '카테고리 트리',
         );
-    }
-
-    /**
-     * 쇼핑 첫 화면(storefront): 상품 수가 늘어도 쿼리 수가 늘지 않는지 확인
-     *
-     * 이 엔드포인트는 분류·상품·최근·인기·신상품 5묶음을 한 응답으로 합친다. 묶음마다
-     * 관계가 달려 있어 어느 한 묶음이 관계 eager load 를 놓치면 그 자리에서 N+1 이 된다.
-     * 응답을 통째로 재야 그 사실이 드러난다.
-     *
-     * @effects storefront_query_count_stable
-     */
-    public function test_storefront_query_count_is_stable(): void
-    {
-        $this->seedProducts(5, 'SHOP-A');
-
-        // storefront 는 `permission:user,sirsoft-ecommerce.user-products.read` 로 가드된다.
-        // 시드된 'user' 역할에 그 권한이 붙어 있는지는 앞선 테스트가 무엇을 했는지에 따라
-        // 달라지므로(단독 실행은 통과, 연속 실행은 403), 전용 역할에 권한을 직접 부여한다.
-        $this->actingAs($this->userWithProductReadPermission(), 'sanctum');
-
-        $this->assertQueryCountStableAsDataGrows(
-            measure: function () {
-                // 카테고리 트리 캐시가 살아 있으면 두 번째 측정이 그만큼 적게 나와
-                // 판정이 무의미해진다. 매 측정 조건을 같게 맞춘다.
-                Category::flushTreeCache();
-
-                $response = $this->getJson('/api/modules/sirsoft-ecommerce/storefront');
-                $response->assertOk();
-            },
-            grow: fn () => $this->seedProducts(10, 'SHOP-B'),
-            context: '쇼핑 첫 화면(storefront)',
-        );
-    }
-
-    /**
-     * 공개 상품 조회 권한을 가진 사용자를 만듭니다.
-     *
-     * 전용 역할에 권한을 직접 붙여, 시드된 공용 역할의 상태에 의존하지 않게 한다.
-     *
-     * @return User 권한을 가진 사용자
-     */
-    private function userWithProductReadPermission(): User
-    {
-        $user = User::factory()->create();
-
-        $role = Role::create([
-            'identifier' => 'storefront-probe-'.$user->id,
-            'name' => ['ko' => '진열 조회 테스트', 'en' => 'Storefront Probe'],
-        ]);
-
-        $permission = Permission::firstOrCreate(
-            ['identifier' => 'sirsoft-ecommerce.user-products.read'],
-            [
-                'name' => ['ko' => '공개 상품 조회', 'en' => 'Read public products'],
-                'type' => PermissionType::User,
-            ]
-        );
-
-        $role->permissions()->syncWithoutDetaching([$permission->id]);
-        $user->roles()->attach($role->id);
-
-        return User::findOrFail($user->id);
     }
 
     /**

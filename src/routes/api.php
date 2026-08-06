@@ -33,7 +33,6 @@ use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\ProductImageController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\ProductInquiryController as PublicProductInquiryController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\ProductReviewController as PublicProductReviewController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\PublicCouponController;
-use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\StorefrontController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Public\WishlistController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Shop\PaymentConfigController;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\User\OrderController as UserOrderController;
@@ -73,13 +72,6 @@ Route::prefix('categories')->group(function () {
         ->where('slug', '[a-z0-9\-]+')
         ->name('categories.show');
 });
-
-// 쇼핑 첫 화면 통합 조회 API
-// GET /api/modules/sirsoft-ecommerce/storefront - 분류·상품목록·최근본·인기·신상품 한 번에 조회
-// (각 묶음의 응답 형태는 개별 엔드포인트와 동일 — 조립 위치만 서버로 옮긴 것)
-Route::get('storefront', [StorefrontController::class, 'index'])
-    ->middleware(['optional.sanctum', 'permission:user,sirsoft-ecommerce.user-products.read'])
-    ->name('storefront.index');
 
 // 공개 상품 API
 // GET /api/modules/sirsoft-ecommerce/products - 공개 상품 목록 조회

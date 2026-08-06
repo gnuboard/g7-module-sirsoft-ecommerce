@@ -16,6 +16,20 @@
 
 ---
 
+## 목록 응답의 총 건수와 페이지 이동
+
+상품 목록(관리자·공개 양쪽)은 총 건수를 상한까지만 셉니다. 상한을 넘으면 응답의
+`pagination` 에 정확도가 함께 실립니다 — `total_relation` 이 `at_least`, `total_is_exact`
+가 `false`, `result_cap` 이 적용된 상한값입니다. 이때 `last_page` 는 `null` 이고,
+`has_more_pages` 는 그대로 정확하므로 마지막 페이지 점프만 감춰지고 다음 페이지 이동은
+끝까지 열려 있습니다. 상한 이하이면 종전과 동일하게 `total` 이 정확한 값이고
+`total_relation` 은 `exact` 입니다.
+
+같은 규약이 이 모듈의 다른 목록 응답(주문·쿠폰·마일리지·문의·리뷰 등)에도 적용됩니다.
+상세 규약은 [pagination.md](../../../../../docs/backend/pagination.md) 를 참고하세요.
+
+---
+
 
 ### GET /api/modules/sirsoft-ecommerce/admin/products
 <!-- @generated:start:api.modules.sirsoft-ecommerce.admin.products.index -->

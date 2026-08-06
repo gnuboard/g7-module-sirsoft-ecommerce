@@ -4,9 +4,9 @@ namespace Modules\Sirsoft\Ecommerce\Listeners;
 
 use App\Contracts\Extension\HookListenerInterface;
 use App\Enums\TotalRelation;
+use App\Helpers\PermissionHelper;
 use App\Search\SearchCategoryPayload;
 use App\Support\Query\BoundedCount;
-use App\Helpers\PermissionHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Http\Resources\Traits\HasMultiCurrencyPrices;
 use Modules\Sirsoft\Ecommerce\Services\ProductService;
@@ -141,7 +141,9 @@ class SearchProductsListener implements HookListenerInterface
                 ->map(fn ($product) => $this->formatProductResult($product, $q))
                 ->toArray();
 
-            // 커서를 받았고 그 정렬을 커서로 처리할 수 있으면 키셋으로 응답한다.
+            // 그 정렬을 커서로 처리할 수 있으면 키셋으로 응답한다. 페이지 번호를 함께 넘기는
+            // 이유는 커서 없이 깊은 페이지를 직접 지목한 딥링크를 코어가 가려내야 하기
+            // 때문이다 — 넘기지 않으면 기본값 1 이 적용돼 그 링크가 첫 페이지로 되돌아간다.
             // 전체 탭은 미리보기 몇 건뿐이라 깊은 페이지가 없어 대상이 아니다.
             $cursorPage = $isAllTab
                 ? null
@@ -150,7 +152,8 @@ class SearchProductsListener implements HookListenerInterface
                     $sort,
                     $categoryId,
                     $fetchPerPage,
-                    $context['cursor'] ?? null
+                    $context['cursor'] ?? null,
+                    (int) $page
                 );
 
             if ($cursorPage !== null) {

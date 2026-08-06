@@ -6,9 +6,9 @@ use App\Extension\HookManager;
 use App\Search\SearchPagePolicy;
 use App\Support\Query\BoundedCount;
 use App\Support\Query\BoundedPage;
-use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Enums\SequenceType;
@@ -1849,7 +1849,7 @@ class ProductService
      * @param  int|null  $categoryId  카테고리 필터
      * @param  int  $offset  오프셋
      * @param  int  $limit  조회할 최대 항목 수
-     * @return array{total: int, items: Collection}
+     * @return BoundedPage 페이지 결과 (총 건수 정확도 포함)
      */
     public function searchByKeyword(string $keyword, string $sort = 'latest', ?int $categoryId = null, int $offset = 0, int $limit = 10): BoundedPage
     {
@@ -1869,6 +1869,7 @@ class ProductService
      * @param  int|null  $categoryId  카테고리 필터
      * @param  int  $perPage  페이지당 항목 수
      * @param  string|null  $cursor  인코딩된 커서 (첫 페이지면 null)
+     * @param  int  $page  요청 페이지 번호 (커서 없이 깊은 페이지를 지목했는지 판정용)
      * @return CursorPaginator|null 커서 페이지 결과 (커서 적용 불가 시 null)
      */
     public function searchByKeywordWithCursor(
@@ -1876,11 +1877,12 @@ class ProductService
         string $sort = 'latest',
         ?int $categoryId = null,
         int $perPage = 10,
-        ?string $cursor = null
+        ?string $cursor = null,
+        int $page = 1
     ): ?CursorPaginator {
         $sortKeys = SearchPagePolicy::sortKeys($sort, self::SEARCH_SORT_MAP);
 
-        if (! SearchPagePolicy::usesCursor($cursor, $sortKeys, self::SEARCH_CURSOR_COLUMNS)) {
+        if (! SearchPagePolicy::usesCursor($cursor, $sortKeys, self::SEARCH_CURSOR_COLUMNS, $page)) {
             return null;
         }
 

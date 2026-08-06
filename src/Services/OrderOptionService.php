@@ -342,9 +342,20 @@ class OrderOptionService
         $changedCount = 0;
         $splitCount = 0;
 
-        DB::transaction(function () use ($items, $newStatus, $metadata, &$results, &$changedCount, &$splitCount) {
+        // 대상 옵션을 1회 일괄 조회해 재사용한다 (항목마다 같은 행을 다시 읽지 않는다).
+        // 같은 옵션이 두 번 이상 실린 요청은 앞선 변경이 이미 DB 에 반영된 뒤이므로
+        // 적재본이 낡는다 — 그 경우에만 그 항목을 다시 읽어 종전 동작을 유지한다.
+        $prefetchedOptions = $this->orderOptionRepository->findByIdsKeyed($optionIds);
+
+        DB::transaction(function () use ($items, $newStatus, $metadata, $prefetchedOptions, &$results, &$changedCount, &$splitCount) {
+            $consumed = [];
+
             foreach ($items as $item) {
-                $option = $this->orderOptionRepository->findOrFail($item['option_id']);
+                $optionId = $item['option_id'];
+                $option = isset($consumed[$optionId])
+                    ? $this->orderOptionRepository->findOrFail($optionId)
+                    : ($prefetchedOptions->get($optionId) ?? $this->orderOptionRepository->findOrFail($optionId));
+                $consumed[$optionId] = true;
 
                 $result = $this->changeStatusWithQuantity(
                     $option,
@@ -639,8 +650,12 @@ class OrderOptionService
     {
         $orderIds = $this->orderOptionRepository->getOrderIdsByOptionIds($optionIds);
 
+        // 주문과 결제수단을 1회 일괄 조회한다. 주문마다 조회하면 결제수단 지연 로드까지
+        // 따라붙어 대상 주문 수만큼 쿼리가 두 배로 늘어난다.
+        $orders = $this->orderRepository->findByIdsWithRelationsKeyed($orderIds, ['payment']);
+
         foreach ($orderIds as $orderId) {
-            $order = $this->orderRepository->find($orderId);
+            $order = $orders->get($orderId);
             if (! $order) {
                 continue;
             }
