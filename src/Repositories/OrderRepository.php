@@ -2,12 +2,15 @@
 
 namespace Modules\Sirsoft\Ecommerce\Repositories;
 
+use App\Contracts\Extension\CacheInterface;
 use App\Helpers\PermissionHelper;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Repositories\Concerns\FiltersByDateRange;
 use App\Repositories\Concerns\PaginatesWithDeferredJoin;
 use App\Repositories\Concerns\ResolvesSortSpec;
 use App\Repositories\Concerns\SortsByRelatedColumn;
+use App\Support\Query\PaginationLimits;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -26,6 +29,17 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
  */
 class OrderRepository implements OrderRepositoryInterface
 {
+    /**
+     * 주문 통계 캐시 키
+     */
+    private const STATISTICS_CACHE_KEY = 'ecommerce.orders.statistics';
+
+    /**
+     * 주문 통계 캐시 태그
+     */
+    private const STATISTICS_CACHE_TAG = 'ecommerce.orders';
+
+    use FiltersByDateRange;
     use PaginatesWithDeferredJoin;
     use ResolvesSortSpec;
     use SortsByRelatedColumn;
@@ -262,12 +276,14 @@ class OrderRepository implements OrderRepositoryInterface
         if (! empty($filters['date_type']) && (! empty($filters['start_date']) || ! empty($filters['end_date']))) {
             $dateField = $filters['date_type']; // ordered_at, paid_at, etc.
 
-            if (! empty($filters['start_date'])) {
-                $query->whereDate($dateField, '>=', $filters['start_date']);
-            }
-            if (! empty($filters['end_date'])) {
-                $query->whereDate($dateField, '<=', $filters['end_date']);
-            }
+            // whereDate 는 컬럼에 DATE() 를 씌워 인덱스를 무력화한다 — 같은 결과를 내는
+            // 범위 조건으로 준다 (종료일은 그날 끝까지 포함).
+            $this->applyDateRangeFilter(
+                $query,
+                $dateField,
+                $filters['start_date'] ?? null,
+                $filters['end_date'] ?? null
+            );
         }
 
         // 주문상태 필터 (다중 선택 가능)
@@ -410,6 +426,7 @@ class OrderRepository implements OrderRepositoryInterface
                     OrderStatusEnum::CANCELLED->value,
                 ),
             ],
+            resultCap: PaginationLimits::resultCap('admin.orders'),
         );
     }
 
@@ -418,7 +435,10 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function create(array $data): Order
     {
-        return $this->model->create($data);
+        $order = $this->model->create($data);
+        $this->forgetStatisticsCache();
+
+        return $order;
     }
 
     /**
@@ -427,6 +447,7 @@ class OrderRepository implements OrderRepositoryInterface
     public function update(Order $order, array $data): Order
     {
         $order->update($data);
+        $this->forgetStatisticsCache();
 
         return $order->fresh();
     }
@@ -436,7 +457,10 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function delete(Order $order): bool
     {
-        return $order->delete();
+        $deleted = $order->delete();
+        $this->forgetStatisticsCache();
+
+        return $deleted;
     }
 
     /**
@@ -444,12 +468,16 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function bulkUpdateStatus(array $ids, string $status): int
     {
-        return $this->model
+        $affected = $this->model
             ->whereIn('id', $ids)
             ->update([
                 'order_status' => $status,
                 'updated_at' => now(),
             ]);
+
+        $this->forgetStatisticsCache();
+
+        return $affected;
     }
 
     /**
@@ -522,6 +550,48 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getStatistics(): array
     {
+        // 이 통계는 주문 목록 화면과 함께 매 페이지 조회된다. 값이 초 단위로 달라질 필요는
+        // 없으므로 짧게 캐시해 같은 집계가 페이지를 넘길 때마다 다시 돌지 않게 한다.
+        // 주문이 바뀌면 즉시 무효화되므로 화면이 낡은 수치를 보여 주지 않는다.
+        if (! g7_core_settings('cache.stats_enabled', true)) {
+            return $this->computeStatistics();
+        }
+
+        $ttl = (int) g7_core_settings('cache.stats_ttl', 1800);
+
+        if ($ttl <= 0) {
+            return $this->computeStatistics();
+        }
+
+        return app(CacheInterface::class)->remember(
+            self::STATISTICS_CACHE_KEY,
+            fn () => $this->computeStatistics(),
+            $ttl,
+            [self::STATISTICS_CACHE_TAG]
+        );
+    }
+
+    /**
+     * 주문 통계 캐시를 무효화합니다.
+     *
+     * 주문이 생성·수정·삭제되면 통계도 곧바로 달라져야 합니다. 쓰기 경로가 이 메서드를
+     * 부르지 않으면 화면이 TTL 이 끝날 때까지 이전 수치를 보여 줍니다.
+     */
+    public function forgetStatisticsCache(): void
+    {
+        app(CacheInterface::class)->forget(self::STATISTICS_CACHE_KEY);
+    }
+
+    /**
+     * 주문 통계를 실제로 집계합니다.
+     *
+     * 날짜 조건은 전부 범위 조건으로 준다 — whereDate/whereYear/whereMonth 는 컬럼에
+     * 함수를 씌워 ordered_at 인덱스를 쓸 수 없게 만든다.
+     *
+     * @return array 주문 통계
+     */
+    private function computeStatistics(): array
+    {
         // 숨김 상태(PENDING_ORDER 등) 제외한 전체 통계 (OrderStatusEnum::listHiddenValues SSoT)
         $total = $this->model
             ->whereNotIn('order_status', OrderStatusEnum::listHiddenValues())
@@ -536,22 +606,21 @@ class OrderRepository implements OrderRepositoryInterface
             ->toArray();
 
         // 오늘 주문 수
-        $todayCount = $this->model
-            ->whereDate('ordered_at', today())
-            ->count();
+        $todayCountQuery = $this->model->newQuery();
+        $this->applyDayFilter($todayCountQuery, 'ordered_at', today());
+        $todayCount = $todayCountQuery->count();
 
         // 오늘 매출액
-        $todayRevenue = $this->model
-            ->whereDate('ordered_at', today())
-            ->whereNotIn('order_status', [OrderStatusEnum::CANCELLED->value])
-            ->sum('total_paid_amount');
+        $todayRevenueQuery = $this->model->newQuery()
+            ->whereNotIn('order_status', [OrderStatusEnum::CANCELLED->value]);
+        $this->applyDayFilter($todayRevenueQuery, 'ordered_at', today());
+        $todayRevenue = $todayRevenueQuery->sum('total_paid_amount');
 
         // 이번 달 매출액
-        $monthlyRevenue = $this->model
-            ->whereYear('ordered_at', now()->year)
-            ->whereMonth('ordered_at', now()->month)
-            ->whereNotIn('order_status', [OrderStatusEnum::CANCELLED->value])
-            ->sum('total_paid_amount');
+        $monthlyRevenueQuery = $this->model->newQuery()
+            ->whereNotIn('order_status', [OrderStatusEnum::CANCELLED->value]);
+        $this->applyMonthFilter($monthlyRevenueQuery, 'ordered_at', (int) now()->year, (int) now()->month);
+        $monthlyRevenue = $monthlyRevenueQuery->sum('total_paid_amount');
 
         return [
             'total' => $total,
@@ -666,12 +735,13 @@ class OrderRepository implements OrderRepositoryInterface
         if (! empty($filters['date_type']) && (! empty($filters['start_date']) || ! empty($filters['end_date']))) {
             $dateField = $filters['date_type'];
 
-            if (! empty($filters['start_date'])) {
-                $query->whereDate($dateField, '>=', $filters['start_date']);
-            }
-            if (! empty($filters['end_date'])) {
-                $query->whereDate($dateField, '<=', $filters['end_date']);
-            }
+            // whereDate 는 인덱스를 무력화한다 — 범위 조건으로 준다.
+            $this->applyDateRangeFilter(
+                $query,
+                $dateField,
+                $filters['start_date'] ?? null,
+                $filters['end_date'] ?? null
+            );
         }
 
         // 주문상태 필터
@@ -743,6 +813,18 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function findByIdsWithRelationsKeyed(array $ids, array $with = []): Collection
+    {
+        if (empty($ids)) {
+            return new Collection;
+        }
+
+        return Order::with($with)->whereIn('id', $ids)->get()->keyBy('id');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getSnapshotsByIds(array $ids): array
     {
         return $this->model->whereIn('id', $ids)->get()->keyBy('id')->map->toArray()->all();
@@ -790,6 +872,7 @@ class OrderRepository implements OrderRepositoryInterface
             columns: ['*'],
             sort: [['column' => 'created_at', 'direction' => $sortOrder]],
             perPage: $perPage,
+            resultCap: PaginationLimits::resultCap('admin.activity_logs'),
         );
     }
 }

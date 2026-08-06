@@ -215,13 +215,18 @@ class TempOrderService
     {
         $cartItems = new Collection;
 
-        foreach ($items as $item) {
+        // 항목마다 옵션을 두 번 조회하면 체크아웃 한 번에 항목 수 × 2 만큼 쿼리가 난다.
+        // 상품별 옵션과 확정된 옵션 상세를 각각 한 번씩만 읽어 맵으로 들고 간다.
+        $optionsByProduct = $this->productOptionRepository->getByProductIds(
+            array_map(fn ($item) => (int) ($item['product_id'] ?? 0), $items)
+        );
+
+        $resolvedOptionIds = [];
+
+        foreach ($items as $index => $item) {
             $productId = (int) ($item['product_id'] ?? 0);
             $requestedOptionId = $item['product_option_id'] ?? null;
-            $quantity = max(1, (int) ($item['quantity'] ?? 1));
-
-            // 상품 옵션 매칭 (옵션 ID 기준, 없으면 기본 옵션)
-            $productOptions = $this->productOptionRepository->getByProductId($productId);
+            $productOptions = $optionsByProduct->get($productId) ?? new Collection;
 
             if (! empty($requestedOptionId)) {
                 $matchedOption = $productOptions->firstWhere('id', (int) $requestedOptionId);
@@ -230,18 +235,34 @@ class TempOrderService
                     throw new CartOperationException('option_not_found');
                 }
 
-                $optionId = $matchedOption->id;
-            } else {
-                $defaultOption = $productOptions->first();
-                if (! $defaultOption) {
-                    throw new CartOperationException('option_not_found');
-                }
+                $resolvedOptionIds[$index] = $matchedOption->id;
 
-                $optionId = $defaultOption->id;
+                continue;
             }
 
-            // product/images 관계를 포함해 옵션 재조회 (검증·계산에 필요)
-            $option = $this->productOptionRepository->findByIdsWithProduct([$optionId])->first();
+            $defaultOption = $productOptions->first();
+            if (! $defaultOption) {
+                throw new CartOperationException('option_not_found');
+            }
+
+            $resolvedOptionIds[$index] = $defaultOption->id;
+        }
+
+        // product/images 관계를 포함해 확정 옵션을 한 번에 재조회 (검증·계산에 필요)
+        $optionsById = $this->productOptionRepository
+            ->findByIdsWithProduct(array_values($resolvedOptionIds))
+            ->keyBy('id');
+
+        // 추가옵션 검증 자료도 항목 루프 전에 한 번에 적재한다. 이걸 빼면 아래 루프가
+        // 항목마다 선택지·상품·그룹을 다시 읽는다(항목당 3쿼리).
+        $this->additionalOptionSelectionService->prefetchForProducts(
+            $optionsById->pluck('product_id')->all()
+        );
+
+        foreach ($items as $index => $item) {
+            $quantity = max(1, (int) ($item['quantity'] ?? 1));
+
+            $option = $optionsById->get($resolvedOptionIds[$index]);
             if (! $option || ! $option->product) {
                 throw new CartOperationException('option_not_found');
             }

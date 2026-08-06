@@ -6,6 +6,7 @@ use App\Http\Resources\BaseApiResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Modules\Sirsoft\Ecommerce\Http\Resources\Traits\HasMultiCurrencyPrices;
 
 /**
@@ -64,12 +65,23 @@ class ProductListResource extends BaseApiResource
             ])),
             'primary_category' => $this->whenLoaded('categories', fn () => $this->categories->firstWhere('pivot.is_primary', true)?->getLocalizedName()
             ),
-            'categories_with_path' => $this->whenLoaded('categories', fn () => $this->categories->map(fn ($cat) => [
-                'id' => $cat->id,
-                'path' => $cat->getBreadcrumb(),
-                'path_string' => collect($cat->getBreadcrumb())->pluck('name')->implode(' > '),
-                'is_primary' => $cat->pivot->is_primary,
-            ])),
+            // 경로는 카테고리당 한 번만 만든다. 두 번 부르면 조상 조회도 두 번 나간다.
+            //
+            // 조상 예열은 여기가 아니라 ProductCollection 이 응답 단위로 한 번 수행한다.
+            // 상품마다 예열하면 예열 쿼리가 상품 수만큼 반복된다. 단건 사용처(컬렉션을
+            // 거치지 않는 경로)에서는 getBreadcrumb() 이 스스로 필요한 조상만 읽는다.
+            'categories_with_path' => $this->whenLoaded('categories', function () {
+                return $this->categories->map(function ($cat) {
+                    $breadcrumb = $cat->getBreadcrumb();
+
+                    return [
+                        'id' => $cat->id,
+                        'path' => $breadcrumb,
+                        'path_string' => collect($breadcrumb)->pluck('name')->implode(' > '),
+                        'is_primary' => $cat->pivot->is_primary,
+                    ];
+                });
+            }),
 
             // 브랜드 (다국어)
             'brand_name' => $this->whenLoaded('brand', fn () => $this->brand?->getLocalizedName()),
@@ -106,9 +118,13 @@ class ProductListResource extends BaseApiResource
                 ])->values()
             ),
 
-            // 리뷰 통계 (visibleReviews withCount/withAvg eager loading 필요)
-            'review_count' => (int) ($this->review_count ?? 0),
-            'rating_avg' => $this->rating_avg !== null ? round((float) $this->rating_avg, 1) : 0.0,
+            // 리뷰 통계 — 조회 시 조인으로 붙는 집계다.
+            // 값이 null 인지가 아니라 **집계 컬럼이 붙었는지**로 판정한다. 리뷰 0건이면 COUNT/AVG
+            // 별칭은 존재하고 값만 null 이므로 종전대로 0 으로 표기되고, 집계를 아예 붙이지 않은
+            // 경로에서는 필드를 생략한다 — 0 으로 채우면 "세어보니 0" 과 구분되지 않아
+            // 리뷰가 달린 상품도 평점 0.0 으로 나간다.
+            'review_count' => $this->resolveReviewCount(),
+            'rating_avg' => $this->resolveRatingAvg(),
 
             // 날짜
             'created_at' => $this->formatDateTimeStringForUser($this->created_at),
@@ -162,6 +178,34 @@ class ProductListResource extends BaseApiResource
         }
 
         return $this->whenLoaded('activeOptions', fn () => $this->activeOptions->count());
+    }
+
+    /**
+     * 노출 리뷰 수를 반환합니다.
+     *
+     * 집계를 붙이지 않은 조회 경로에서는 0 을 지어내지 않고 필드를 생략합니다.
+     *
+     * @return mixed 리뷰 수(int) 또는 집계 부재 시 MissingValue
+     */
+    protected function resolveReviewCount(): mixed
+    {
+        return $this->hasAggregateAttribute('review_count')
+            ? (int) $this->review_count
+            : new MissingValue;
+    }
+
+    /**
+     * 노출 리뷰의 평균 평점을 반환합니다.
+     *
+     * 리뷰가 0건이면 AVG 는 null 이고 별칭은 존재하므로 0.0 으로 표기합니다.
+     *
+     * @return mixed 평균 평점(float) 또는 집계 부재 시 MissingValue
+     */
+    protected function resolveRatingAvg(): mixed
+    {
+        return $this->hasAggregateAttribute('rating_avg')
+            ? round((float) $this->rating_avg, 1)
+            : new MissingValue;
     }
 
     /**

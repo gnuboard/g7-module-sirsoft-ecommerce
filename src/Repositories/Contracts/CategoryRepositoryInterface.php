@@ -24,9 +24,10 @@ interface CategoryRepositoryInterface
      *
      * @param  int  $id  카테고리 ID
      * @param  array  $with  Eager loading 관계
+     * @param  bool  $withCounts  상품 수·자식 수 집계 포함 여부 (쓰기 경로는 false)
      * @return Category|null 카테고리 모델 (없으면 null)
      */
-    public function findById(int $id, array $with = []): ?Category;
+    public function findById(int $id, array $with = [], bool $withCounts = false): ?Category;
 
     /**
      * 카테고리 생성
@@ -91,9 +92,21 @@ interface CategoryRepositoryInterface
      *
      * @param  string  $slug  카테고리 slug
      * @param  array  $with  Eager loading 관계
+     * @param  bool  $withCounts  상품 수·자식 수 집계 포함 여부 (쓰기 경로는 false)
      * @return Category|null 카테고리 모델 (없으면 null)
      */
-    public function findBySlug(string $slug, array $with = []): ?Category;
+    public function findBySlug(string $slug, array $with = [], bool $withCounts = false): ?Category;
+
+    /**
+     * ID 목록으로 카테고리를 조회하고 ID 키 맵으로 반환합니다.
+     *
+     * 재정렬처럼 여러 항목을 한꺼번에 다루는 경로에서 항목마다 조회하지 않도록 합니다.
+     * 상품 수·자식 수 집계는 포함하지 않습니다 (쓰기 경로는 읽지 않음).
+     *
+     * @param  array<int, int>  $ids  카테고리 ID 목록
+     * @return Collection<int, Category> 카테고리 ID ⇒ 카테고리
+     */
+    public function findByIdsKeyed(array $ids): Collection;
 
     /**
      * 평면 리스트로 카테고리 목록 조회 (TagInput 등에 사용)

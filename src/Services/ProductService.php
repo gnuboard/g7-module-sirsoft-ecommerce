@@ -3,8 +3,12 @@
 namespace Modules\Sirsoft\Ecommerce\Services;
 
 use App\Extension\HookManager;
+use App\Search\SearchPagePolicy;
+use App\Support\Query\BoundedCount;
+use App\Support\Query\BoundedPage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Enums\SequenceType;
@@ -24,6 +28,24 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
  */
 class ProductService
 {
+    /**
+     * 검색 정렬 이름 → [실제 컬럼, 방향] 선언
+     *
+     * 코어({@see SearchPagePolicy})가 이 선언을 읽어 커서 적용 여부를 판정한다.
+     * 여기에 없는 정렬 이름(관련도순 등)은 커서로 처리하지 않고 offset 을 유지한다.
+     */
+    public const SEARCH_SORT_MAP = [
+        'latest' => ['created_at', 'desc'],
+        'oldest' => ['created_at', 'asc'],
+        'price_asc' => ['selling_price', 'asc'],
+        'price_desc' => ['selling_price', 'desc'],
+    ];
+
+    /**
+     * 커서(키셋) 경계로 쓸 수 있는 실제 컬럼 선언
+     */
+    public const SEARCH_CURSOR_COLUMNS = ['created_at', 'selling_price'];
+
     /**
      * HTMLPurifier 인스턴스 (지연 생성)
      */
@@ -1827,9 +1849,9 @@ class ProductService
      * @param  int|null  $categoryId  카테고리 필터
      * @param  int  $offset  오프셋
      * @param  int  $limit  조회할 최대 항목 수
-     * @return array{total: int, items: Collection}
+     * @return BoundedPage 페이지 결과 (총 건수 정확도 포함)
      */
-    public function searchByKeyword(string $keyword, string $sort = 'latest', ?int $categoryId = null, int $offset = 0, int $limit = 10): array
+    public function searchByKeyword(string $keyword, string $sort = 'latest', ?int $categoryId = null, int $offset = 0, int $limit = 10): BoundedPage
     {
         [$orderBy, $direction] = $this->resolveSortColumn($sort);
 
@@ -1837,13 +1859,44 @@ class ProductService
     }
 
     /**
+     * 키워드로 상품을 커서(키셋)로 검색합니다.
+     *
+     * 커서 적용 가능 여부는 코어({@see SearchPagePolicy})가 판정한다. 이 서비스는
+     * 정렬 선언({@see self::SEARCH_SORT_MAP})만 제공하고 규칙을 다시 쓰지 않는다.
+     *
+     * @param  string  $keyword  검색 키워드
+     * @param  string  $sort  정렬 옵션
+     * @param  int|null  $categoryId  카테고리 필터
+     * @param  int  $perPage  페이지당 항목 수
+     * @param  string|null  $cursor  인코딩된 커서 (첫 페이지면 null)
+     * @param  int  $page  요청 페이지 번호 (커서 없이 깊은 페이지를 지목했는지 판정용)
+     * @return CursorPaginator|null 커서 페이지 결과 (커서 적용 불가 시 null)
+     */
+    public function searchByKeywordWithCursor(
+        string $keyword,
+        string $sort = 'latest',
+        ?int $categoryId = null,
+        int $perPage = 10,
+        ?string $cursor = null,
+        int $page = 1
+    ): ?CursorPaginator {
+        $sortKeys = SearchPagePolicy::sortKeys($sort, self::SEARCH_SORT_MAP);
+
+        if (! SearchPagePolicy::usesCursor($cursor, $sortKeys, self::SEARCH_CURSOR_COLUMNS, $page)) {
+            return null;
+        }
+
+        return $this->repository->searchByKeywordWithCursor($keyword, $sortKeys, $categoryId, $perPage, $cursor);
+    }
+
+    /**
      * 키워드와 일치하는 공개 상품 수를 조회합니다.
      *
      * @param  string  $keyword  검색 키워드
      * @param  int|null  $categoryId  카테고리 필터
-     * @return int 일치하는 상품 수
+     * @return BoundedCount 일치하는 상품 수 (정확도 포함)
      */
-    public function countByKeyword(string $keyword, ?int $categoryId = null): int
+    public function countByKeyword(string $keyword, ?int $categoryId = null): BoundedCount
     {
         return $this->repository->countByKeyword($keyword, $categoryId);
     }

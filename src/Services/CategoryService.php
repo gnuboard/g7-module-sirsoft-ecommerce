@@ -89,7 +89,7 @@ class CategoryService
                 $query->withCount('products')->orderBy('sort_order');
             },
             'images',
-        ]);
+        ], withCounts: true);
 
         if ($category && ! $category->is_active) {
             return null;
@@ -118,7 +118,7 @@ class CategoryService
             'images',
             'children',
             'parent:id,name,slug', // parent에서 필요한 필드만 선택
-        ]);
+        ], withCounts: true);
 
         if ($category) {
             // 필터 훅 - 조회 결과 변형
@@ -186,7 +186,8 @@ class CategoryService
      */
     public function updateCategory(int $id, array $data): Category
     {
-        $category = $this->repository->findById($id);
+        // 쓰기 경로는 상품 수·자식 수 집계를 읽지 않는다 — 계산하면 조회마다 서브쿼리 2개가 붙는다.
+        $category = $this->repository->findById($id, withCounts: false);
 
         if (! $category) {
             throw new CategoryOperationException('sirsoft-ecommerce::exceptions.category_not_found', ['category_id' => $id]);
@@ -245,7 +246,7 @@ class CategoryService
      */
     public function deleteCategory(int $id): array
     {
-        $category = $this->repository->findById($id);
+        $category = $this->repository->findById($id, withCounts: false);
 
         if (! $category) {
             throw new CategoryOperationException('sirsoft-ecommerce::exceptions.category_not_found', ['category_id' => $id]);
@@ -299,7 +300,7 @@ class CategoryService
             return ['depth' => 0, 'path' => ''];
         }
 
-        $parent = $this->repository->findById($parentId);
+        $parent = $this->repository->findById($parentId, withCounts: false);
 
         if (! $parent) {
             return ['depth' => 0, 'path' => ''];
@@ -317,7 +318,7 @@ class CategoryService
     private function updatePath(Category $category): void
     {
         if ($category->parent_id) {
-            $parent = $this->repository->findById($category->parent_id);
+            $parent = $this->repository->findById($category->parent_id, withCounts: false);
             if ($parent) {
                 $newPath = $parent->path ? $parent->path.'/'.$category->id : (string) $category->id;
                 $category->update(['path' => $newPath]);
@@ -365,7 +366,7 @@ class CategoryService
      */
     public function toggleStatus(int $id): Category
     {
-        $category = $this->repository->findById($id);
+        $category = $this->repository->findById($id, withCounts: false);
 
         if (! $category) {
             throw new CategoryOperationException('sirsoft-ecommerce::exceptions.category_not_found', ['category_id' => $id]);
@@ -394,9 +395,15 @@ class CategoryService
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.category.before_reorder', $orders);
 
-        DB::transaction(function () use ($orders) {
+        // 항목마다 조회하면 재정렬 한 번에 항목 수만큼 쿼리가 난다. 한 번에 읽어 맵으로 들고 간다.
+        // 집계(상품 수·자식 수)는 재정렬이 읽지 않으므로 계산하지 않는다.
+        $categoriesById = $this->repository->findByIdsKeyed(
+            array_map(fn ($order) => (int) $order['id'], $orders)
+        );
+
+        DB::transaction(function () use ($orders, $categoriesById) {
             foreach ($orders as $order) {
-                $category = $this->repository->findById($order['id']);
+                $category = $categoriesById->get((int) $order['id']);
                 if (! $category) {
                     continue;
                 }

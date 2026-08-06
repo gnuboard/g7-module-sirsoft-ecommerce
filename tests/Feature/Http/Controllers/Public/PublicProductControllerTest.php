@@ -33,10 +33,7 @@ class PublicProductControllerTest extends ModuleTestCase
 
         // PermissionMiddleware의 guest role 정적 캐시 초기화
         // (TestingSeeder에서 guest 역할을 생성하지만, 정적 캐시가 null로 초기화되지 않을 수 있음)
-        $reflection = new \ReflectionClass(PermissionMiddleware::class);
-        $prop = $reflection->getProperty('guestRoleCache');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
+        PermissionMiddleware::clearGuestRoleCache();
     }
 
     // ========================================

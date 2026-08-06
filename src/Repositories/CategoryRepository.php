@@ -90,7 +90,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findById(int $id, array $with = []): ?Category
+    public function findById(int $id, array $with = [], bool $withCounts = false): ?Category
     {
         $query = $this->model->newQuery();
 
@@ -98,10 +98,27 @@ class CategoryRepository implements CategoryRepositoryInterface
             $query->with($with);
         }
 
-        // 상품 수 및 자식 수 카운트 추가
-        $query->withCount(['products', 'children']);
+        // 상품 수 및 자식 수 카운트는 화면에서만 쓴다. 재정렬 같은 쓰기 루프는 이 값을
+        // 읽지 않으므로, 무조건 계산하면 항목마다 집계 서브쿼리가 두 개씩 따라붙는다.
+        if ($withCounts) {
+            $query->withCount(['products', 'children']);
+        }
 
         return $query->find($id);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function findByIdsKeyed(array $ids): Collection
+    {
+        $ids = array_values(array_unique(array_filter($ids)));
+
+        if (empty($ids)) {
+            return new Collection;
+        }
+
+        return $this->model->newQuery()->whereIn('id', $ids)->get()->keyBy('id');
     }
 
     /**
@@ -117,7 +134,9 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function update(int $id, array $data): Category
     {
-        $category = $this->findById($id);
+        // 재정렬은 항목 수만큼 이 메서드를 부른다. 집계를 켜 두면 항목마다 상품 수·자식 수
+        // 서브쿼리가 두 개씩 붙지만 쓰기 경로는 그 값을 읽지 않는다.
+        $category = $this->findById($id, withCounts: false);
         $category->update($data);
 
         return $category->fresh();
@@ -128,7 +147,7 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function delete(int $id): bool
     {
-        $category = $this->findById($id);
+        $category = $this->findById($id, withCounts: false);
 
         return $category->delete();
     }
@@ -146,7 +165,8 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function getProductCount(int $id): int
     {
-        $category = $this->findById($id);
+        // 아래에서 products()->count() 를 직접 세므로 withCount 집계는 버려진다
+        $category = $this->findById($id, withCounts: false);
 
         return $category->products()->count();
     }
@@ -180,7 +200,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findBySlug(string $slug, array $with = []): ?Category
+    public function findBySlug(string $slug, array $with = [], bool $withCounts = false): ?Category
     {
         $query = $this->model->newQuery();
 
@@ -188,7 +208,9 @@ class CategoryRepository implements CategoryRepositoryInterface
             $query->with($with);
         }
 
-        $query->withCount(['products', 'children']);
+        if ($withCounts) {
+            $query->withCount(['products', 'children']);
+        }
 
         return $query->where('slug', $slug)->first();
     }

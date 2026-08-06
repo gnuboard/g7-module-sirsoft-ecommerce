@@ -68,6 +68,11 @@ class ProductWishlistRepository implements ProductWishlistRepositoryInterface
                 'product.categories',
                 'product.activeLabelAssignments.label',
                 'product.images:id,product_id,hash,is_thumbnail,sort_order',
+                // 찜 카드도 상품 카드와 같은 컴포넌트라 별점을 그린다. 집계를 붙이지 않으면
+                // 목록 표현이 평점·리뷰 수를 싣지 못해 리뷰가 달린 상품도 별 0 개로 보인다.
+                'product' => fn ($q) => $q
+                    ->withCount(['visibleReviews as review_count'])
+                    ->withAvg('visibleReviews as rating_avg', 'rating'),
             ])
             ->orderByDesc('created_at')
             // 전순서 보장 — 한 번에 여러 건을 담았을 때의 created_at 동률 대비
