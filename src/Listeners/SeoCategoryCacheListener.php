@@ -9,6 +9,7 @@ use App\Jobs\GenerateSitemapJob;
 use App\Seo\Contracts\SeoCacheManagerInterface;
 use App\Seo\SitemapIndexer;
 use Illuminate\Support\Facades\Log;
+use Modules\Sirsoft\Ecommerce\Support\ShopPathResolver;
 
 /**
  * 카테고리 변경 시 SEO 캐시 무효화 리스너
@@ -142,9 +143,8 @@ class SeoCategoryCacheListener implements HookListenerInterface
                 && (bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_category', true);
 
             if ($visible) {
-                $routePath = g7_module_settings('sirsoft-ecommerce', 'basic_info.route_path', 'shop');
                 $indexer->indexResource('category', $category->id, 'sirsoft-ecommerce', [[
-                    'url' => "/{$routePath}/category/{$category->slug}",
+                    'url' => ShopPathResolver::path("category/{$category->slug}"),
                     'lastmod' => $category->updated_at?->toW3cString(),
                     'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.6,

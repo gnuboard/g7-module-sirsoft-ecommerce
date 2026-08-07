@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Http\Controllers\Public;
 
 use App\Extension\HookManager;
 use Modules\Sirsoft\Ecommerce\Models\Product;
+use Modules\Sirsoft\Ecommerce\Models\ProductInquiry;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -73,6 +74,58 @@ class PublicProductInquiryControllerTest extends ModuleTestCase
                     'meta' => ['inquiry_available', 'board_settings', 'total', 'current_page', 'per_page', 'last_page'],
                 ],
             ]);
+    }
+
+    /**
+     * 작성자 이름은 회원 계정에서 배치로 모아 온 뒤 마스킹되어 내려간다.
+     *
+     * 이름은 행마다 조회하면 N+1 이 되므로 표시할 ID 만 모아 한 번에 읽는다
+     * (`UserRepositoryInterface::getNamesByIds`). 이 경로가 비면 목록의 작성자
+     * 칸이 게시글 스냅샷 이름으로 조용히 대체되어, 개명 후에도 옛 이름이 남는다.
+     */
+    #[Test]
+    public function 문의_목록의_작성자_이름은_회원_계정에서_읽어_마스킹된다(): void
+    {
+        app(EcommerceSettingsService::class)->setSetting('inquiry.board_slug', 'test-board');
+
+        $user = $this->createUser();
+        $user->forceFill(['name' => '홍길동'])->save();
+
+        $pivot = ProductInquiry::create([
+            'product_id' => $this->product->id,
+            'inquirable_type' => 'board_post',
+            'inquirable_id' => 777,
+            'user_id' => $user->id,
+        ]);
+
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.get_settings',
+            fn ($defaults) => $defaults,
+            priority: 1
+        );
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.get_by_ids',
+            fn () => [[
+                'id' => $pivot->inquirable_id,
+                'user_id' => $user->id,
+                // 게시글 스냅샷에는 다른 이름이 들어 있다 — 회원 계정 이름이 이겨야 한다.
+                'author_name' => '스냅샷이름',
+                'title' => '문의 제목',
+                'is_secret' => false,
+            ]],
+            priority: 1
+        );
+
+        $response = $this->getJson(
+            "/api/modules/sirsoft-ecommerce/products/{$this->product->id}/inquiries"
+        );
+
+        $response->assertOk();
+
+        // 존재 확정 후 값 비교 — 항목이 비면 이름 비교는 아무것도 증명하지 못한다.
+        $items = $response->json('data.items');
+        $this->assertCount(1, $items);
+        $this->assertSame('홍*동', $items[0]['author_name']);
     }
 
     #[Test]

@@ -7,6 +7,7 @@ use App\Seo\AbstractSitemapContributor;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CategoryRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Support\ShopPathResolver;
 
 /**
  * Ecommerce 모듈 Sitemap 기여자
@@ -74,12 +75,12 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
      */
     private function collectUrls(): iterable
     {
-        $routePath = g7_module_settings('sirsoft-ecommerce', 'basic_info.route_path') ?? 'shop';
-
+        // 상점 주소 설정(route_path / no_route)을 반영한다 — 주소를 바꾼 상점의 사이트맵이
+        // 기본값 주소를 싣고 나가면 검색엔진이 존재하지 않는 URL 을 수집한다 (공개 #85).
         // 상품 목록 페이지 — 'SEO 제공 페이지' 토글 OFF 시 제외
         if ((bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_shop_index', true)) {
             yield [
-                'url' => "/{$routePath}/products",
+                'url' => ShopPathResolver::path('products'),
                 'changefreq' => SitemapChangeFreq::Daily->value,
                 'priority' => 0.7,
                 'resource_type' => 'shop_index',
@@ -91,7 +92,7 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
         if ((bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_category', true)) {
             foreach ($this->categoryRepository->streamActiveForSitemap() as $category) {
                 yield [
-                    'url' => "/{$routePath}/category/{$category->slug}",
+                    'url' => ShopPathResolver::path("category/{$category->slug}"),
                     'lastmod' => $category->updated_at?->toW3cString(),
                     'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.6,
@@ -105,7 +106,7 @@ class EcommerceSitemapContributor extends AbstractSitemapContributor
         if ((bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_product_detail', true)) {
             foreach ($this->productRepository->streamVisibleForSitemap() as $product) {
                 yield [
-                    'url' => "/{$routePath}/products/{$product->id}",
+                    'url' => ShopPathResolver::path("products/{$product->id}"),
                     'lastmod' => $product->updated_at?->toW3cString(),
                     'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.8,

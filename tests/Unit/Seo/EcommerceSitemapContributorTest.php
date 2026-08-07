@@ -83,6 +83,26 @@ class EcommerceSitemapContributorTest extends ModuleTestCase
     }
 
     /**
+     * getUrls: 주소 없이 운영하는 상점(no_route)은 세그먼트 없이 루트 경로를 싣는다 (공개 #85)
+     *
+     * route_path 만 읽고 no_route 를 무시하면 사이트맵이 `/shop/...` 을 검색엔진에
+     * 제출하지만 실제 화면은 `/...` 이다 — 색인된 URL 전부가 404 로 수집된다.
+     */
+    public function test_get_urls_omits_route_segment_when_no_route(): void
+    {
+        Config::set('g7_settings.modules.sirsoft-ecommerce.basic_info', [
+            'route_path' => 'shop',
+            'no_route' => true,
+        ]);
+
+        $contributor = $this->app->make(EcommerceSitemapContributor::class);
+        $urlPaths = array_column($contributor->getUrls(), 'url');
+
+        $this->assertContains('/products', $urlPaths);
+        $this->assertNotContains('/shop/products', $urlPaths);
+    }
+
+    /**
      * getUrls: 정적/카테고리/상품 URL 항목이 각각 올바른 키 구조를 가진다
      */
     public function test_url_entries_have_correct_structure(): void

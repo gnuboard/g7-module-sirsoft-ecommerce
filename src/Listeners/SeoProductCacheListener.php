@@ -11,6 +11,7 @@ use App\Seo\SeoCacheRegenerator;
 use App\Seo\SitemapIndexer;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Enums\ProductDisplayStatus;
+use Modules\Sirsoft\Ecommerce\Support\ShopPathResolver;
 
 /**
  * 상품 변경 시 SEO 캐시 무효화 리스너
@@ -160,9 +161,8 @@ class SeoProductCacheListener implements HookListenerInterface
                 && (bool) g7_module_settings('sirsoft-ecommerce', 'seo.seo_product_detail', true);
 
             if ($visible) {
-                $routePath = g7_module_settings('sirsoft-ecommerce', 'basic_info.route_path', 'shop');
                 $indexer->indexResource('product', $product->id, 'sirsoft-ecommerce', [[
-                    'url' => "/{$routePath}/products/{$product->id}",
+                    'url' => ShopPathResolver::path("products/{$product->id}"),
                     'lastmod' => $product->updated_at?->toW3cString(),
                     'changefreq' => SitemapChangeFreq::Weekly->value,
                     'priority' => 0.8,
@@ -184,8 +184,8 @@ class SeoProductCacheListener implements HookListenerInterface
     /**
      * 상품 상세 페이지의 SEO 캐시를 즉시 재생성합니다.
      *
-     * URL 구성: /{route_path}/products/{id}
-     * route_path는 이커머스 모듈 설정에서 조회합니다.
+     * URL 구성: {상점 기준 경로}/products/{id}
+     * 기준 경로는 상점 주소 설정(route_path / no_route)을 ShopPathResolver 가 해석한 값입니다.
      *
      * @param  array  $args  훅 인자 배열
      */
@@ -199,8 +199,7 @@ class SeoProductCacheListener implements HookListenerInterface
 
         try {
             $regenerator = app(SeoCacheRegenerator::class);
-            $routePath = g7_module_settings('sirsoft-ecommerce', 'basic_info.route_path', 'shop');
-            $url = "/{$routePath}/products/{$product->id}";
+            $url = ShopPathResolver::path("products/{$product->id}");
             $regenerator->renderAndCache($url);
 
             Log::debug('[SEO] Product detail cache regenerated', [
