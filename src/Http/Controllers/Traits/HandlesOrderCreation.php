@@ -19,6 +19,7 @@ use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\TempOrder;
 use Modules\Sirsoft\Ecommerce\Services\CurrencyConversionService;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
+use Modules\Sirsoft\Ecommerce\Support\ShopPathResolver;
 
 /**
  * 주문 생성 공통 흐름 Trait
@@ -218,7 +219,9 @@ trait HandlesOrderCreation
     {
         $responseData = [
             'order' => $orderResource,
-            'redirect_url' => "/shop/orders/{$order->order_number}/complete",
+            // 상점 주소는 운영자 설정이다 — 기본값 리터럴을 내려보내면 주소를 바꾼 상점에서
+            // 결제를 마친 손님이 존재하지 않는 화면으로 이동한다 (공개 #85).
+            'redirect_url' => ShopPathResolver::path("orders/{$order->order_number}/complete"),
             'requires_pg_payment' => $requiresPg,
         ];
 

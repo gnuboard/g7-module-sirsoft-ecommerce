@@ -6,6 +6,7 @@ use App\Jobs\GenerateSitemapJob;
 use App\Seo\Contracts\SeoCacheManagerInterface;
 use App\Seo\SitemapIndexer;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoCategoryCacheListener;
@@ -216,6 +217,76 @@ class SeoCategoryCacheListenerTest extends ModuleTestCase
 
         // 검증은 Log::shouldReceive 기대치(Mockery::close)로 수행됨
         $this->addToAssertionCount(1);
+    }
+
+    // ========================================
+    // syncSitemapIndex() — 상점 주소 설정 반영 (공개 #85)
+    // ========================================
+
+    /**
+     * 사이트맵 색인 URL 이 기본 상점 주소를 따르는지 확인
+     */
+    public function test_sitemap_index_url_uses_default_shop_path(): void
+    {
+        $this->assertSitemapIndexUrl([], '/shop/category/outer');
+    }
+
+    /**
+     * 운영자가 상점 주소를 바꾸면 사이트맵 색인 URL 도 그 주소를 따르는지 확인
+     */
+    public function test_sitemap_index_url_follows_custom_route_path(): void
+    {
+        $this->assertSitemapIndexUrl(['route_path' => 'store'], '/store/category/outer');
+    }
+
+    /**
+     * 주소 없이 운영하는 상점(no_route)의 사이트맵 색인 URL 은 세그먼트 없이 루트에 붙는다
+     *
+     * 종전에는 route_path 만 읽고 no_route 를 무시해 `/shop/category/outer` 를 색인했다 —
+     * 실제 화면 주소는 `/category/outer` 이므로 사이트맵이 없는 주소를 검색엔진에 알린다.
+     */
+    public function test_sitemap_index_url_omits_route_segment_when_no_route(): void
+    {
+        $this->assertSitemapIndexUrl(
+            ['route_path' => 'shop', 'no_route' => true],
+            '/category/outer'
+        );
+    }
+
+    /**
+     * 주어진 상점 주소 설정에서 색인된 카테고리 URL 이 기대값과 같은지 검증합니다.
+     *
+     * @param  array  $basicInfo  주입할 `basic_info` 설정
+     * @param  string  $expectedUrl  기대하는 색인 URL
+     */
+    private function assertSitemapIndexUrl(array $basicInfo, string $expectedUrl): void
+    {
+        Config::set('g7_settings.modules.sirsoft-ecommerce.basic_info', $basicInfo);
+
+        $indexedUrl = null;
+        $indexer = Mockery::mock(SitemapIndexer::class);
+        $indexer->shouldReceive('indexResource')
+            ->once()
+            ->andReturnUsing(function (string $type, int $id, string $owner, array $urls) use (&$indexedUrl) {
+                $indexedUrl = $urls[0]['url'] ?? null;
+            });
+        $this->app->instance(SitemapIndexer::class, $indexer);
+
+        $this->app->instance(SeoCacheManagerInterface::class, $this->createMock(SeoCacheManagerInterface::class));
+        Log::shouldReceive('debug')->atLeast()->once();
+
+        $category = (object) [
+            'id' => 42,
+            'slug' => 'outer',
+            'is_active' => true,
+            'updated_at' => null,
+        ];
+
+        $this->listener->onCategoryChange($category);
+
+        // 존재 확정 후 값 비교 — 색인 자체가 일어나지 않으면 URL 비교는 의미가 없다
+        $this->assertNotNull($indexedUrl, '카테고리 사이트맵 색인이 수행되지 않았다');
+        $this->assertSame($expectedUrl, $indexedUrl);
     }
 
     // ========================================

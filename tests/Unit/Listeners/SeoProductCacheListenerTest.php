@@ -7,6 +7,7 @@ use App\Seo\Contracts\SeoCacheManagerInterface;
 use App\Seo\SeoCacheRegenerator;
 use App\Seo\SitemapIndexer;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoProductCacheListener;
@@ -111,6 +112,35 @@ class SeoProductCacheListenerTest extends ModuleTestCase
         $this->regeneratorMock->shouldReceive('renderAndCache')
             ->once()
             ->with('/shop/products/10')
+            ->andReturn(true);
+
+        Log::shouldReceive('debug')->atLeast()->once();
+
+        $this->listener->onProductUpdate($product);
+
+        $this->addToAssertionCount(1);
+    }
+
+    /**
+     * 주소 없이 운영하는 상점(no_route)의 SEO 캐시 경로는 세그먼트 없이 루트에 붙는다 (공개 #85)
+     *
+     * 종전에는 route_path 만 읽고 no_route 를 무시해 `/shop/products/7` 을 재생성했다 —
+     * 실제 화면 주소는 `/products/7` 이므로 봇이 받는 캐시가 영원히 채워지지 않는다.
+     */
+    public function test_on_product_update_regenerates_root_path_when_no_route(): void
+    {
+        Config::set('g7_settings.modules.sirsoft-ecommerce.basic_info', [
+            'route_path' => 'shop',
+            'no_route' => true,
+        ]);
+
+        $product = (object) ['id' => 7];
+
+        $this->expectCommonInvalidations($product);
+
+        $this->regeneratorMock->shouldReceive('renderAndCache')
+            ->once()
+            ->with('/products/7')
             ->andReturn(true);
 
         Log::shouldReceive('debug')->atLeast()->once();

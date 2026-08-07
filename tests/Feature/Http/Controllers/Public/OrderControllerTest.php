@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Http\Controllers\Public;
 
 use App\Extension\HookManager;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
@@ -18,6 +19,7 @@ use Modules\Sirsoft\Ecommerce\Models\TempOrder;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
 use Modules\Sirsoft\Ecommerce\Services\PaymentMethodResolver;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * 회원/비회원 공유 주문 (Public\OrderController) 테스트
@@ -182,6 +184,51 @@ class OrderControllerTest extends ModuleTestCase
             'order_number' => $response->json('data.order.order_number'),
             'user_id' => null,
         ]);
+    }
+
+    /**
+     * 1-1. 주문 완료 이동 주소는 상점 주소 설정을 따른다 (공개 #85)
+     *
+     * 기본값 상점(`/shop`) · 운영자가 바꾼 주소(`/store`) · 주소 없이 운영(no_route) 3축.
+     * 서버가 기본값을 리터럴로 내려보내면 뒤의 두 상점에서는 결제를 마친 손님이
+     * 존재하지 않는 페이지로 이동한다.
+     *
+     * @param  array<string, mixed>  $basicInfo  상점 기본 설정
+     */
+    #[DataProvider('shopRoutePathProvider')]
+    public function test_주문_완료_이동주소가_상점_주소_설정을_따른다(array $basicInfo, string $expectedPrefix): void
+    {
+        Config::set('g7_settings.modules.sirsoft-ecommerce.basic_info', $basicInfo);
+
+        $this->createGuestTempOrder();
+
+        $response = $this->postJson(
+            '/api/modules/sirsoft-ecommerce/user/orders',
+            $this->guestOrderPayload(),
+            ['X-Cart-Key' => $this->cartKey]
+        );
+
+        $response->assertStatus(201);
+
+        $orderNumber = $response->json('data.order.order_number');
+        $this->assertSame(
+            "{$expectedPrefix}/orders/{$orderNumber}/complete",
+            $response->json('data.redirect_url')
+        );
+    }
+
+    /**
+     * 상점 주소 3축 (기본 / 변경 / 주소 없음)
+     *
+     * @return array<string, array{0: array<string, mixed>, 1: string}>
+     */
+    public static function shopRoutePathProvider(): array
+    {
+        return [
+            '기본 상점 주소' => [['route_path' => 'shop'], '/shop'],
+            '운영자가 바꾼 주소' => [['route_path' => 'store'], '/store'],
+            '주소 없이 운영' => [['route_path' => 'shop', 'no_route' => true], ''],
+        ];
     }
 
     /**
@@ -1163,6 +1210,40 @@ class OrderControllerTest extends ModuleTestCase
         $this->getJson("/api/modules/sirsoft-ecommerce/user/orders/{$orderNumber}")
             ->assertStatus(404)
             ->assertJsonPath('errors.redirect_to', '/shop/guest/orders');
+    }
+
+    /**
+     * 20-1. 상점 주소를 바꾼 상점에서는 비회원 조회 안내도 그 주소를 가리킨다 (공개 #85)
+     *
+     * 기본값 `/shop` 을 리터럴로 내려보내면 주소를 바꾼 상점에서는 존재하지 않는 화면으로
+     * 안내한다. 서버는 문자열을 만들어 보냈을 뿐이라 예외도 404 로그도 남지 않는다.
+     */
+    public function test_상점_주소_변경시_비회원_lookup_redirect도_따라간다(): void
+    {
+        Config::set('g7_settings.modules.sirsoft-ecommerce.basic_info', ['route_path' => 'store']);
+
+        [$orderNumber] = $this->placeGuestOrderAndToken();
+
+        $this->getJson("/api/modules/sirsoft-ecommerce/user/orders/{$orderNumber}")
+            ->assertStatus(404)
+            ->assertJsonPath('errors.redirect_to', '/store/guest/orders');
+    }
+
+    /**
+     * 20-2. 주소 없이 운영하는 상점(no_route)에서는 세그먼트 없이 루트에 붙는다 (공개 #85)
+     */
+    public function test_주소_없는_상점은_비회원_lookup_redirect가_루트_경로다(): void
+    {
+        Config::set('g7_settings.modules.sirsoft-ecommerce.basic_info', [
+            'route_path' => 'shop',
+            'no_route' => true,
+        ]);
+
+        [$orderNumber] = $this->placeGuestOrderAndToken();
+
+        $this->getJson("/api/modules/sirsoft-ecommerce/user/orders/{$orderNumber}")
+            ->assertStatus(404)
+            ->assertJsonPath('errors.redirect_to', '/guest/orders');
     }
 
     /**

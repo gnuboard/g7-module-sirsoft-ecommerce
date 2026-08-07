@@ -1382,18 +1382,18 @@ _목록 응답: `data.data[]` 배열 항목의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | id | integer | `27789` | 기본 키 (내부 식별자) |
-| log_type | string | `admin` | <!-- TODO: 설명 --> |
+| log_type | string | `admin` | 로그 분류 (`ActivityLogType` Enum 값 — 관리자/사용자/시스템 등 활동 주체 구분) |
 | log_type_label | string | `관리자` | `log_type` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
-| loggable_type | string | `Modules\Sirsoft\Ecommerce\Models\Orde…` | <!-- TODO: 설명 --> |
-| loggable_type_display | string | `OrderOption` | <!-- TODO: 설명 --> |
+| loggable_type | string | `Modules\Sirsoft\Ecommerce\Models\Orde…` | 로그 대상 모델의 FQCN (다형 관계 타입 — 표시용 짧은 이름은 `loggable_type_display`) |
+| loggable_type_display | string | `OrderOption` | `loggable_type` 의 표시용 짧은 이름 (네임스페이스를 제외한 클래스명) |
 | loggable_id | integer | `1264` | loggable 식별자 (연관 리소스 참조) |
-| action | string | `order_option.partial_cancel` | <!-- TODO: 설명 --> |
+| action | string | `order_option.partial_cancel` | 수행된 활동의 식별 키 (`{대상}.{행위}` 형식 — 라벨은 `action_label`) |
 | action_label | string | `부분 취소` | `action` 값의 사람이 읽는 라벨 (현지화/Enum 파생) |
 | localized_description | string | `주문 옵션 부분 취소 (옵션 ID: 1264)` | `description` 의 현재 로케일 해석 값 (다국어 필드를 표시용 문자열로 해석) |
-| description_key | string | `sirsoft-ecommerce::activity_log.descr…` | <!-- TODO: 설명 --> |
-| properties | object | `{"order_id":1316,"product_name":{"ko":"신제품 출시 예정 #21","en…` | <!-- TODO: 설명 --> |
-| changes | null | `null` | <!-- TODO: 설명 --> |
-| bulk_changes | null | `null` | <!-- TODO: 설명 --> |
+| description_key | string | `sirsoft-ecommerce::activity_log.descr…` | 설명 문구의 다국어 키 (`localized_description` 은 이 키를 현재 로케일로 해석한 값) |
+| properties | object | `{"order_id":1316,"product_name":{"ko":"신제품 출시 예정 #21","en…` | 활동 시점의 부가 정보 (설명 문구의 치환 파라미터 및 참조 식별자 — 활동 종류마다 키가 다름) |
+| changes | null | `null` | 단건 수정의 변경 내역 `[{field, old, new}, …]`. 일괄 수정이거나 변경 추적 대상이 아니면 `null` |
+| bulk_changes | null | `null` | 일괄 수정의 변경 내역 `[{model_id, changes[]}, …]`. 단건 수정이면 `null` (`changes` 와 동시에 채워지지 않음) |
 | has_changes | boolean | `false` | changes 여부 |
 | actor_name | string | `시스템` | 행위를 수행한 주체(사용자/시스템)의 이름 |
 | user | object | `{"name":"시스템"}` | 대상 사용자 정보 객체 (uuid/name/email 등 — user 관계 파생) |
@@ -2073,7 +2073,7 @@ _단건 응답: `data` 객체의 필드 (HTTP 201). 회원은 `order` 에 `Order
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | order | object | `{"id":181,"order_number":"20260711-0210001234", …}` | 생성된 주문 (회원: `OrderResource` / 비회원: `GuestOrderResource`) |
-| redirect_url | string | `/shop/orders/20260711-0210001234/complete` | 주문완료 페이지 경로 (프론트가 이동할 URL) |
+| redirect_url | string | `/shop/orders/20260711-0210001234/complete` | 주문완료 페이지 경로 (프론트가 이동할 URL). 앞의 상점 경로는 상점 주소 설정을 반영한다 — `basic_info.route_path` 를 바꾸면 그 값이(`/store/orders/…`), `basic_info.no_route` 를 켜면 세그먼트 없이(`/orders/…`) 내려간다 |
 | requires_pg_payment | boolean | `true` | PG 결제창 호출이 필요한지 여부 (무통장·전액 마일리지 등 non-PG 는 `false`) |
 | pg_provider | string | `sirsoft-tosspayments` | PG 플러그인 식별자 (`requires_pg_payment=true` 일 때만 포함) |
 | pg_payment_handler | string | `sirsoft-tosspayments.requestPayment` | 프론트가 dispatch 할 결제 진입 핸들러 풀네임 (provider 가 선언한 경우에만 포함) |
@@ -3221,7 +3221,7 @@ HTTP/1.1 200
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 404 | Not Found | 주문이 없거나 접근 권한이 없는 경우 — 회원: 본인 주문 아님(`errors.redirect_to = /mypage/orders`), 비회원: `X-Guest-Order-Token` 부재·만료·위조(`errors.redirect_to = /shop/guest/orders`). 정보 노출 방지를 위해 모든 실패를 동일 404 로 처리 |
+| 404 | Not Found | 주문이 없거나 접근 권한이 없는 경우 — 회원: 본인 주문 아님(`errors.redirect_to = /mypage/orders`), 비회원: `X-Guest-Order-Token` 부재·만료·위조(`errors.redirect_to = /shop/guest/orders` — 상점 주소 설정 `basic_info.route_path`/`no_route` 반영). 정보 노출 방지를 위해 모든 실패를 동일 404 로 처리 |
 
 <!-- @generated:end -->
 
