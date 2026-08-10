@@ -126,6 +126,12 @@ class EcommerceSettingsService implements ModuleSettingsInterface
             );
         }
 
+        // 보충된 통화가 defaults 의 is_default 를 그대로 들여오면 기본 통화가 복수가 된다.
+        // is_default 의 SSoT 는 default_currency 이므로 병합 직후 전 항목을 재동기화한다.
+        if (isset($settings['language_currency'])) {
+            $settings['language_currency'] = $this->syncCurrencyDefaults($settings['language_currency']);
+        }
+
         // 결제수단 병합 (기본 + 플러그인 필터 + 사용자 저장 설정)
         if (isset($settings['order_settings'])) {
             $settings['order_settings']['payment_methods'] = $this->getMergedPaymentMethods(
@@ -188,13 +194,25 @@ class EcommerceSettingsService implements ModuleSettingsInterface
     }
 
     /**
-     * 공개 결제 설정 조회 (bank_accounts에 은행명 매핑 포함)
+     * 공개 결제 설정 조회 (고아 결제수단 제외 + bank_accounts에 은행명 매핑 포함)
      *
-     * @return array 은행명이 포함된 결제 설정
+     * 고아 결제수단(저장은 되어 있으나 현재 available 카탈로그에 없는 항목)은
+     * 공급 확장이 사라졌거나 그 확장이 해당 수단 제공을 중단한 상태다. 저장값의
+     * is_active 는 그대로 남아 있으므로 걸러내지 않으면 체크아웃이 선택 가능한
+     * 결제수단으로 계속 노출한다(관리자 화면은 _orphaned 를 읽어 이미 차단).
+     *
+     * @return array 고아 항목이 제거되고 은행명이 포함된 결제 설정
      */
     public function getPublicPaymentSettings(): array
     {
         $orderSettings = $this->getSettings('order_settings');
+
+        if (isset($orderSettings['payment_methods']) && is_array($orderSettings['payment_methods'])) {
+            $orderSettings['payment_methods'] = array_values(array_filter(
+                $orderSettings['payment_methods'],
+                fn ($method) => ! ($method['_orphaned'] ?? false)
+            ));
+        }
 
         if (isset($orderSettings['bank_accounts'], $orderSettings['banks'])) {
             $banks = collect($orderSettings['banks']);

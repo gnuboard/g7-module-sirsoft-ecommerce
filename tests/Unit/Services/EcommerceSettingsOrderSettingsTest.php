@@ -473,6 +473,57 @@ class EcommerceSettingsOrderSettingsTest extends ModuleTestCase
         $this->assertEquals('tosspayments', $lastMethod['id']);
     }
 
+    /**
+     * 공개 결제 설정에서는 고아 결제수단이 제거되어야 한다.
+     *
+     * 회귀 배경: 토스페이먼츠 플러그인의 주문서형 결제를 끄면 toss_* 결제수단이
+     * available 카탈로그에서 빠지지만 저장값의 is_active 는 true 로 남는다.
+     * 관리자 화면은 _orphaned 를 읽어 차단하는데 체크아웃은 is_active 만 보므로,
+     * 서버가 걸러주지 않으면 비활성화된 결제수단이 그대로 선택 가능했다.
+     */
+    public function test_public_payment_settings_exclude_orphaned_methods(): void
+    {
+        $savedSettings = [
+            'payment_methods' => [
+                ['id' => 'card', 'sort_order' => 1, 'is_active' => true, 'min_order_amount' => 0, 'stock_deduction_timing' => 'payment_complete'],
+                ['id' => 'dbank', 'sort_order' => 3, 'is_active' => true, 'min_order_amount' => 0, 'stock_deduction_timing' => 'order_placed'],
+                [
+                    'id' => 'toss_kakaopay',
+                    'sort_order' => 121,
+                    'is_active' => true,
+                    'min_order_amount' => 0,
+                    'stock_deduction_timing' => 'payment_complete',
+                    '_cached_name' => ['ko' => '카카오페이 (토스페이먼츠)', 'en' => 'KakaoPay (TossPayments)'],
+                    '_cached_icon' => 'wallet',
+                    '_cached_source' => 'plugin:sirsoft-tosspayments',
+                ],
+            ],
+        ];
+
+        $this->saveOrderSettings($savedSettings);
+        $this->service->clearCache();
+
+        // 플러그인 필터 미등록 → toss_kakaopay 는 available 에 없다(주문서형 결제 OFF 와 동일 상태)
+        $adminMethods = $this->service->getSettings('order_settings')['payment_methods'];
+        $adminToss = collect($adminMethods)->firstWhere('id', 'toss_kakaopay');
+        $this->assertNotNull($adminToss, '관리자 응답에는 고아 항목이 남아 있어야 한다(삭제 UI 필요)');
+        $this->assertTrue($adminToss['_orphaned'] ?? false);
+
+        $publicMethods = $this->service->getPublicPaymentSettings()['payment_methods'];
+        $publicIds = array_column($publicMethods, 'id');
+
+        $this->assertNotContains('toss_kakaopay', $publicIds);
+        $this->assertContains('card', $publicIds);
+        $this->assertContains('dbank', $publicIds);
+
+        // 리스트 인덱스가 재정렬되어야 한다 (JSON 직렬화 시 객체가 되지 않도록)
+        $this->assertSame(range(0, count($publicMethods) - 1), array_keys($publicMethods));
+
+        foreach ($publicMethods as $method) {
+            $this->assertArrayNotHasKey('_orphaned', $method);
+        }
+    }
+
     // ──────────────────────────────────────────────
     // _cached_* 메타데이터 스냅샷
     // ──────────────────────────────────────────────

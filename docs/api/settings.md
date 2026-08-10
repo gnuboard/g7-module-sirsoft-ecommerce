@@ -55,7 +55,7 @@ _단건 응답: `data` 객체의 필드._
 | available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
 | available_cash_receipt_providers | array | `[]` | 설치된 플러그인이 훅으로 등록한 현금영수증 발급 제공자 목록 (id·name_key — 미등록 시 빈 배열이며 신청 폼이 노출되지 않음) |
 | abilities | object | `{"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
-| _meta | object | `{"limits":{"auto_cancel_days_min":1,"auto_cancel_days_max…` | <!-- TODO: 설명 --> |
+| _meta | object | `{"limits":{"auto_cancel_days_min":1,"auto_cancel_days_max…` | 설정 화면 전용 메타. `limits` 는 숫자 입력의 경계값 맵(`config('sirsoft-ecommerce.limits')`)으로, 저장 규칙(FormRequest)과 같은 출처다 — 화면이 리터럴 경계를 들면 규칙 변경을 따라가지 못해 "화면은 받는데 저장은 422" 가 되므로 입력 min/max 는 이 값을 바인딩한다 |
 
 **응답 예시**
 
@@ -1447,11 +1447,37 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| category | string | `"basic_info"` | 조회한 설정 카테고리 (path 파라미터를 그대로 반향) |
+| settings | object | `{"shop_name":"","route_path":"shop","no_route":false}` | 해당 카테고리의 설정값. 구조는 카테고리마다 다르며 index 응답의 동명 최상위 키와 동일하다 (`order_settings` 조회 시 결제수단은 병합된 목록 — 공급 확장이 빠진 고아 항목 포함) |
+| abilities | object | `{"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update — 권한 맵 기반) |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "설정을 조회했습니다.",
+    "data": {
+        "category": "basic_info",
+        "settings": {
+            "shop_name": "",
+            "route_path": "shop",
+            "no_route": false
+        },
+        "abilities": {
+            "can_update": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -1491,7 +1517,7 @@ _단건 응답: `data` 객체의 필드._
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
 | shipping | object | `{"default_country":"KR","available_countries":[{"code":"K…` | 체크아웃용 배송 설정 (기본 국가·배송 가능 국가·무료배송·배송유형 등) |
-| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 체크아웃용 주문/결제 설정 (기본 PG·활성 결제수단·무통장 계좌 등) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 체크아웃용 주문/결제 설정 (기본 PG·활성 결제수단·무통장 계좌 등). `payment_methods` 는 현재 제공 가능한 결제수단만 포함하며, 공급 확장이 더 이상 제공하지 않는 결제수단(관리자 화면의 고아 항목)은 `is_active` 가 참이어도 제외된다 |
 
 **응답 예시**
 
@@ -1626,7 +1652,7 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 공개 가능한 결제 설정 (활성 결제수단·무통장 은행명 매핑 포함, 민감 정보 제외) |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 공개 가능한 결제 설정 (활성 결제수단·무통장 은행명 매핑 포함, 민감 정보 제외). `payment_methods` 는 현재 제공 가능한 결제수단만 포함하며, 공급 확장이 더 이상 제공하지 않는 결제수단(관리자 화면의 고아 항목)은 `is_active` 가 참이어도 제외된다 |
 
 **응답 예시**
 
