@@ -2181,8 +2181,13 @@ class Module extends AbstractModule
      *   타게팅(모든 web 요청 = 기존 web 그룹 append 와 동등). InjectAppConfigDeviceListener 가
      *   appConfig.isIos 로 주입(체크아웃 애플페이 iOS 게이팅).
      * - ResolveShippingCountry: 상품/장바구니/체크아웃/주문생성 라우트에만 부착 (배송국가 해석).
-     * - VerifyGuestOrderToken: 비회원 주문 후속 액션 4개 라우트에만 부착 (verify 는 미부착 —
-     *   토큰 발급 전 단계라 개별 지정).
+     * - VerifyGuestOrderToken: 비회원 주문 후속 액션 라우트에 부착 (취소·환불예상·배송지수정·구매확정
+     *   개별 지정 + 현금영수증 하위 전체 glob). `guest.orders.verify` 는 조회 토큰을 **발급**하는
+     *   엔드포인트라 호출 시점에 토큰이 없다 — 부착하면 최초 인증 요청이 404 로 막혀 비회원 조회가
+     *   통째로 죽으므로 제외한다(요청 빈도 제한은 throttle 과 GuestOrderAuthService 의 실패 잠금 담당).
+     *   부착 대상 개수를 이 주석에 적지 않는다 — 개수를 문서에 박는 것이 다음 누락의 씨앗이다
+     *   (실제로 현금영수증 라우트 2건이 추가될 때 targets 갱신이 누락돼 기능이 전면 불능이었다).
+     *   정합성은 `GuestOrderTokenMiddlewareRegistrationTest` 가 라우트 테이블 전수로 강제한다.
      *
      * @return array<int, array{class: class-string, groups: array<int, string>, timing?: string, targets: array<int, string>}>
      */
@@ -2212,6 +2217,10 @@ class Module extends AbstractModule
                     'api.modules.sirsoft-ecommerce.guest.orders.estimate-refund',
                     'api.modules.sirsoft-ecommerce.guest.orders.update-shipping-address',
                     'api.modules.sirsoft-ecommerce.guest.orders.confirm-option',
+                    // 현금영수증 하위 전체(show/issue/향후 추가분). glob 은 이 서브트리의 기본값을
+                    // '보호' 로 만들어 실패 방향을 안전한 쪽으로 뒤집는다. `cash-receipt` 가 리터럴
+                    // 세그먼트라 구조적으로 `verify` 와 매칭될 수 없다.
+                    'api.modules.sirsoft-ecommerce.guest.orders.cash-receipt.*',
                 ],
             ],
         ];

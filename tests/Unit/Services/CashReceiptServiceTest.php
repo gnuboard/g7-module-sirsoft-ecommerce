@@ -586,6 +586,64 @@ class CashReceiptServiceTest extends ModuleTestCase
         );
     }
 
+    /**
+     * 현금영수증 금액은 구매자가 실제로 낸 금액(결제 통화 청구액)이어야 한다.
+     *
+     * base 통화 금액(total_cash_equivalent_amount)을 그대로 쓰면 base≠결제 통화 주문에서
+     * 실제 청구액과 다른 금액으로 세금 증빙이 발행된다. 국세청에 신고되는 금액이라
+     * 화면 표시 오류가 아니라 증빙 오류다.
+     */
+    #[Test]
+    public function 발급액은_결제_통화_기준_실청구액을_따른다(): void
+    {
+        // base JPY 31,000 (base_unit 100) / 결제 통화 KRW rate 1 → 실청구 310 KRW
+        $order = $this->makeOrder(31000, 31000, 0);
+        $order->update([
+            'currency' => 'KRW',
+            'currency_snapshot' => [
+                'base_currency' => 'JPY',
+                'order_currency' => 'KRW',
+                'exchange_rate' => 1,
+                'base_unit' => 100,
+                'exchange_rates' => [
+                    'JPY' => ['rate' => 1, 'rounding_unit' => '1', 'rounding_method' => 'round', 'decimal_places' => 0, 'base_unit' => 100],
+                    'KRW' => ['rate' => 1, 'rounding_unit' => '1', 'rounding_method' => 'floor', 'decimal_places' => 0, 'base_unit' => 1000],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            ['amount' => 310, 'tax_free_amount' => 0],
+            $this->service()->calculateIssuableAmount($order->fresh()),
+        );
+    }
+
+    /**
+     * 단일통화 상점(base == 결제 통화)은 종전과 동일해야 한다 — 회귀 방지.
+     */
+    #[Test]
+    public function 단일통화_상점의_발급액은_종전과_동일하다(): void
+    {
+        $order = $this->makeOrder(11000, 10000, 1000);
+        $order->update([
+            'currency' => 'KRW',
+            'currency_snapshot' => [
+                'base_currency' => 'KRW',
+                'order_currency' => 'KRW',
+                'exchange_rate' => 1,
+                'base_unit' => 1,
+                'exchange_rates' => [
+                    'KRW' => ['rate' => 1, 'rounding_unit' => '1', 'rounding_method' => 'floor', 'decimal_places' => 0, 'base_unit' => 1],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            ['amount' => 11000, 'tax_free_amount' => 1000],
+            $this->service()->calculateIssuableAmount($order->fresh()),
+        );
+    }
+
     #[Test]
     public function 현금성_금액이_0이면_발급액도_0이다(): void
     {

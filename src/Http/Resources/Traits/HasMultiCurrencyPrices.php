@@ -87,6 +87,39 @@ trait HasMultiCurrencyPrices
     }
 
     /**
+     * 가감액(추가금)의 다중 통화 정보를 생성합니다.
+     *
+     * 가격과 달리 추가금은 부호를 가지며 화면에 `+3,000원` / `-2,000원` 형태로 표시된다.
+     * 환산은 절대값으로 수행한 뒤 부호를 되돌린다 — 통화별 반올림 규칙이 음수에서
+     * 방향이 뒤집히는 것(예: floor 가 -2,850 을 -2,851 로)을 막기 위함이다.
+     *
+     * 추가옵션 추가금은 기본 통화 기준으로 저장되므로, 기본 통화가 아닌 통화로 보는
+     * 구매자에게는 이 맵이 없으면 환산할 근거가 없다. 상품가·옵션가와 같은 형태로
+     * 내보내 화면이 동일한 방식(`[표시통화].formatted`)으로 읽게 한다.
+     *
+     * @param  float|int  $baseAdjustment  기본 통화 기준 가감액 (음수 가능)
+     * @return array 통화별 가감액 정보 (price 는 부호 있는 값, formatted 는 부호 접두)
+     */
+    protected function buildMultiCurrencyPriceAdjustments(float|int $baseAdjustment): array
+    {
+        $isNegative = $baseAdjustment < 0;
+        $converted = $this->buildMultiCurrencyPrices(abs($baseAdjustment));
+
+        $result = [];
+        foreach ($converted as $code => $entry) {
+            $price = $entry['price'] ?? 0;
+
+            $result[$code] = [
+                ...$entry,
+                'price' => $isNegative ? -$price : $price,
+                'formatted' => ($isNegative ? '-' : '+').$this->formatCurrencyPrice($price, $code),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * 통화 설정을 조회합니다 (캐시 적용).
      *
      * @return array 통화 설정 배열

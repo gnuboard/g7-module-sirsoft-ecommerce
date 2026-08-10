@@ -779,7 +779,7 @@ describe('Partial 레이아웃 구조 검증', () => {
         it('다통화 표시에 preferredCurrency 필터가 적용된다', () => {
             const json = JSON.stringify(orderInfoPartial);
             // 보조 통화만 표시 (기본 통화 제외)
-            expect(json).toContain("_global.preferredCurrency ?? 'KRW'");
+            expect(json).toContain("_global.preferredCurrency ?? _global.defaultCurrency");
         });
 
         it('다통화 표시에 iteration 패턴이 사용된다 (engine-v1.19.1)', () => {

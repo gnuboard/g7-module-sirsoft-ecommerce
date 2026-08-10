@@ -476,6 +476,8 @@ _단건 응답: `data` 객체의 필드._
 | total_paid_amount_formatted | string | `¥176,000` | `total_paid_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | total_due_amount | integer | `0` | 총 결제예정금액 (무통장 등) |
 | total_due_amount_formatted | string | `¥0` | `total_due_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_due_charge_amount | integer | `0` | **결제 통화(`payment_currency`) 기준 실청구액**, 최소 화폐단위 정수 (KRW ×1 / 소수통화 ×10^n). `total_due_amount` 는 base 통화 금액이므로 base≠결제 통화면 값이 다릅니다. 무통장 입금확인이 검증하는 금액이 이 값이며, 화면은 이 값을 그대로 입금액으로 보내야 합니다 |
+| total_due_charge_amount_formatted | string | `0원` | `total_due_charge_amount` 를 결제 통화 기호로 표기한 문자열 |
 | depositor_name | null | `null` | 무통장 입금자명 (입금확인 모달 기본값, payment 관계 로드 시에만 노출) |
 | total_cancelled_amount | integer | `0` | 총 취소금액 |
 | total_cancelled_amount_formatted | string | `¥0` | `total_cancelled_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
@@ -550,6 +552,8 @@ _단건 응답: `data` 객체의 필드._
 | payments | array | `[{"id":1,"payment_status":"paid","payment_status_label":"…` | 결제 이력 목록 (OrderPaymentResource 배열 — 다회 결제/부분결제 포함) |
 | cash_receipt | null | `null` | 현재 유효한 현금영수증 (CashReceiptResource — 취소되지 않은 발급 건, 없으면 null) |
 | cash_receipts | array | `[]` | 현금영수증 발급·취소 이력 전체 (CashReceiptResource 배열 — 취소된 건 포함) |
+
+> `CashReceiptResource` 의 `amount`/`tax_free_amount` 는 **결제 통화 기준 실청구액**입니다 (구매자가 실제로 낸 금액으로 세금 증빙이 발행되어야 하므로). `amount_formatted` 도 결제 통화 기호로 표기합니다.
 | shippings | array | `[]` | 배송 이력 목록 (OrderShippingResource 배열 — 배송유형·택배사·송장번호) |
 | cancels | array | `[]` | 취소 이력 목록 (OrderCancelResource 배열 — 취소 사유·상세·취소일시, 최근순) |
 | promotions_applied_snapshot | object | `{"coupon_issue_ids":[7330],"item_coupons":[],"discount_co…` | 적용된 프로모션 스냅샷 (재계산용) |
@@ -2214,6 +2218,8 @@ _단건 응답: `data` 객체의 필드._
 | total_paid_amount_formatted | string | `0원` | `total_paid_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | total_due_amount | integer | `327327` | 총 결제예정금액 (무통장 등) |
 | total_due_amount_formatted | string | `327,327원` | `total_due_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_due_charge_amount | integer | `327327` | **결제 통화(`payment_currency`) 기준 실청구액**, 최소 화폐단위 정수. base≠결제 통화면 `total_due_amount` 와 다릅니다 |
+| total_due_charge_amount_formatted | string | `327,327원` | `total_due_charge_amount` 를 결제 통화 기호로 표기한 문자열 |
 | depositor_name | null | `null` | 무통장 입금자명 (입금확인 모달 기본값, payment 관계 로드 시에만 노출) |
 | total_cancelled_amount | integer | `0` | 총 취소금액 |
 | total_cancelled_amount_formatted | string | `0원` | `total_cancelled_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
@@ -3040,6 +3046,8 @@ _단건 응답: `data` 객체의 필드._
 | total_paid_amount_formatted | string | `0원` | `total_paid_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
 | total_due_amount | integer | `327327` | 총 결제예정금액 (무통장 등) |
 | total_due_amount_formatted | string | `327,327원` | `total_due_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
+| total_due_charge_amount | integer | `327327` | **결제 통화(`payment_currency`) 기준 실청구액**, 최소 화폐단위 정수. base≠결제 통화면 `total_due_amount` 와 다릅니다 |
+| total_due_charge_amount_formatted | string | `327,327원` | `total_due_charge_amount` 를 결제 통화 기호로 표기한 문자열 |
 | depositor_name | null | `null` | 무통장 입금자명 (입금확인 모달 기본값, payment 관계 로드 시에만 노출) |
 | total_cancelled_amount | integer | `0` | 총 취소금액 |
 | total_cancelled_amount_formatted | string | `0원` | `total_cancelled_amount` 값의 표시용 포맷 문자열 (통화/용량/일시 등 로케일·단위 포맷) |
