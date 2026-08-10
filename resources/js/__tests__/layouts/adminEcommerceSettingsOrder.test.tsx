@@ -9,6 +9,9 @@
  * - 폼 바인딩 및 핸들러 검증
  * - 다국어 키 검증
  *
+ * @scenario extension_payment_method method_kind=extension × capability_declared=declared × capability=pg_locked
+ * @effects admin_shows_pg_locked_badge, admin_hides_pg_select_for_locked, admin_shows_pg_select_for_unlocked
+ *
  * @vitest-environment node
  */
 

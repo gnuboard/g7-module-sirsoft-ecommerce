@@ -16,7 +16,10 @@
  *    data 속성을 **런타임 카운트**로 판정하고, 배지가 0인 환경(간편결제 플러그인 미설치)은
  *    skip 이 아니라 "행이 렌더됐는지" 를 먼저 확인해 거짓 통과를 만들지 않는다.
  *
- * @scenario extension_payment_method method_kind=extension × capability=brand_mark
+ * 마킹은 쉼표로 축을 나눈다 — 마커 파서가 `,` 로만 분리하므로, 저장소에 흔한 `×` 표기는
+ * 첫 축만 잡히고 나머지가 값 문자열에 묻혀 cross product 커버로 집계되지 않는다.
+ *
+ * @scenario extension_payment_method, method_kind=extension, capability_declared=declared, capability=brand_mark
  * @effects admin_shows_brand_mark, admin_rebinds_brand_mark_after_tab_return
  */
 import { test, expect, authenticatePage } from '../../fixtures/ecommerce-auth';
@@ -24,13 +27,32 @@ import type { Page } from '@playwright/test';
 
 const ORDER_SETTINGS_URL = '/admin/ecommerce/settings?tab=order_settings';
 
-/** 설치된 모든 PG 플러그인의 브랜드 배지 총합 + 렌더된 결제수단 행 수. */
-async function counts(page: Page): Promise<{ badges: number; rows: number }> {
-  return page.evaluate(() => ({
-    badges: document.querySelectorAll('[data-testid], span').length
-      && document.querySelectorAll('span[class*="rounded-lg"][aria-hidden="true"]').length,
-    rows: document.querySelectorAll('[data-testid^="pg-locked-badge-"]').length,
-  }));
+/**
+ * 렌더된 결제수단 행 수.
+ *
+ * 행 판정에 `pg-locked-badge-*` 하나만 쓰지 않는다 — 그 배지는 `pg_locked === true` 인 수단에만
+ * 렌더되므로, PG 고정 수단이 하나도 없는 구성에서는 화면이 정상 렌더돼도 0 이 되어 준비 게이트가
+ * 영원히 열리지 않는다(설치 구성을 하드코딩하지 않는다는 이 spec 의 규율과 어긋난다).
+ *
+ * PG 열은 비고아 행마다 정확히 하나의 분기를 그린다 — pg_locked / PG 셀렉트 / PG 미설치 /
+ * PG 불필요. 네 접두사를 합치면 설치 구성과 무관하게 비고아 행 수와 일치한다.
+ */
+const PG_CELL_TESTID_PREFIXES = [
+  'pg-locked-badge-',
+  'pg-select-',
+  'pg-not-installed-',
+  'pg-not-required-',
+] as const;
+
+async function rowCount(page: Page): Promise<number> {
+  return page.evaluate(
+    (prefixes) =>
+      prefixes.reduce(
+        (sum, prefix) => sum + document.querySelectorAll(`[data-testid^="${prefix}"]`).length,
+        0,
+      ),
+    PG_CELL_TESTID_PREFIXES as unknown as string[],
+  );
 }
 
 /** 플러그인별 브랜드 배지 카운트 (data 속성 접미사로 집계 — 플러그인명 하드코딩 회피). */
@@ -63,7 +85,7 @@ async function gotoOrderSettings(page: Page, token: string): Promise<void> {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(ORDER_SETTINGS_URL);
   await page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
-  await expect.poll(async () => (await counts(page)).rows, { timeout: 30_000 }).toBeGreaterThan(0);
+  await expect.poll(async () => await rowCount(page), { timeout: 30_000 }).toBeGreaterThan(0);
 }
 
 test.describe('@sirsoft-ecommerce 주문설정 결제수단 — 브랜드 마크', () => {
@@ -91,10 +113,10 @@ test.describe('@sirsoft-ecommerce 주문설정 결제수단 — 브랜드 마크
     // 탭 전환은 replaceState 로 URL 만 바꾼다 — 화면 전환을 실제 클릭으로 재현한다.
     // 탭은 접근성 이름이 라벨과 정확히 일치하지 않으므로(내부 텍스트 노드 구성) 텍스트로 찾는다.
     await clickTab(page, '배송설정');
-    await expect.poll(async () => (await counts(page)).rows, { timeout: 20_000 }).toBe(0);
+    await expect.poll(async () => await rowCount(page), { timeout: 20_000 }).toBe(0);
 
     await clickTab(page, '주문설정');
-    await expect.poll(async () => (await counts(page)).rows, { timeout: 20_000 }).toBeGreaterThan(0);
+    await expect.poll(async () => await rowCount(page), { timeout: 20_000 }).toBeGreaterThan(0);
 
     // 복귀 후 배지가 수정 전처럼 0 으로 남지 않아야 한다.
     await expect
