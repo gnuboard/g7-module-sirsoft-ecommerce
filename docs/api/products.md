@@ -401,7 +401,7 @@ _단건 응답: `data` 객체의 필드 (`ProductResource`). 성공 시 HTTP 201
 | has_options | boolean | `false` | 옵션 사용 여부 |
 | option_groups | array | `[]` | 옵션 그룹 정의 (예: `[{"name":"색상","values":["빨강","파랑"]}]`) |
 | options | array | `[]` | 생성된 옵션(SKU) 목록 (`ProductOptionResource`) |
-| additional_options | array | `[]` | 추가옵션 그룹 목록 |
+| additional_options | array | `[]` | 추가옵션 그룹 목록. 각 그룹의 `values[]` 는 `id`, `name`, `price_adjustment`(기본 통화 기준 추가금), `price_adjustment_formatted`, `multi_currency_price_adjustment`(통화별 추가금 — 기본 통화가 아닌 통화로 표시할 때 사용), `is_default`, `allow_custom_text` 를 가집니다 |
 | created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
 | updated_at | string | `2026-07-08 10:44:49` | 최종 수정 일시 |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
@@ -846,11 +846,34 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| (ProductResource) | object | `{"id":201,"product_code":"P-201", …}` | 상품 상세 1건. 필드 구성은 `GET /admin/products/{identifier}` 와 동일하며, 목록·옵션·이미지·상품고시·공통정보·추가옵션을 포함합니다 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품을 조회했습니다.",
+    "data": {
+        "id": 201,
+        "product_code": "P-201",
+        "name": { "ko": "티셔츠", "en": "T-Shirt" },
+        "selling_price": 19000,
+        "selling_price_formatted": "19,000원",
+        "sales_status": "on_sale",
+        "display_status": "visible",
+        "options": [],
+        "images": [],
+        "additional_options": []
+    }
+}
+```
 
 **에러 응답**
 
@@ -1049,7 +1072,7 @@ _단건 응답: `data` 객체의 필드 (`ProductResource` — 수정 후 상품
 | has_options | boolean | `false` | 옵션 사용 여부 |
 | option_groups | array | `[]` | 옵션 그룹 정의 |
 | options | array | `[]` | 옵션(SKU) 목록 (`ProductOptionResource`) |
-| additional_options | array | `[]` | 추가옵션 그룹 목록 |
+| additional_options | array | `[]` | 추가옵션 그룹 목록. 각 그룹의 `values[]` 는 `id`, `name`, `price_adjustment`(기본 통화 기준 추가금), `price_adjustment_formatted`, `multi_currency_price_adjustment`(통화별 추가금 — 기본 통화가 아닌 통화로 표시할 때 사용), `is_default`, `allow_custom_text` 를 가집니다 |
 | created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
 | updated_at | string | `2026-07-08 11:02:13` | 최종 수정 일시 (이번 수정 시각으로 갱신) |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
@@ -1442,11 +1465,41 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-422 — 응답 필드는 사람이 작성하세요. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| options | object | `{"201":[{"id":1086, …}]}` | 상품 ID(문자열 키) ⇒ 해당 상품의 옵션 목록(ProductOptionResource 배열). 조회 결과가 없어도 JSON 객체(`{}`)로 나갑니다 |
+| product_ids | array | `[201, 202]` | 요청한 상품 ID 목록 (응답의 `options` 키 순서 기준) |
 
 **응답 예시**
 
-<!-- 실측 제외: http-422 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품 옵션을 조회했습니다.",
+    "data": {
+        "options": {
+            "201": [
+                {
+                    "id": 1086,
+                    "option_code": "OPT-1086",
+                    "option_name": "색상/사이즈",
+                    "option_name_localized": "색상/사이즈",
+                    "selling_price": 19000,
+                    "selling_price_formatted": "19,000원",
+                    "stock_quantity": 30,
+                    "is_active": true
+                }
+            ],
+            "202": []
+        },
+        "product_ids": [201, 202]
+    }
+}
+```
 
 **에러 응답**
 
@@ -1488,11 +1541,34 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| (ProductResource) | object | `{"id":201,"product_code":"P-201", …}` | 상품 상세 1건. 필드 구성은 `GET /admin/products/{identifier}` 와 동일하며, 목록·옵션·이미지·상품고시·공통정보·추가옵션을 포함합니다 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품을 조회했습니다.",
+    "data": {
+        "id": 201,
+        "product_code": "P-201",
+        "name": { "ko": "티셔츠", "en": "T-Shirt" },
+        "selling_price": 19000,
+        "selling_price_formatted": "19,000원",
+        "sales_status": "on_sale",
+        "display_status": "visible",
+        "options": [],
+        "images": [],
+        "additional_options": []
+    }
+}
+```
 
 **에러 응답**
 
@@ -1701,11 +1777,25 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: http-409 — 응답 필드는 사람이 작성하세요. -->
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| deleted | boolean | `true` | 삭제 성공 여부. 주문 이력이 있는 상품은 삭제되지 않고 409 로 차단됩니다 |
 
 **응답 예시**
 
-<!-- 실측 제외: http-409 — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "상품이 삭제되었습니다.",
+    "data": {
+        "deleted": true
+    }
+}
+```
 
 **에러 응답**
 
@@ -1904,7 +1994,7 @@ _단건 응답: `data` 객체의 필드 (`ProductResource` — 수정 후 상품
 | has_options | boolean | `false` | 옵션 사용 여부 |
 | option_groups | array | `[]` | 옵션 그룹 정의 |
 | options | array | `[]` | 옵션(SKU) 목록 (`ProductOptionResource`) |
-| additional_options | array | `[]` | 추가옵션 그룹 목록 |
+| additional_options | array | `[]` | 추가옵션 그룹 목록. 각 그룹의 `values[]` 는 `id`, `name`, `price_adjustment`(기본 통화 기준 추가금), `price_adjustment_formatted`, `multi_currency_price_adjustment`(통화별 추가금 — 기본 통화가 아닌 통화로 표시할 때 사용), `is_default`, `allow_custom_text` 를 가집니다 |
 | created_at | string | `2026-07-08 10:44:49` | 생성 일시 |
 | updated_at | string | `2026-07-08 11:02:13` | 최종 수정 일시 (이번 수정 시각으로 갱신) |
 | abilities | object | `{"can_update":true,"can_delete":true}` | 현재 사용자가 이 상품에 수행 가능한 작업 불리언 맵 |
@@ -3302,7 +3392,7 @@ HTTP/1.1 200
 | product | path | string | 예 | — | 대상 product의 식별자 |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 | per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
-| exclude_secret | query | boolean | 아니오 | — | <!-- TODO: 용도 --> |
+| exclude_secret | query | boolean | 아니오 | — | 비밀글 제외 여부 (기본 `false` — 포함). `true` 면 비밀 문의를 목록에서 제외합니다. 쿼리 문자열 `"true"`/`"false"` 도 해석되며, 해석할 수 없는 값은 그대로 검증되어 422 가 됩니다 |
 
 **요청 예시**
 

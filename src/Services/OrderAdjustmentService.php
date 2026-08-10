@@ -131,7 +131,7 @@ class OrderAdjustmentService
         $restoredCouponIssueIds = $this->detectRestoredCoupons($order, $recalcResult);
 
         // 12. 복원 쿠폰 상세 정보 구성
-        $restoredCoupons = $this->buildRestoredCouponsInfo($restoredCouponIssueIds);
+        $restoredCoupons = $this->buildRestoredCouponsInfo($restoredCouponIssueIds, $order->currency_snapshot);
 
         // 13. 배송비 정책별 상세
         $shippingDetails = $this->buildShippingDetails($order, $recalcResult);
@@ -173,8 +173,8 @@ class OrderAdjustmentService
         $mcRecalculatedSnapshot = $this->buildMcRecalcSnapshot($recalculatedSnapshot, $order->currency_snapshot);
 
         // 17. 쿠폰 상세 (전/후)
-        $originalCoupons = $this->extractCouponDetails($order->promotions_applied_snapshot ?? []);
-        $recalculatedCoupons = $this->extractCouponDetails($recalcResult->promotions?->toArray() ?? []);
+        $originalCoupons = $this->extractCouponDetails($order->promotions_applied_snapshot ?? [], $order->currency_snapshot);
+        $recalculatedCoupons = $this->extractCouponDetails($recalcResult->promotions?->toArray() ?? [], $order->currency_snapshot);
 
         // 18. 스냅샷 각 줄을 base 통화로 포맷(취소 모달 primary 표기 = base 통화 기호 고정)
         $originalSnapshot = $this->enrichSnapshotWithBaseFormat($originalSnapshot, $order->currency_snapshot);
@@ -472,7 +472,7 @@ class OrderAdjustmentService
         $remainingPointsBalance = max(0, $originalPointsUsed - $refundPointsAmount);
 
         // 복원 쿠폰 상세 정보
-        $restoredCoupons = $this->buildRestoredCouponsInfo($restoredCouponIds);
+        $restoredCoupons = $this->buildRestoredCouponsInfo($restoredCouponIds, $order->currency_snapshot);
 
         // 배송비 정책별 상세 (전체취소: 모든 배송비 환불)
         $shippingDetails = [];
@@ -546,7 +546,7 @@ class OrderAdjustmentService
         }
 
         // 쿠폰 상세 (전체취소 시 취소 후는 빈 배열)
-        $originalCoupons = $this->extractCouponDetails($order->promotions_applied_snapshot ?? []);
+        $originalCoupons = $this->extractCouponDetails($order->promotions_applied_snapshot ?? [], $order->currency_snapshot);
 
         // 환불 총액/잔액 base 포맷 + 결제 통화 병기
         $refundFormatted = $this->buildRefundFormatted([
@@ -995,21 +995,26 @@ class OrderAdjustmentService
      * 복원 쿠폰 상세 정보를 구성합니다.
      *
      * @param  array  $restoredCouponIssueIds  복원 대상 쿠폰 발급 ID 배열
-     * @return array [{coupon_name, discount_amount}]
+     * @param  array|null  $currencySnapshot  주문 시점 통화 스냅샷
+     * @return array [{coupon_name, discount_amount, discount_amount_formatted}]
      */
-    private function buildRestoredCouponsInfo(array $restoredCouponIssueIds): array
+    private function buildRestoredCouponsInfo(array $restoredCouponIssueIds, ?array $currencySnapshot = null): array
     {
         if (empty($restoredCouponIssueIds)) {
             return [];
         }
 
         $couponIssues = $this->couponIssueRepository->findByIdsWithRelations($restoredCouponIssueIds, ['coupon']);
+        $baseCurrency = $currencySnapshot['base_currency'] ?? $this->currencyService->getDefaultCurrency();
 
         $restoredCoupons = [];
         foreach ($couponIssues as $issue) {
+            $discountAmount = (float) ($issue->discount_amount ?? 0);
+
             $restoredCoupons[] = [
                 'coupon_name' => $issue->coupon?->getLocalizedName() ?? '',
-                'discount_amount' => (float) ($issue->discount_amount ?? 0),
+                'discount_amount' => $discountAmount,
+                'discount_amount_formatted' => $this->currencyService->formatPrice($discountAmount, $baseCurrency),
             ];
         }
 
@@ -1065,21 +1070,30 @@ class OrderAdjustmentService
     /**
      * 프로모션 스냅샷에서 쿠폰 상세 배열을 추출합니다.
      *
+     * 스냅샷 금액 줄(enrichSnapshotWithBaseFormat)과 같은 규칙으로, raw 금액에 더해
+     * 주문 시점 기준 통화로 포맷한 동반 키를 함께 싣는다. 화면이 통화 기호를 직접
+     * 이어 붙이면 기준 통화가 원화가 아닌 상점에서 단위만 원으로 표기된다.
+     *
      * @param  array  $promotionsSnapshot  promotions_applied_snapshot 또는 PromotionsSummary::toArray()
-     * @return array [{name, target_type, discount_amount}]
+     * @param  array|null  $currencySnapshot  주문 시점 통화 스냅샷
+     * @return array [{name, target_type, discount_amount, discount_amount_formatted}]
      */
-    private function extractCouponDetails(array $promotionsSnapshot): array
+    private function extractCouponDetails(array $promotionsSnapshot, ?array $currencySnapshot = null): array
     {
+        $baseCurrency = $currencySnapshot['base_currency'] ?? $this->currencyService->getDefaultCurrency();
         $details = [];
 
         $sections = ['product_promotions', 'order_promotions'];
         foreach ($sections as $section) {
             $coupons = $promotionsSnapshot[$section]['coupons'] ?? [];
             foreach ($coupons as $coupon) {
+                $discountAmount = (float) ($coupon['total_discount'] ?? 0);
+
                 $details[] = [
                     'name' => $coupon['name'] ?? '',
                     'target_type' => $coupon['target_type'] ?? '',
-                    'discount_amount' => (float) ($coupon['total_discount'] ?? 0),
+                    'discount_amount' => $discountAmount,
+                    'discount_amount_formatted' => $this->currencyService->formatPrice($discountAmount, $baseCurrency),
                 ];
             }
         }

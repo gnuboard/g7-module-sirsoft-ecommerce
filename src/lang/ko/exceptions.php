@@ -69,11 +69,11 @@ return [
 
     // 주문 결제 관련
     'insufficient_stock' => '재고가 부족한 상품이 :count개 있습니다.',
-    'payment_amount_mismatch' => '결제 금액이 일치하지 않습니다. (예상: :expected원, 실제: :actual원)',
+    'payment_amount_mismatch' => '결제 금액이 일치하지 않습니다. (예상: :expected, 실제: :actual)',
     'cart_unavailable' => '구매할 수 없는 상품이 있습니다.',
     'purchase_not_allowed' => '구매 권한이 없는 상품입니다.',
     'country_not_shippable' => '선택하신 배송국가로는 배송할 수 없는 상품입니다.',
-    'order_amount_changed' => '주문 금액이 변동되었습니다. 체크아웃 페이지를 새로고침 후 다시 시도해주세요. (이전: :stored원, 현재: :recalculated원)',
+    'order_amount_changed' => '주문 금액이 변동되었습니다. 체크아웃 페이지를 새로고침 후 다시 시도해주세요. (이전: :stored, 현재: :recalculated)',
     'order_calculation_validation_failed' => '주문 계산 검증에 실패했습니다. 쿠폰 만료 또는 재고 변동이 발생했을 수 있습니다.',
 
     // 주문 취소/환불 관련

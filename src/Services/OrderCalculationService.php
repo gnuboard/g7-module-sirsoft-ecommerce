@@ -2466,6 +2466,11 @@ class OrderCalculationService
                     'body' => mb_substr($response->body(), 0, 4096),
                 ],
                 'extracted_fee' => $extracted,
+                // 화면이 통화 단위를 이어 붙이지 않도록 포맷 문자열을 함께 내보낸다 —
+                // 배송비는 기본 통화 기준이므로 원화를 못 박으면 그 상점에서 단위만 틀린다.
+                'extracted_fee_formatted' => $extracted !== null
+                    ? ecommerce_format_price((float) $extracted, $countrySetting->currency_code ?? null)
+                    : null,
             ];
         } catch (\Throwable $e) {
             // 연결 실패·타임아웃 등 — 요청 미리보기 + 에러 메시지를 함께 반환 (진단)

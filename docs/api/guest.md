@@ -295,7 +295,9 @@ Accept: application/json
 | issuable | boolean | 지금 발급이 가능한지 여부 (무통장 + 입금완료 + 미발급 + 현금성 금액 > 0 + 프로바이더 설정됨) |
 | cash_receipt | object\|null | 현재 활성 영수증 1건 (`CashReceiptResource`). 발급 전이거나 전액 취소된 경우 `null` |
 
-`cash_receipt` 의 하위 필드 구성은 [발급 API 의 응답 필드 표](orders.md)와 동일합니다.
+`cash_receipt` 의 하위 필드 구성은 [발급 API 의 응답 필드 표](orders.md)와 동일합니다. 금액(`amount`)은 **결제 통화 기준 실청구액**입니다 — base 통화와 결제 통화가 다른 상점에서도 구매자가 실제로 낸 금액으로 발행됩니다.
+
+비회원 **주문 상세** 응답(`GET user/orders/{orderNumber}` + `X-Guest-Order-Token`)도 회원과 동일하게 `cash_receipt`(활성 영수증 1건 또는 `null`)와 `cash_receipts`(발급·취소 이력 배열)를 포함합니다. 주문상세 화면의 현금영수증 카드가 이 두 필드로 발급완료/미발급을 가르므로, 누락되면 발급에 성공해도 화면이 계속 미발급으로 표시됩니다.
 
 **응답 예시**
 

@@ -262,9 +262,11 @@ class SearchProductsListener implements HookListenerInterface
             'sales_status' => $product->sales_status?->value,
             'sales_status_label' => $product->sales_status?->label(),
             'selling_price' => $product->selling_price,
-            'selling_price_formatted' => $this->formatCurrencyPrice($product->selling_price, 'KRW'),
+            // 통화 코드를 못 박지 않는다 — 이 문자열은 화면이 표시 통화 환산값을 찾지 못했을 때
+            // 쓰는 폴백이라, 기준통화 금액에 다른 통화 기호가 붙으면 그대로 노출된다.
+            'selling_price_formatted' => $this->formatBaseCurrency($product->selling_price),
             'list_price' => $product->list_price,
-            'list_price_formatted' => $this->formatCurrencyPrice($product->list_price, 'KRW'),
+            'list_price_formatted' => $this->formatBaseCurrency($product->list_price),
             'discount_rate' => $product->getDiscountRate(),
             'multi_currency_selling_price' => $this->buildMultiCurrencyPrices($product->selling_price),
             'multi_currency_list_price' => $this->buildMultiCurrencyPrices($product->list_price),
