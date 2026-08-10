@@ -132,11 +132,27 @@ trait HasMultiCurrencyPrices
     /**
      * 기본 통화 코드를 반환합니다.
      *
+     * 기본 통화의 SSoT 는 설정의 `default_currency` 값이고 통화 항목의 `is_default` 는 그 파생입니다.
+     * 표시 계층이 `is_default` 를 먼저 훑으면, 저장본에 없어 defaults 에서 보충된 통화가 옛 플래그를
+     * 달고 들어왔을 때 환산 계층(CurrencyConversionService::getDefaultCurrency)과 서로 다른 통화를
+     * 기본으로 잡습니다. 같은 화면의 금액이 통화별로 어긋나므로 `default_currency` 를 먼저 해석합니다.
+     *
      * @return string 기본 통화 코드 (예: 'KRW')
      */
     protected function getDefaultCurrencyCode(): string
     {
         $currencies = $this->getCurrencySettings();
+        $settings = g7_module_settings('sirsoft-ecommerce', 'language_currency');
+        $declared = $settings['default_currency'] ?? null;
+
+        // 선언된 기본 통화가 통화 목록에 실재할 때만 채택 (삭제된 통화를 가리키는 설정 방어)
+        if ($declared !== null) {
+            foreach ($currencies as $currency) {
+                if (($currency['code'] ?? null) === $declared) {
+                    return $declared;
+                }
+            }
+        }
 
         foreach ($currencies as $currency) {
             if ($currency['is_default'] ?? false) {
@@ -144,10 +160,7 @@ trait HasMultiCurrencyPrices
             }
         }
 
-        // 설정이 없는 경우 모듈 설정에서 직접 조회
-        $settings = g7_module_settings('sirsoft-ecommerce', 'language_currency');
-
-        return $settings['default_currency'] ?? 'KRW';
+        return $declared ?? 'KRW';
     }
 
     /**

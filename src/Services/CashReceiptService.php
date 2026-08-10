@@ -705,7 +705,7 @@ class CashReceiptService
     /**
      * 프로바이더 원응답에서 민감 키를 마스킹합니다.
      *
-     * PO 결정: 전체 응답을 보관하되 알려진 민감 키를 재귀적으로 가린다.
+     * 프로젝트 결정: 전체 응답을 보관하되 알려진 민감 키를 재귀적으로 가린다.
      *
      * @param  mixed  $response  원응답
      * @return array<string, mixed>|null 마스킹된 응답 (배열이 아니면 null)
