@@ -58,6 +58,9 @@ class ProductReviewImageService
 
         HookManager::doAction('sirsoft-ecommerce.review-image.before_upload', $file, $review);
 
+        // 필터 훅 - 파일 데이터 변형 (압축, 리사이즈 등 확장 포인트)
+        $file = HookManager::applyFilters('sirsoft-ecommerce.review-image.filter_upload_file', $file);
+
         $storedFilename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $path = "reviews/{$review->id}/{$storedFilename}";
 
