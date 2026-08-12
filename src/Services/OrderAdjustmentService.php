@@ -524,15 +524,15 @@ class OrderAdjustmentService
         if ($mcOriginalSnapshot) {
             $zeroFormattedSubtotal = [];
             foreach ($mcOriginalSnapshot['mc_subtotal_amount'] ?? [] as $code => $amount) {
-                $zeroFormattedSubtotal[$code] = $this->currencyService->formatPrice(0, $code);
+                $zeroFormattedSubtotal[$code] = $this->currencyService->formatPrice(0, $code, $currencySnapshot);
             }
             $zeroFormattedTotalPaid = [];
             foreach ($mcOriginalSnapshot['mc_total_paid_amount'] ?? [] as $code => $amount) {
-                $zeroFormattedTotalPaid[$code] = $this->currencyService->formatPrice(0, $code);
+                $zeroFormattedTotalPaid[$code] = $this->currencyService->formatPrice(0, $code, $currencySnapshot);
             }
             $zeroFormattedListPrice = [];
             foreach ($mcOriginalSnapshot['mc_total_list_price_amount'] ?? [] as $code => $amount) {
-                $zeroFormattedListPrice[$code] = $this->currencyService->formatPrice(0, $code);
+                $zeroFormattedListPrice[$code] = $this->currencyService->formatPrice(0, $code, $currencySnapshot);
             }
 
             $zeroMcSnapshot = [
@@ -1014,7 +1014,7 @@ class OrderAdjustmentService
             $restoredCoupons[] = [
                 'coupon_name' => $issue->coupon?->getLocalizedName() ?? '',
                 'discount_amount' => $discountAmount,
-                'discount_amount_formatted' => $this->currencyService->formatPrice($discountAmount, $baseCurrency),
+                'discount_amount_formatted' => $this->currencyService->formatPrice($discountAmount, $baseCurrency, $currencySnapshot),
             ];
         }
 
@@ -1093,7 +1093,7 @@ class OrderAdjustmentService
                     'name' => $coupon['name'] ?? '',
                     'target_type' => $coupon['target_type'] ?? '',
                     'discount_amount' => $discountAmount,
-                    'discount_amount_formatted' => $this->currencyService->formatPrice($discountAmount, $baseCurrency),
+                    'discount_amount_formatted' => $this->currencyService->formatPrice($discountAmount, $baseCurrency, $currencySnapshot),
                 ];
             }
         }
@@ -1119,7 +1119,7 @@ class OrderAdjustmentService
         $formatted = [];
         foreach ($snapshot as $key => $value) {
             if (is_numeric($value)) {
-                $formatted[$key] = $this->currencyService->formatPrice((float) $value, $baseCurrency);
+                $formatted[$key] = $this->currencyService->formatPrice((float) $value, $baseCurrency, $currencySnapshot);
             }
         }
 
@@ -1145,7 +1145,7 @@ class OrderAdjustmentService
 
         $base = [];
         foreach ($amounts as $field => $value) {
-            $base[$field] = $this->currencyService->formatPrice((float) $value, $baseCurrency);
+            $base[$field] = $this->currencyService->formatPrice((float) $value, $baseCurrency, $currencySnapshot);
         }
 
         $mc = [];
@@ -1184,12 +1184,12 @@ class OrderAdjustmentService
 
         $formattedSubtotal = [];
         foreach ($order->mc_subtotal_amount ?? [] as $code => $amount) {
-            $formattedSubtotal[$code] = $this->currencyService->formatPrice($amount, $code);
+            $formattedSubtotal[$code] = $this->currencyService->formatPrice($amount, $code, $order->currency_snapshot);
         }
 
         $formattedTotalPaid = [];
         foreach ($order->mc_total_paid_amount ?? [] as $code => $amount) {
-            $formattedTotalPaid[$code] = $this->currencyService->formatPrice($amount, $code);
+            $formattedTotalPaid[$code] = $this->currencyService->formatPrice($amount, $code, $order->currency_snapshot);
         }
 
         // 정가 합계 다통화 변환
