@@ -43,6 +43,8 @@ type EcommerceAuthFixtures = {
   orderManageToken: string;
   /** 배송정책 조회+수정 권한 보유 토큰 (배송정책 목록 표시 검증용) */
   shippingPolicyToken: string;
+  /** 프로모션 쿠폰 조회+등록+수정+삭제 권한 보유 토큰 (쿠폰 폼 검증용) */
+  couponManageToken: string;
   /** 일반 쇼핑 사용자 토큰 (관리자 권한 없음 — 유저 화면 검증용) */
   userToken: string;
   /** 구매 고객 토큰 (장바구니/추가옵션 등 쇼핑 플로우 검증용) */
@@ -100,6 +102,16 @@ export const test = base.extend<EcommerceAuthFixtures>({
         'sirsoft-ecommerce.shipping-policies.create',
         'sirsoft-ecommerce.shipping-policies.update',
         'sirsoft-ecommerce.shipping-policies.delete',
+      ),
+    );
+  },
+  couponManageToken: async ({}, use) => {
+    await use(
+      issueToken(
+        'sirsoft-ecommerce.promotion-coupon.read',
+        'sirsoft-ecommerce.promotion-coupon.create',
+        'sirsoft-ecommerce.promotion-coupon.update',
+        'sirsoft-ecommerce.promotion-coupon.delete',
       ),
     );
   },
