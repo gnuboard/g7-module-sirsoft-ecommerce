@@ -803,6 +803,20 @@ class OrderProcessingService
             $createdOptions[$item->productOptionId] = $orderOption;
         }
 
+        // 주문 합계 무게/부피는 옵션 소계의 합이다.
+        // 주문 생성 시점에는 옵션이 없어 0 으로 두었으므로 여기서 실값으로 채운다
+        // (배송사 연동·운임 정산이 이 값을 읽는다).
+        $order->update([
+            'total_weight' => array_sum(array_map(
+                fn (OrderOption $option) => (float) ($option->subtotal_weight ?? 0),
+                $createdOptions
+            )),
+            'total_volume' => array_sum(array_map(
+                fn (OrderOption $option) => (float) ($option->subtotal_volume ?? 0),
+                $createdOptions
+            )),
+        ]);
+
         return $createdOptions;
     }
 
