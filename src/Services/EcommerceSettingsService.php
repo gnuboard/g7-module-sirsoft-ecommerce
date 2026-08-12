@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\File;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\RefundMethodEnum;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingFeeTaxPolicy;
+use Modules\Sirsoft\Ecommerce\Support\CurrencySettingsCache;
 
 /**
  * 이커머스 모듈 환경설정 서비스
@@ -27,6 +28,11 @@ class EcommerceSettingsService implements ModuleSettingsInterface
      * 모듈 식별자
      */
     private const MODULE_IDENTIFIER = 'sirsoft-ecommerce';
+
+    /**
+     * 관리자가 삭제한 기본 제공 통화 코드 목록의 저장 키 (공개 #91)
+     */
+    private const REMOVED_CURRENCIES_KEY = 'removed_default_currencies';
 
     /**
      * 설정 기본값 (캐시)
@@ -119,10 +125,14 @@ class EcommerceSettingsService implements ModuleSettingsInterface
         // language_currency.currencies 는 정수키 리스트라 array_merge 가 통째 교체 →
         // defaults 에 있고 저장본에 없는 통화는 code 기준으로 보충(환율은 저장본 우선 보존).
         // 관리자가 의도적으로 삭제한 게 아니라 array_merge 부작용으로 소실되던 영속성 공백 수정(U11-A).
+        // 단, 관리자가 실제로 삭제한 통화는 저장 시점에 기록되므로 보충 대상에서 뺀다(공개 #91).
         if (isset($defaultValues['language_currency']['currencies'])) {
+            $removedCodes = $settings['language_currency'][self::REMOVED_CURRENCIES_KEY] ?? [];
+
             $settings['language_currency']['currencies'] = $this->mergeCurrenciesByCode(
                 $defaultValues['language_currency']['currencies'],
-                $settings['language_currency']['currencies'] ?? []
+                $settings['language_currency']['currencies'] ?? [],
+                is_array($removedCodes) ? $removedCodes : []
             );
         }
 
@@ -150,7 +160,8 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                     );
                 }
                 // 셀렉터(_currency_selector.json)가 참조하는 symbol/flag 보강
-                // (settings 스키마에 없는 표시 메타 — 저장 시 normalize 가 떨궈 round-trip 오염 없음)
+                // (flag 는 저장 규칙에 없는 표시 메타 — 폼이 되돌려 보내도 FormRequest 검증에서
+                //  탈락해 round-trip 오염이 없다)
                 if (! empty($currency['code'])) {
                     $meta = $this->currencyDisplayMeta($currency['code']);
                     // 관리자가 직접 지정한 기호는 보존, 없을 때만 표준 매핑으로 보충
@@ -263,6 +274,11 @@ class EcommerceSettingsService implements ModuleSettingsInterface
                 );
             }
 
+            // language_currency: 관리자가 삭제한 기본 제공 통화를 서버가 도출해 기록 (공개 #91)
+            if ($category === 'language_currency') {
+                $processedSettings = $this->applyRemovedDefaultCurrencies($processedSettings);
+            }
+
             if (! $this->saveCategorySettings($category, $processedSettings)) {
                 $success = false;
             }
@@ -271,7 +287,82 @@ class EcommerceSettingsService implements ModuleSettingsInterface
         // 캐시 초기화
         $this->settings = null;
 
+        // 통화 목록이 바뀌었을 수 있으므로 요청 단위 통화 캐시도 함께 비운다.
+        // (리소스 계층이 이 캐시로 다통화 금액을 만들기 때문에, 비우지 않으면 같은 요청 안에서
+        //  저장 전 통화 구성으로 금액이 계산된다)
+        CurrencySettingsCache::clear();
+
         return $success;
+    }
+
+    /**
+     * 관리자가 삭제한 기본 제공 통화를 저장본에 기록합니다. (공개 #91)
+     *
+     * 조회 병합(mergeCurrenciesByCode)은 저장본에 없는 defaults 통화를 무조건 보충하는데,
+     * 그 보충은 "array_merge 통째 교체로 인한 의도치 않은 소실"(U11-A)을 되돌리기 위한 것이다.
+     * 관리자의 의도적 삭제와 구분할 장치가 없으면 삭제까지 되돌아가므로, 저장 시점에
+     * 삭제 의도를 도출해 남긴다.
+     *
+     * - 클라이언트가 보낸 같은 키는 신뢰하지 않고 항상 서버가 재계산한다.
+     * - `currencies` 미제출 저장(기본 통화만 변경 등)은 기존 통화 목록과 기록을 함께 이월한다.
+     *   저장이 파일 통째 교체이므로 이월하지 않으면 저장본에서 두 키가 모두 사라지고, 조회
+     *   병합이 defaults 를 그대로 들여와 삭제가 전부 부활한다.
+     * - 기본 통화 코드는 기록 대상에서 제외한다 (기본 통화는 항상 생존해야 한다).
+     *
+     * @param  array  $processed  정규화까지 끝난 language_currency 저장값
+     * @return array 삭제 기록이 반영된 저장값
+     */
+    private function applyRemovedDefaultCurrencies(array $processed): array
+    {
+        // 클라이언트 주입 방어 — 검증에서 떨어지지만 프로그램 직접 호출 경로도 막는다
+        unset($processed[self::REMOVED_CURRENCIES_KEY]);
+
+        $saved = $this->loadCategorySettings('language_currency');
+        $defaultValues = $this->getDefaults()['defaults']['language_currency'] ?? [];
+
+        // currencies 미제출 → 기존 통화 목록과 삭제 기록을 함께 이월
+        if (! isset($processed['currencies']) || ! is_array($processed['currencies'])) {
+            $carried = $saved[self::REMOVED_CURRENCIES_KEY] ?? [];
+            $processed[self::REMOVED_CURRENCIES_KEY] = array_values(array_filter(
+                is_array($carried) ? $carried : [],
+                'is_string'
+            ));
+
+            if (isset($saved['currencies']) && is_array($saved['currencies'])) {
+                $processed['currencies'] = array_values($saved['currencies']);
+                // 같은 저장에서 기본 통화가 바뀌었을 수 있으므로 is_default 를 다시 맞춘다
+                $processed = $this->syncCurrencyDefaults($processed);
+            }
+
+            return $processed;
+        }
+
+        // 제출된 통화 코드 집합
+        $submitted = [];
+        foreach ($processed['currencies'] as $currency) {
+            $code = is_array($currency) ? ($currency['code'] ?? null) : null;
+            if (is_string($code) && $code !== '') {
+                $submitted[$code] = true;
+            }
+        }
+
+        // 유효 기본 통화: 제출값 → 기존 저장본 → defaults 순
+        $baseCode = $processed['default_currency']
+            ?? ($saved['default_currency'] ?? ($defaultValues['default_currency'] ?? null));
+
+        $removed = [];
+        foreach ($defaultValues['currencies'] ?? [] as $defaultCurrency) {
+            $code = $defaultCurrency['code'] ?? null;
+            if (! is_string($code) || $code === '' || isset($submitted[$code]) || $code === $baseCode) {
+                continue;
+            }
+            $removed[] = $code;
+        }
+
+        // 비연속 키가 JSON 객체로 직렬화되지 않도록 재정렬
+        $processed[self::REMOVED_CURRENCIES_KEY] = array_values($removed);
+
+        return $processed;
     }
 
     /**
@@ -1105,12 +1196,17 @@ class EcommerceSettingsService implements ModuleSettingsInterface
      * - 저장본에 있는 통화: 저장본(환율 포함) 채택 (관리자 편집 보존)
      * - 저장본에 없는 defaults 통화: defaults 항목 보충 (소실 방지)
      * - 저장본에만 있는(관리자 신규 추가) 통화: 그대로 보존
+     * - 관리자가 삭제한 defaults 통화($removedCodes): 보충하지 않음 (공개 #91)
+     *
+     * 삭제 기록에 있어도 저장본에 그 통화가 다시 들어 있으면 저장본을 우선해 되살린다 —
+     * 재추가 저장의 결과가 즉시 반영되어야 하기 때문이다(기록은 다음 저장에서 재계산된다).
      *
      * @param  array  $defaults  defaults.json 의 통화 목록
      * @param  array  $saved  저장본 통화 목록
+     * @param  array  $removedCodes  관리자가 삭제한 기본 제공 통화 코드 목록
      * @return array code 기준으로 병합된 통화 목록
      */
-    private function mergeCurrenciesByCode(array $defaults, array $saved): array
+    private function mergeCurrenciesByCode(array $defaults, array $saved, array $removedCodes = []): array
     {
         // defaults 를 code 인덱스로 매핑 (필드 보충용)
         $defaultsByCode = [];
@@ -1139,6 +1235,14 @@ class EcommerceSettingsService implements ModuleSettingsInterface
             if ($code === null) {
                 continue;
             }
+
+            // 관리자가 삭제한 통화는 보충하지 않는다 (저장본에 있으면 재추가된 것이므로 채택)
+            if (! isset($savedByCode[$code]) && in_array($code, $removedCodes, true)) {
+                $usedCodes[$code] = true;
+
+                continue;
+            }
+
             $merged[] = $this->backfillBaseUnit($savedByCode[$code] ?? $defaultCurrency, $defaultsByCode[$code] ?? []);
             $usedCodes[$code] = true;
         }
