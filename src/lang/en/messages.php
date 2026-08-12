@@ -488,6 +488,12 @@ return [
             'per_volume' => ':fee per :unit L',
             'per_volume_weight' => ':fee per :unit kg',
             'per_amount' => ':fee per :unit',
+            // Tier boundary units for range policies (derived from the charge policy, not stored data)
+            'range_unit' => [
+                'quantity' => ' items',
+                'weight' => ' kg',
+                'volume' => ' L',
+            ],
         ],
         'fee_details' => [
             'base_fee' => 'Shipping Fee',

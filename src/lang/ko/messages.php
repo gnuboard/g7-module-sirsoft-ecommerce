@@ -492,6 +492,12 @@ return [
             'per_volume' => ':unitL당 :fee',
             'per_volume_weight' => ':unitkg당 :fee',
             'per_amount' => ':unit당 :fee',
+            // 구간별 정책의 경계값 단위 (부과정책에서 파생 — 저장 데이터에 의존하지 않음)
+            'range_unit' => [
+                'quantity' => '개',
+                'weight' => 'kg',
+                'volume' => 'L',
+            ],
         ],
         'fee_details' => [
             'base_fee' => '배송비',
