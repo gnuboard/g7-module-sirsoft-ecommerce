@@ -13,6 +13,7 @@ use Modules\Sirsoft\Ecommerce\Exceptions\ReviewImageUploadLimitException;
 use Modules\Sirsoft\Ecommerce\Models\ProductReview;
 use Modules\Sirsoft\Ecommerce\Models\ProductReviewImage;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewImageRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Services\Concerns\ResolvesRowStorage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -22,6 +23,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ProductReviewImageService
 {
+    use ResolvesRowStorage;
+
     /**
      * ProductReviewImageService 생성자
      *
@@ -48,7 +51,8 @@ class ProductReviewImageService
     {
         $maxImages = (int) $this->settingsService->getSetting(
             'review_settings.max_images',
-            config('ecommerce.review.max_images', 5)
+            // 모듈 config 는 'sirsoft-ecommerce' 네임스페이스로 로드된다 (ModuleManager::loadModuleConfig)
+            config('sirsoft-ecommerce.review.max_images', 5)
         );
 
         $currentCount = $review->images()->count();
@@ -121,8 +125,10 @@ class ProductReviewImageService
     {
         HookManager::doAction('sirsoft-ecommerce.review-image.before_delete', $image);
 
-        if ($this->storage->exists('images', $image->path)) {
-            $this->storage->delete('images', $image->path);
+        // 스토리지에서 파일 삭제 — 행 disk 기준
+        $rowStorage = $this->storageForRow($image->disk);
+        if ($rowStorage->exists('images', $image->path)) {
+            $rowStorage->delete('images', $image->path);
         }
 
         $result = $this->repository->delete($image);
@@ -159,7 +165,7 @@ class ProductReviewImageService
             return null;
         }
 
-        $response = $this->storage->response(
+        $response = $this->storageForRow($image->disk)->response(
             'images',
             $image->path,
             $image->original_filename,

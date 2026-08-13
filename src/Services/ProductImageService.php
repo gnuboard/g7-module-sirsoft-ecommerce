@@ -16,6 +16,7 @@ use Modules\Sirsoft\Ecommerce\Exceptions\ResourceScopeMismatchException;
 use Modules\Sirsoft\Ecommerce\Models\ProductImage;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductImageRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Services\Concerns\ResolvesRowStorage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -25,6 +26,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ProductImageService
 {
+    use ResolvesRowStorage;
+
     /**
      * ProductImageService 생성자
      *
@@ -193,11 +196,12 @@ class ProductImageService
             // 새 경로 생성: products/{productCode}/{filename}
             $newPath = "products/{$productCode}/{$image->stored_filename}";
 
-            // 파일 이동 (get + put + delete)
-            $content = $this->storage->get('images', $image->path);
+            // 파일 이동 (get + put + delete) — 행 disk 기준 (이동 후에도 행 disk 불변)
+            $rowStorage = $this->storageForRow($image->disk);
+            $content = $rowStorage->get('images', $image->path);
             if ($content) {
-                $this->storage->put('images', $newPath, $content);
-                $this->storage->delete('images', $image->path);
+                $rowStorage->put('images', $newPath, $content);
+                $rowStorage->delete('images', $image->path);
             }
 
             // DB 업데이트: product_id 설정, temp_key 제거, path 변경, sort_order 재배치, is_thumbnail 해제
@@ -212,7 +216,10 @@ class ProductImageService
             $linkedCount++;
         }
 
-        // 빈 임시 디렉토리 정리
+        // 빈 임시 디렉토리 정리 — 임시 행이 여러 disk 에 걸칠 수 있어 disk 별로 정리
+        foreach ($tempImages->pluck('disk')->filter()->unique() as $tempDisk) {
+            $this->storageForRow($tempDisk)->deleteDirectory('images', "products/temp/{$tempKey}");
+        }
         $this->storage->deleteDirectory('images', "products/temp/{$tempKey}");
 
         return $linkedCount;
@@ -262,9 +269,10 @@ class ProductImageService
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.product-image.before_delete', $image);
 
-        // 스토리지에서 파일 삭제
-        if ($this->storage->exists('images', $image->path)) {
-            $this->storage->delete('images', $image->path);
+        // 스토리지에서 파일 삭제 — 행 disk 기준
+        $rowStorage = $this->storageForRow($image->disk);
+        if ($rowStorage->exists('images', $image->path)) {
+            $rowStorage->delete('images', $image->path);
         }
 
         // DB에서 삭제
@@ -350,7 +358,7 @@ class ProductImageService
             return null;
         }
 
-        $response = $this->storage->response(
+        $response = $this->storageForRow($image->disk)->response(
             'images',
             $image->path,
             $image->original_filename,
@@ -364,7 +372,7 @@ class ProductImageService
             Log::error('상품 이미지 스토리지에 없음', [
                 'product_image_id' => $image->id,
                 'path' => $image->path,
-                'disk' => $this->storage->getDisk(),
+                'disk' => $image->disk ?: $this->storage->getDisk(),
             ]);
 
             return null;
@@ -406,10 +414,11 @@ class ProductImageService
         $newStoredFilename = Str::uuid().'.'.$extension;
         $newPath = "products/{$targetProductCode}/{$newStoredFilename}";
 
-        // 파일 복사
-        $content = $this->storage->get('images', $source->path);
+        // 파일 복사 — 원본 행 disk 기준 (신규 행도 원본과 같은 disk 로 기록됨)
+        $sourceStorage = $this->storageForRow($source->disk);
+        $content = $sourceStorage->get('images', $source->path);
         if ($content) {
-            $this->storage->put('images', $newPath, $content);
+            $sourceStorage->put('images', $newPath, $content);
         } else {
             Log::warning('상품 이미지 복사 실패: 원본 파일 없음', [
                 'hash' => $sourceHash,
@@ -445,18 +454,42 @@ class ProductImageService
      * 실제 경로: storage/app/modules/sirsoft-ecommerce/images/products/{productCode}/
      *
      * @param  int  $productId  상품 ID
-     * @return bool 삭제 성공 여부
+     * @return bool 삭제 성공 여부 (대상 디스크 전체 기준)
      */
     public function deleteByProductId(int $productId): bool
     {
         $product = $this->productRepository->find($productId);
 
-        if ($product) {
-            return $this->storage->deleteDirectory('images', "products/{$product->product_code}");
+        // 행이 여러 disk 에 걸칠 수 있어(디스크 전환 후 혼재) disk 별로 디렉토리 삭제.
+        // 빈 disk(디스크 컬럼 도입 전 구 데이터)는 주입 스토리지 소속으로 정규화한다.
+        $rowDisks = $this->repository->getByProductId($productId)
+            ->pluck('disk')
+            ->map(fn ($disk) => ($disk === null || $disk === '') ? $this->storage->getDisk() : $disk)
+            ->unique();
+
+        $directory = $product
+            ? "products/{$product->product_code}"
+            // 폴백: product_id 기반 (기존 데이터 호환)
+            : "products/{$productId}";
+
+        if ($rowDisks->isEmpty()) {
+            // 행이 없으면 주입 스토리지의 잔여 디렉토리만 정리 (기존 동작 보존)
+            return $this->storage->deleteDirectory('images', $directory);
         }
 
-        // 폴백: product_id 기반 (기존 데이터 호환)
-        return $this->storage->deleteDirectory('images', "products/{$productId}");
+        $results = [];
+        foreach ($rowDisks as $rowDisk) {
+            $results[] = $this->storageForRow($rowDisk)->deleteDirectory('images', $directory);
+        }
+
+        // 행이 실리지 않은 주입 스토리지의 잔여 파일도 정리 시도하되 반환값에는
+        // 반영하지 않는다 — 행 기준으로는 지울 것이 없는 디스크의 실패가 혼재 행
+        // 삭제 성공을 false 로 오염시키면 안 된다 (반환값 = 행이 실린 디스크 전체 기준)
+        if (! $rowDisks->contains($this->storage->getDisk())) {
+            $this->storage->deleteDirectory('images', $directory);
+        }
+
+        return ! in_array(false, $results, true);
     }
 
     /**

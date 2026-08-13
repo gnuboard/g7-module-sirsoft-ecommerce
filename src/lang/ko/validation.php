@@ -1327,8 +1327,14 @@ return [
         ],
     ],
 
+    // 공개 자산 디스크 (코어 카탈로그 조회 검증)
+    'public_asset_disk_invalid' => '올바른 공개 자산 디스크를 선택해주세요.',
+
     // 필드명 한국어 변환 (Laravel 표준)
     'attributes' => [
+        // 공개 자산 스토리지
+        'basic_info.public_asset_disk' => '공개 자산 디스크',
+
         // 배송정책 국가별 설정
         'country_settings' => '국가별 설정',
         'country_settings.*.country_code' => '국가',

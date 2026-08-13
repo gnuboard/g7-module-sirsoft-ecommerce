@@ -235,6 +235,11 @@ class ProductReviewImageServiceTest extends ModuleTestCase
             'path' => 'reviews/1/test.jpg',
         ]);
 
+        // 삭제는 행 disk 기준으로 스토리지를 해석한다 (혼재 운용, 공개#100)
+        $this->storage
+            ->shouldReceive('getDisk')
+            ->andReturn('local');
+
         $this->storage
             ->shouldReceive('exists')
             ->with('images', 'reviews/1/test.jpg')
@@ -260,6 +265,11 @@ class ProductReviewImageServiceTest extends ModuleTestCase
             'review_id' => $this->review->id,
             'path' => 'reviews/1/missing.jpg',
         ]);
+
+        // 삭제는 행 disk 기준으로 스토리지를 해석한다 (혼재 운용, 공개#100)
+        $this->storage
+            ->shouldReceive('getDisk')
+            ->andReturn('local');
 
         $this->storage
             ->shouldReceive('exists')
@@ -321,6 +331,11 @@ class ProductReviewImageServiceTest extends ModuleTestCase
             'mime_type' => 'image/jpeg',
             'original_filename' => 'test.jpg',
         ]);
+
+        // 서빙은 행 disk 기준으로 스토리지를 해석한다 (혼재 운용, 공개#100)
+        $this->storage
+            ->shouldReceive('getDisk')
+            ->andReturn('local');
 
         $this->storage
             ->shouldReceive('response')

@@ -1616,7 +1616,7 @@ class ProductService
                 'hash' => $img->hash,
                 'url' => $img->url,
                 'original_filename' => $img->original_filename,
-                'download_url' => '/api/modules/sirsoft-ecommerce/product-image/'.$img->hash,
+                'download_url' => $img->download_url,
                 'file_size' => $img->file_size,
                 'size' => $img->file_size,
                 'size_formatted' => $this->formatFileSize($img->file_size),
