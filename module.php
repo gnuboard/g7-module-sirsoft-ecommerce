@@ -1057,6 +1057,43 @@ class Module extends AbstractModule
     }
 
     /**
+     * 완전 공개 자산 스토리지 카테고리 목록
+     *
+     * 이 카테고리들만 공개 자산 디스크 설정을 따른다. 권한 검사가 걸린 자산
+     * (회원 전용/비밀 자료 등)은 직접 URL 이 권한을 우회하므로 포함하지 않는다.
+     * 새 공개 자산 카테고리가 생기면 여기에만 추가하면 된다.
+     *
+     * @var list<string>
+     */
+    private const PUBLIC_ASSET_CATEGORIES = ['images'];
+
+    /**
+     * 카테고리별 스토리지 디스크 이름 반환
+     *
+     * 완전 공개 자산 카테고리만 공개 자산 디스크(모듈 설정 basic_info.public_asset_disk >
+     * 코어 전역 core.storage.public_asset_disk)를 따르고, 설정/캐시 등 나머지
+     * 카테고리는 기본 디스크를 유지합니다. 미설정/고아 디스크는 기본 디스크로
+     * 폴백해 기존 스트리밍 동작을 보존합니다.
+     *
+     * 모듈 설정 조회는 공개 자산 카테고리에서만 수행합니다 — 'settings' 카테고리에서
+     * 조회하면 설정 로드와 재귀 고리가 생깁니다 (AbstractModule 주석 참조).
+     *
+     * @param  string  $category  카테고리
+     * @return string 디스크 이름
+     */
+    public function getStorageDiskFor(string $category): string
+    {
+        if (! in_array($category, self::PUBLIC_ASSET_CATEGORIES, true)) {
+            return $this->getStorageDisk();
+        }
+
+        $override = module_setting('sirsoft-ecommerce', 'basic_info.public_asset_disk', '');
+
+        return $this->resolvePublicAssetDisk(is_string($override) ? $override : '')
+            ?? $this->getStorageDisk();
+    }
+
+    /**
      * 모듈 설치 시 실행할 시더 목록 반환
      *
      * 배열 순서대로 실행됩니다.

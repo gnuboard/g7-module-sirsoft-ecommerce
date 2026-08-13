@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Sirsoft\Ecommerce\Database\Factories\ProductReviewImageFactory;
+use Modules\Sirsoft\Ecommerce\Models\Concerns\HasDirectAssetUrl;
 
 /**
  * 상품 리뷰 이미지 모델
  */
 class ProductReviewImage extends Model
 {
+    use HasDirectAssetUrl;
     use HasFactory, SoftDeletes;
 
     protected $table = 'ecommerce_product_review_images';
@@ -103,11 +105,11 @@ class ProductReviewImage extends Model
     }
 
     /**
-     * 다운로드 URL 반환 (API 서빙 URL)
+     * hash 기반 리뷰 이미지 서빙 API URL (직접 URL 불가 시 폴백).
      *
      * @return string
      */
-    public function getDownloadUrlAttribute(): string
+    protected function apiDownloadUrl(): string
     {
         return '/api/modules/sirsoft-ecommerce/review-image/'.$this->hash;
     }

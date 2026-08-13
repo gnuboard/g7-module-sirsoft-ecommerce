@@ -54,6 +54,7 @@ _단건 응답: `data` 객체의 필드._
 | claim | object | `{"refund_reasons":[{"id":1,"type":"refund","code":"order_…` | 클레임 설정 (DB 관리 대상인 환불 사유 목록: 코드·다국어명·귀책 유형·노출/활성 여부) |
 | available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
 | available_cash_receipt_providers | array | `[]` | 설치된 플러그인이 훅으로 등록한 현금영수증 발급 제공자 목록 (id·name_key — 미등록 시 빈 배열이며 신청 폼이 노출되지 않음) |
+| available_public_asset_disks | array | `[{"id":"none","label":{"ko":"사용 안 함 (스트리밍)","en":"Disabl…` | 공개 자산 직접 URL 서빙 디스크 선택지 (코어 DriverRegistryService 카탈로그 — none/public/s3 + 플러그인 훅 등록분). 기본정보 탭의 공개 자산 디스크 Select 옵션 소스 |
 | abilities | object | `{"can_update":true}` | 현재 사용자가 이 리소스에 수행 가능한 작업 불리언 맵 (can_update, can_delete 등 — 권한 맵 기반) |
 | _meta | object | `{"limits":{"auto_cancel_days_min":1,"auto_cancel_days_max…` | 설정 화면 전용 메타. `limits` 는 숫자 입력의 경계값 맵(`config('sirsoft-ecommerce.limits')`)으로, 저장 규칙(FormRequest)과 같은 출처다 — 화면이 리터럴 경계를 들면 규칙 변경을 따라가지 못해 "화면은 받는데 저장은 422" 가 되므로 입력 min/max 는 이 값을 바인딩한다 |
 
@@ -449,6 +450,7 @@ HTTP/1.1 200
 | basic_info.privacy_officer_email | body | email | 아니오 | max 255 | 개인정보 보호책임자 E-mail |
 | basic_info.mail_order_number | body | string | 아니오 | max 100 | 통신판매업 신고번호 |
 | basic_info.telecom_number | body | string | 아니오 | max 100 | 부가통신 사업자번호 |
+| basic_info.public_asset_disk | body | string | 아니오 | max 100 | 공개 자산 디스크 오버라이드 (빈값=코어 설정 따름, none=강제 스트리밍, 그 외=카탈로그 디스크 id — 존재하지 않는 디스크는 스트리밍으로 안전 폴백) |
 | language_currency | body | array | 아니오 | — | 통화 설정 섹션 (기본 통화·통화 목록: 코드·다국어명·환율·반올림 규칙·통화별 로케일) |
 | language_currency.default_currency | body | string | 아니오 | max 10 | 쇼핑몰 기본(base) 통화 코드. 상품/주문이 1건이라도 생성된 뒤에는 변경 불가 |
 | language_currency.currencies | body | array | 아니오 | — | 등록 통화 목록. 항목별 `code`(ISO 4217 3자리 대문자, 필수)·`name`(다국어 배열, 필수)·`symbol`·`exchange_rate`·`base_unit`·`rounding_unit`·`rounding_method`(`floor`\|`round`\|`ceil`)·`decimal_places`·`is_default`·`locales` |
@@ -667,6 +669,7 @@ _단건 응답: `data` 객체의 필드._
 | claim | object | `{"refund_reasons":[{"id":1,"type":"refund","code":"order_…` | 클레임 설정 (DB 관리 대상인 환불 사유 목록: 코드·다국어명·귀책 유형·노출/활성 여부) |
 | available_pg_providers | array | `[{"id":"kginicis","name_key":"sirsoft-pay_kginicis::provi…` | 설치된 PG 플러그인이 훅으로 등록한 PG 제공자 목록 (id·name_key·지원 결제수단) |
 | available_cash_receipt_providers | array | `[]` | 설치된 플러그인이 훅으로 등록한 현금영수증 발급 제공자 목록 (id·name_key — 미등록 시 빈 배열이며 신청 폼이 노출되지 않음) |
+| available_public_asset_disks | array | `[{"id":"none","label":{"ko":"사용 안 함 (스트리밍)","en":"Disabl…` | 공개 자산 직접 URL 서빙 디스크 선택지 (코어 DriverRegistryService 카탈로그 — none/public/s3 + 플러그인 훅 등록분). 기본정보 탭의 공개 자산 디스크 Select 옵션 소스 |
 
 **응답 예시**
 

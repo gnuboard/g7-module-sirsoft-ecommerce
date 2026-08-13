@@ -1327,8 +1327,14 @@ return [
         ],
     ],
 
+    // Public asset disk (validated against the core catalog)
+    'public_asset_disk_invalid' => 'Please select a valid public asset disk.',
+
     // Field name translations (Laravel standard)
     'attributes' => [
+        // Public asset storage
+        'basic_info.public_asset_disk' => 'Public asset disk',
+
         // Shipping policy country settings
         'country_settings' => 'Country settings',
         'country_settings.*.country_code' => 'Country',

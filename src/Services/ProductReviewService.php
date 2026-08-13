@@ -15,6 +15,7 @@ use Modules\Sirsoft\Ecommerce\Models\ProductReview;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderOptionRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewImageRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Services\Concerns\ResolvesRowStorage;
 use Modules\Sirsoft\Ecommerce\Support\ReviewWritePolicy;
 
 /**
@@ -24,6 +25,8 @@ use Modules\Sirsoft\Ecommerce\Support\ReviewWritePolicy;
  */
 class ProductReviewService
 {
+    use ResolvesRowStorage;
+
     /**
      * ProductReviewService 생성자
      *
@@ -217,10 +220,11 @@ class ProductReviewService
         HookManager::doAction('sirsoft-ecommerce.product-review.before_delete', $review);
 
         return DB::transaction(function () use ($review) {
-            // 이미지 파일 삭제 (StorageInterface 사용)
+            // 이미지 파일 삭제 (StorageInterface 사용) — 행 disk 기준
             foreach ($review->images as $image) {
-                if ($this->storage->exists('images', $image->path)) {
-                    $this->storage->delete('images', $image->path);
+                $rowStorage = $this->storageForRow($image->disk);
+                if ($rowStorage->exists('images', $image->path)) {
+                    $rowStorage->delete('images', $image->path);
                 }
             }
 
@@ -266,11 +270,12 @@ class ProductReviewService
         HookManager::doAction('sirsoft-ecommerce.product-review.before_bulk_delete', $ids, $reviews);
 
         return DB::transaction(function () use ($reviews, $ids, $snapshots) {
-            // 이미지 파일 일괄 삭제
+            // 이미지 파일 일괄 삭제 — 행 disk 기준
             foreach ($reviews as $review) {
                 foreach ($review->images as $image) {
-                    if ($this->storage->exists('images', $image->path)) {
-                        $this->storage->delete('images', $image->path);
+                    $rowStorage = $this->storageForRow($image->disk);
+                    if ($rowStorage->exists('images', $image->path)) {
+                        $rowStorage->delete('images', $image->path);
                     }
                 }
             }

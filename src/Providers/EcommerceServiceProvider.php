@@ -119,10 +119,21 @@ class EcommerceServiceProvider extends BaseModuleServiceProvider
      * @var array<int, class-string>
      */
     protected array $storageServices = [
-        CategoryImageService::class,
-        ProductImageService::class,
         ProductReviewService::class,
-        ProductReviewImageService::class,
+    ];
+
+    /**
+     * 카테고리별 StorageInterface가 필요한 서비스 매핑 (클래스 ⇒ 카테고리)
+     *
+     * 이미지 서비스는 getStorageDiskFor('images') 가 결정한 디스크(공개 자산 디스크
+     * 설정 반영)를 주입받아, put/getDisk() 행 기록이 자동으로 카테고리 디스크를 따릅니다.
+     *
+     * @var array<class-string, string>
+     */
+    protected array $storageCategoryServices = [
+        CategoryImageService::class => 'images',
+        ProductImageService::class => 'images',
+        ProductReviewImageService::class => 'images',
     ];
 
     /**

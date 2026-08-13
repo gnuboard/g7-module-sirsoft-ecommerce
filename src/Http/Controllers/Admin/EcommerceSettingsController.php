@@ -7,6 +7,7 @@ use App\Helpers\PermissionHelper;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
 use App\Seo\Contracts\SeoCacheManagerInterface;
+use App\Services\DriverRegistryService;
 use App\Services\NotificationChannelService;
 use App\Services\NotificationDefinitionService;
 use Exception;
@@ -56,6 +57,9 @@ class EcommerceSettingsController extends AdminBaseController
             // 현금영수증 발급 프로바이더 후보 — 결제 플러그인이 훅으로 자신을 등록한다.
             // 발급 PG 와 결제 PG 는 독립 선택이므로 목록도 별도로 내린다 (KG 결제 + 토스 발급 등).
             $settings['available_cash_receipt_providers'] = $this->settingsService->getRegisteredCashReceiptProviders();
+            // 공개 자산 디스크 선택지 — 카탈로그 SSoT 는 코어 DriverRegistryService 게터 한 곳
+            $settings['available_public_asset_disks'] = app(DriverRegistryService::class)
+                ->getAvailableDrivers('public_asset');
             $settings['abilities'] = [
                 'can_update' => PermissionHelper::check('sirsoft-ecommerce.settings.update', request()->user()),
             ];
@@ -171,6 +175,9 @@ class EcommerceSettingsController extends AdminBaseController
                 $updatedSettings = $this->appendMileageNotificationChannelsToSettings($updatedSettings);
                 $updatedSettings['available_pg_providers'] = $this->settingsService->getRegisteredPgProviders();
                 $updatedSettings['available_cash_receipt_providers'] = $this->settingsService->getRegisteredCashReceiptProviders();
+                // 공개 자산 디스크 선택지 — 저장 응답에도 재부착 (관리자 UI 상태 갱신용)
+                $updatedSettings['available_public_asset_disks'] = app(DriverRegistryService::class)
+                    ->getAvailableDrivers('public_asset');
 
                 return ResponseHelper::moduleSuccess(
                     'sirsoft-ecommerce',
