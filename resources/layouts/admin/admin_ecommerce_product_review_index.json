@@ -1590,6 +1590,7 @@
                                     "data": "{{reviews.data?.data ?? []}}",
                                     "idField": "id",
                                     "selectable": true,
+                                    "selectionScope": "page",
                                     "selectedIds": "{{_local.selectedReviews ?? []}}",
                                     "expandable": true,
                                     "expandedRowIds": "{{_local.expandedRows ?? []}}",

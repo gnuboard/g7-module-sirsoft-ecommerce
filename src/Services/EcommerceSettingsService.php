@@ -91,6 +91,9 @@ class EcommerceSettingsService implements ModuleSettingsInterface
         // 파일 저장 후 캐시 초기화 (다음 조회 시 재계산)
         $this->settings = null;
 
+        // 상주 프로세스의 config 미러도 함께 갱신한다 (공개이슈 #109)
+        g7_refresh_module_settings_config('sirsoft-ecommerce');
+
         return $result;
     }
 
@@ -287,6 +290,9 @@ class EcommerceSettingsService implements ModuleSettingsInterface
         // 캐시 초기화
         $this->settings = null;
 
+        // 상주 프로세스의 config 미러도 함께 갱신한다 (공개이슈 #109)
+        g7_refresh_module_settings_config('sirsoft-ecommerce');
+
         // 통화 목록이 바뀌었을 수 있으므로 요청 단위 통화 캐시도 함께 비운다.
         // (리소스 계층이 이 캐시로 다통화 금액을 만들기 때문에, 비우지 않으면 같은 요청 안에서
         //  저장 전 통화 구성으로 금액이 계산된다)
@@ -382,6 +388,9 @@ class EcommerceSettingsService implements ModuleSettingsInterface
 
         // 캐시 초기화
         $this->settings = null;
+
+        // 상주 프로세스의 config 미러도 함께 갱신한다 (공개이슈 #109)
+        g7_refresh_module_settings_config('sirsoft-ecommerce');
 
         return $result;
     }
@@ -1159,6 +1168,9 @@ class EcommerceSettingsService implements ModuleSettingsInterface
     {
         $this->defaults = null;
         $this->settings = null;
+
+        // 상주 프로세스의 config 미러도 함께 갱신한다 (공개이슈 #109)
+        g7_refresh_module_settings_config('sirsoft-ecommerce');
     }
 
     /**
