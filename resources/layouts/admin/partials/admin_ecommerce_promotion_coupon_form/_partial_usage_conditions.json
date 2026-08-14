@@ -382,6 +382,7 @@
                               }
                             ],
                             "selectable": true,
+                            "selectionScope": "free",
                             "selectedIds": "{{_local.productSearchSelected ?? []}}",
                             "emptyMessage": "$t:sirsoft-ecommerce.admin.promotion_coupon.form.search.no_results"
                           },
@@ -532,6 +533,7 @@
                           }
                         ],
                         "selectable": true,
+                        "selectionScope": "free",
                         "selectedIds": "{{_local.selectedProductIds ?? []}}",
                         "emptyMessage": "$t:sirsoft-ecommerce.admin.promotion_coupon.form.search.no_selected"
                       },
@@ -791,6 +793,7 @@
                           }
                         ],
                         "selectable": true,
+                        "selectionScope": "free",
                         "selectedIds": "{{_local.selectedCategoryIds ?? []}}",
                         "emptyMessage": "$t:sirsoft-ecommerce.admin.promotion_coupon.form.search.no_selected"
                       },

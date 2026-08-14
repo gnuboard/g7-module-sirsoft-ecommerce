@@ -271,6 +271,7 @@
                 "data": "{{order.data?.options ?? []}}",
                 "idField": "id",
                 "selectable": true,
+                "selectionScope": "free",
                 "selectedIds": "{{_local.selectedProducts || []}}",
                 "pagination": false,
                 "showColumnSelector": false,

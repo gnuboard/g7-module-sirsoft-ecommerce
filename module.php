@@ -2177,6 +2177,13 @@ class Module extends AbstractModule
                 'enabled_config' => null,
             ],
             [
+                'command' => 'sirsoft-ecommerce:prune-temp-orders',
+                'schedule' => 'hourly',
+                'description' => '만료 임시 주문 자동 삭제',
+                // 만료 판정은 임시 주문 자체의 TTL 이 정하므로 별도 토글 없음
+                'enabled_config' => null,
+            ],
+            [
                 'command' => 'sirsoft-ecommerce:earn-mileage',
                 'schedule' => 'hourly',
                 'description' => '지연 마일리지 적립',
