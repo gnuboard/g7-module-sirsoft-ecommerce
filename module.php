@@ -39,6 +39,7 @@ use Modules\Sirsoft\Ecommerce\Listeners\SeoCategoryCacheListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoProductCacheListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SeoSettingsCacheListener;
 use Modules\Sirsoft\Ecommerce\Listeners\ShippingPolicyActivityLogListener;
+use Modules\Sirsoft\Ecommerce\Listeners\ShippingPolicyCacheListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SyncOptionGroupsListener;
 use Modules\Sirsoft\Ecommerce\Listeners\SyncProductFromOptionListener;
 use Modules\Sirsoft\Ecommerce\Listeners\UserCurrencyInfoListener;
@@ -2129,6 +2130,7 @@ class Module extends AbstractModule
             SeoCategoryCacheListener::class,
             CategoryTreeCacheListener::class,
             SeoSettingsCacheListener::class,
+            ShippingPolicyCacheListener::class,
             MileageTransactionListener::class,
             UserMileageInfoListener::class,
             UserCurrencyInfoListener::class,

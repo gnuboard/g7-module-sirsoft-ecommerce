@@ -194,7 +194,10 @@ class OrderResource extends BaseApiResource
             )),
 
             // 현금영수증 — 현재 활성 영수증 1건(없으면 null). 발급 카드의 "발급완료" 상태 근거.
-            'cash_receipt' => $this->whenLoaded('cashReceipts', function () use ($orderCurrency, $paymentCurrency) {
+            // 통화 스냅샷은 명시 캡처가 필요하다 — 형제 항목들이 쓰는 화살표 함수와 달리 이
+            // 클로저는 자동 캡처가 없어, use 목록에서 빠지면 undefined 로 떨어져 주문 시점
+            // 통화(자릿수·절사 규칙)가 전파되지 않는다.
+            'cash_receipt' => $this->whenLoaded('cashReceipts', function () use ($orderCurrency, $paymentCurrency, $currencySnapshot) {
                 $active = OrderCashReceipt::filterActive($this->cashReceipts)[0] ?? null;
 
                 return $active

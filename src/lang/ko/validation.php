@@ -862,6 +862,7 @@ return [
 
     // 주문 검증 메시지 (하위 호환성 - order.* 형식)
     'order' => [
+        'payment_method_unavailable' => '현재 사용할 수 없는 결제수단입니다. 다른 결제수단을 선택해주세요.',
         'ids' => [
             'required' => '변경할 주문을 선택해주세요.',
             'array' => '주문 ID는 배열 형태여야 합니다.',

@@ -152,6 +152,7 @@
       "min_order_amount": "Min. Order Amount",
       "is_active": "Active",
       "orphaned_badge": "Plugin Not Installed",
+      "orphaned_pg_badge": "PG removed",
       "remove_orphaned": "Remove",
       "pg_provider": "PG Provider",
       "pg_use_default": "Default PG",

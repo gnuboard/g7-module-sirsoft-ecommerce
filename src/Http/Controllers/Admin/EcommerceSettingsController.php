@@ -12,6 +12,7 @@ use App\Services\NotificationChannelService;
 use App\Services\NotificationDefinitionService;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiAuthType;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiHttpMethod;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiRequestField;
@@ -166,6 +167,12 @@ class EcommerceSettingsController extends AdminBaseController
                 // 설정 저장 활동로그 (저장된 카테고리 목록 전달)
                 HookManager::doAction('sirsoft-ecommerce.settings.after_save', array_keys($settings));
 
+                // 코어 모듈 설정 저장 훅 — SEO 캐시 무효화 등 코어/타 확장 리스너가 구독한다.
+                // 발화 지점을 서비스가 아니라 관리자 컨트롤러에 두는 이유: 훅 의미가
+                // "관리자가 설정을 저장했다" 이고, 서비스에 두면 내부 저장 호출 전부가
+                // 활동로그·캐시 무효화를 유발한다.
+                HookManager::doAction('core.module_settings.after_save', 'sirsoft-ecommerce', $settings, $result);
+
                 // 저장 후 전체 설정 반환 (관리자 UI 상태 업데이트용)
                 $updatedSettings = $this->settingsService->getAllSettings();
                 $updatedSettings = $this->appendCarriersToSettings($updatedSettings);
@@ -214,6 +221,13 @@ class EcommerceSettingsController extends AdminBaseController
             $result = $this->settingsService->saveBanks($banks);
 
             if ($result) {
+                HookManager::doAction(
+                    'core.module_settings.after_save',
+                    'sirsoft-ecommerce',
+                    ['order_settings' => ['banks' => $banks]],
+                    $result
+                );
+
                 $updatedSettings = $this->settingsService->getAllSettings();
 
                 return ResponseHelper::moduleSuccess(
@@ -282,6 +296,11 @@ class EcommerceSettingsController extends AdminBaseController
             $result = $this->settingsService->setSetting($key, $value);
 
             if ($result) {
+                // dot-key 를 카테고리 하위 구조로 되돌려 벌크 저장과 같은 payload 형태로 만든다
+                $payload = [];
+                Arr::set($payload, $key, $value);
+                HookManager::doAction('core.module_settings.after_save', 'sirsoft-ecommerce', $payload, $result);
+
                 return ResponseHelper::moduleSuccess(
                     'sirsoft-ecommerce',
                     'messages.settings.update_success',

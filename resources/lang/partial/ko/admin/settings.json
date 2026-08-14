@@ -152,6 +152,7 @@
       "min_order_amount": "최소 주문금액",
       "is_active": "사용여부",
       "orphaned_badge": "플러그인 미설치",
+      "orphaned_pg_badge": "지정 PG 삭제됨",
       "remove_orphaned": "삭제",
       "pg_provider": "PG사",
       "pg_use_default": "기본 PG",

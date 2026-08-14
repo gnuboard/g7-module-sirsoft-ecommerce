@@ -862,6 +862,7 @@ return [
 
     // Order validation messages (backward compatibility - order.* format)
     'order' => [
+        'payment_method_unavailable' => 'This payment method is currently unavailable. Please choose another one.',
         'ids' => [
             'required' => 'Please select orders to update.',
             'array' => 'Order IDs must be an array.',

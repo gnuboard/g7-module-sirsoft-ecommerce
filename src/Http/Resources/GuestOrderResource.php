@@ -140,7 +140,10 @@ class GuestOrderResource extends BaseApiResource
             // "미발급" 으로 남고 영수증 URL 에 도달할 방법이 사라진다(오류·경고 없음).
             // CashReceiptResource 는 식별번호를 마스킹 값으로만 내보내고 프로바이더 원응답을
             // 노출하지 않으므로 비회원에게 내려도 안전하다.
-            'cash_receipt' => $this->whenLoaded('cashReceipts', function () use ($orderCurrency, $paymentCurrency) {
+            // 통화 스냅샷은 명시 캡처가 필요하다 — 형제 항목들이 쓰는 화살표 함수와 달리
+            // 이 클로저는 자동 캡처가 없어, use 목록에서 빠지면 undefined 로 떨어져 주문 시점
+            // 통화(자릿수·절사 규칙)가 전파되지 않는다.
+            'cash_receipt' => $this->whenLoaded('cashReceipts', function () use ($orderCurrency, $paymentCurrency, $currencySnapshot) {
                 $active = OrderCashReceipt::filterActive($this->cashReceipts)[0] ?? null;
 
                 return $active

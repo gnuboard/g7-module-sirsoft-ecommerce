@@ -1656,7 +1656,7 @@ _단건 응답: `data` 객체의 필드._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 공개 가능한 결제 설정 (활성 결제수단·무통장 은행명 매핑 포함, 민감 정보 제외). `payment_methods` 는 현재 제공 가능한 결제수단만 포함하며, 공급 확장이 더 이상 제공하지 않는 결제수단(관리자 화면의 고아 항목)은 `is_active` 가 참이어도 제외된다 |
+| order_settings | object | `{"default_pg_provider":null,"cash_receipt_provider":"toss…` | 공개 가능한 결제 설정 (활성 결제수단·무통장 은행명 매핑 포함, 민감 정보 제외). `payment_methods` 는 현재 제공 가능한 결제수단만 포함하며, 공급 확장이 더 이상 제공하지 않는 결제수단(관리자 화면의 고아 항목)은 `is_active` 가 참이어도 제외된다. **지정된 PG 사가 현재 등록되어 있지 않은 결제수단도 같은 이유로 제외된다** — 수단 자체는 카탈로그에 남아 있지만 주문 시 PG 라우팅이 매칭에 실패해 결제창 없이 주문이 완료되기 때문이다. 유효 PG 판정은 결제수단의 `pg_provider` 가 비어 있을 때만 `default_pg_provider` 로 폴백하며(런타임 라우팅과 동일), 양쪽 모두 미설정이면 PG 비경유 수단으로 종전대로 노출된다. `default_pg_provider` 와 `cash_receipt_provider` 도 등록되지 않은 값이면 `null` 로 정규화된다. 관리자 응답(`GET admin/settings`)은 이 필터를 적용하지 않고 `_orphaned` / `_orphaned_pg` 플래그를 그대로 실어 운영자가 확인·수정할 수 있게 한다 |
 
 **응답 예시**
 
