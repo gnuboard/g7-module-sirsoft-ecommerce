@@ -1342,6 +1342,7 @@ HTTP/1.1 201
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 상품 이미지 개수 상한 초과 (`ProductImageUploadLimitException`) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -1404,6 +1405,7 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -1457,6 +1459,7 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 404 | Not Found | `id` 에 해당하는 이미지가 없는 경우 (`messages.product_images.not_found`) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -1715,6 +1718,7 @@ HTTP/1.1 201
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 상품 이미지 개수 상한 초과 (`ProductImageUploadLimitException`) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -1769,6 +1773,7 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.products.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -3586,11 +3591,11 @@ HTTP/1.1 201
 | --- | --- | --- |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-products.read`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 도메인 규칙 위반(비밀글 비허용 등, `RuntimeException` → `messages.inquiries.create_failed`) |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 도메인 규칙 위반(문의 게시판 미설정·게시판 모듈 불가 등, `ProductInquiryOperationException` → `messages.inquiries.operation_failed_reason` 에 사유가 담김) |
 
 <!-- @generated:end -->
 
-**설명** 상품에 1:1 문의를 작성합니다. `optional.sanctum` + `sirsoft-ecommerce.user-products.read` 권한이 적용되며(선택적 인증 표면이지만 실제 작성은 인증 사용자를 전제), `ProductInquiryService::createInquiry()`가 게시판 모듈과 연동해 문의 글을 생성하고 성공 시 201과 생성된 `id`를 반환합니다. `content`는 필수, `title`/`category`/`is_secret`은 선택이며, 첨부는 사전 업로드한 `temp_key`로 연결됩니다. 도메인 규칙 위반(비밀글 비허용 등)은 `RuntimeException`으로 422를 반환합니다.
+**설명** 상품에 1:1 문의를 작성합니다. `optional.sanctum` + `sirsoft-ecommerce.user-products.read` 권한이 적용되며(선택적 인증 표면이지만 실제 작성은 인증 사용자를 전제), `ProductInquiryService::createInquiry()`가 게시판 모듈과 연동해 문의 글을 생성하고 성공 시 201과 생성된 `id`를 반환합니다. `content`는 필수, `title`/`category`/`is_secret`은 선택이며, 첨부는 사전 업로드한 `temp_key`로 연결됩니다. 도메인 규칙 위반(문의 게시판 미설정·게시판 모듈 불가 등)은 `ProductInquiryOperationException` 으로 422 를 반환하며, 예외가 들고 있는 다국어 키로 해석한 사유가 응답 문구에 포함됩니다. 그 밖의 예외는 서버 결함으로 보아 500 입니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/products/{product}/reviews

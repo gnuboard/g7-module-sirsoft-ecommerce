@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Base\AuthBaseController;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Modules\Sirsoft\Ecommerce\Exceptions\ReviewImageUploadLimitException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\UploadReviewImageRequest;
 use Modules\Sirsoft\Ecommerce\Http\Resources\ProductReviewImageResource;
 use Modules\Sirsoft\Ecommerce\Models\ProductReview;
@@ -54,8 +55,16 @@ class ReviewImageController extends AuthBaseController
                 new ProductReviewImageResource($image),
                 201
             );
-        } catch (\RuntimeException $e) {
-            return ResponseHelper::error($e->getMessage(), 422);
+        } catch (ReviewImageUploadLimitException $e) {
+            // 개수 상한 초과는 도메인 검증 실패 → 422 + 전용 메시지 (메시지 키 + 파라미터).
+            // 예외 메시지 원문을 키 자리에 넘기면 키 해석에 실패해 원문이 그대로 노출된다.
+            return ResponseHelper::error(
+                'review.image_upload_limit_exceeded',
+                422,
+                null,
+                ['max' => $e->maxImages],
+                'sirsoft-ecommerce'
+            );
         } catch (Exception $e) {
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',

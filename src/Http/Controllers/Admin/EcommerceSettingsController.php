@@ -13,10 +13,14 @@ use App\Services\NotificationDefinitionService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiAuthType;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiHttpMethod;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiRequestField;
 use Modules\Sirsoft\Ecommerce\Enums\ShippingApiResponseType;
+use Modules\Sirsoft\Ecommerce\Exceptions\ShippingCarrierOperationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\ShippingTypeOperationException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\GetSettingRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\StoreBanksRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\StoreEcommerceSettingsRequest;
@@ -198,7 +202,25 @@ class EcommerceSettingsController extends AdminBaseController
                     400
                 );
             }
+        } catch (ShippingTypeOperationException|ShippingCarrierOperationException $e) {
+            // 도메인 실패(사용 중이라 삭제 불가 등)는 운영자가 조치할 수 있는 사유다.
+            // generic 500 으로 뭉개면 "왜" 저장이 실패했는지 화면에서 알 수 없다.
+            // 키가 이미 `sirsoft-ecommerce::` 로 정규화돼 있어 moduleError 가 아닌 error 를 쓴다
+            // (ShippingCarrierController::destroy 와 동형).
+            $messageKey = $e->getMessageKey();
+
+            return ResponseHelper::error(
+                $messageKey,
+                400,
+                null,
+                $e->getMessageParams()
+            );
         } catch (Exception $e) {
+            Log::error('이커머스 설정 저장 실패', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'messages.settings.save_error',

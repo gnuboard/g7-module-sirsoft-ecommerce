@@ -1013,11 +1013,15 @@ HTTP/1.1 200
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
+| 400 | Bad Request | 설정 저장은 통과했으나 DB 동기화가 도메인 규칙에 걸린 경우 — 주문에서 사용 중인 배송유형·배송사를 payload 에서 빼 삭제하려 한 경우가 이에 해당하며, `message` 에 대상 이름과 사용 건수가 담긴다 |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.settings.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
+
+**삭제 차단 사유의 구분** `shipping.types`·`shipping.carriers` 는 payload 에서 항목을 빼는 방식으로 삭제합니다. 그 항목이 주문에서 사용 중이면 삭제가 거부되는데, 이때는 **400** 과 함께 사유(대상 이름·사용 건수)가 `message` 로 전달됩니다. 저장 자체가 서버 결함으로 실패한 경우의 500(일반 저장 오류 문구)과 구분되므로, 운영자는 화면 문구만으로 "내가 고칠 수 있는 일인지"를 판별할 수 있습니다.
 
 **설명** 관리자가 이커머스 환경설정을 저장합니다. `permission:sirsoft-ecommerce.settings.update` 권한이 필요하며, `_tab` 으로 저장할 카테고리를 지정하고 각 섹션(`basic_info`·`shipping`·`claim` 등)을 배열로 전달합니다. `EcommerceSettingsService::saveSettings()`가 JSON 설정을 저장하되, DB 관리 대상인 `shipping.carriers`·`shipping.types`·`claim.refund_reasons` 는 분리해 각 Service 의 sync 메서드로 동기화합니다. 저장 성공 시 `sirsoft-ecommerce.settings.after_save` 훅을 발화하고, 관리자 UI 상태 갱신을 위해 병합된 전체 설정을 다시 반환합니다.
 

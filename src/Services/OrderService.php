@@ -643,6 +643,15 @@ class OrderService
                     throw new OrderModificationException(__('sirsoft-ecommerce::messages.address.not_found'));
                 }
 
+                // 저장된 배송지의 국내·해외 필드를 모두 싣는다. 지역 판정은 아래
+                // $isDomestic 한 곳에서만 하고 그 분기가 필요한 쪽만 골라 쓴다.
+                // 국내 6필드만 싣던 종전 형태에서는 해외 배송지를 고르면 해외 컬럼이
+                // 전부 null 로 덮여 주소가 통째로 사라졌다.
+                // 배송 메모는 저장 주소가 아니라 이번 요청의 값이므로 승계한다.
+                $memo = array_key_exists('delivery_memo', $data)
+                    ? ['delivery_memo' => $data['delivery_memo']]
+                    : [];
+
                 $data = [
                     'recipient_name' => $savedAddress->recipient_name,
                     'recipient_phone' => $savedAddress->recipient_phone,
@@ -650,7 +659,12 @@ class OrderService
                     'zipcode' => $savedAddress->zipcode,
                     'address' => $savedAddress->address,
                     'address_detail' => $savedAddress->address_detail,
-                ];
+                    'address_line_1' => $savedAddress->address_line_1,
+                    'address_line_2' => $savedAddress->address_line_2,
+                    'intl_city' => $savedAddress->city,
+                    'intl_state' => $savedAddress->state,
+                    'intl_postal_code' => $savedAddress->postal_code,
+                ] + $memo;
             }
 
             // 변경 전 훅
@@ -665,24 +679,43 @@ class OrderService
             $addressSnapshot = $shippingAddress ? $shippingAddress->toArray() : null;
 
             if ($shippingAddress) {
+                // 국가 코드 폴백은 UpdateOrderShippingAddressRequest::isDomesticShipping()
+                // 과 반드시 같은 기준이어야 한다 — 게이트가 "미전송 = 국내" 로 보고
+                // zipcode/address 를 필수 검증했는데 서비스가 기존 국가를 승계해 해외
+                // 분기로 떨어지면, 방금 검증한 국내 입력을 버리고 빈 문자열을 쓴다.
+                // 직접 입력 폼은 국내 필드만 제공해 country_code 를 보내지 않으므로,
+                // 해외 주문의 배송지를 국내로 바꾸는 경로가 통째로 사라진다(응답은 200).
+                $country = $data['country_code'] ?? 'KR';
+                $isDomestic = strtoupper(trim((string) $country)) === 'KR';
+
                 $addressData = [
                     'recipient_name' => $data['recipient_name'],
                     'recipient_phone' => $data['recipient_phone'],
-                    'recipient_country_code' => $data['country_code'] ?? 'KR',
+                    'recipient_country_code' => $country,
                 ];
 
-                $isDomestic = ($data['country_code'] ?? 'KR') === 'KR';
-
+                // 주의: zipcode/address 컬럼은 NOT NULL 이므로 비활성 측은 null 이 아닌 빈 문자열로 초기화.
+                // 반대편 컬럼을 비우지 않으면 국내↔해외 전환 시 구 주소가 잔존해 배송지가 두 벌이 된다.
                 if ($isDomestic) {
-                    $addressData['zipcode'] = $data['zipcode'] ?? null;
-                    $addressData['address'] = $data['address'] ?? null;
+                    $addressData['zipcode'] = $data['zipcode'] ?? '';
+                    $addressData['address'] = $data['address'] ?? '';
                     $addressData['address_detail'] = $data['address_detail'] ?? null;
+                    // 해외 컬럼 초기화 (nullable)
+                    $addressData['address_line_1'] = null;
+                    $addressData['address_line_2'] = null;
+                    $addressData['intl_city'] = null;
+                    $addressData['intl_state'] = null;
+                    $addressData['intl_postal_code'] = null;
                 } else {
                     $addressData['address_line_1'] = $data['address_line_1'] ?? null;
                     $addressData['address_line_2'] = $data['address_line_2'] ?? null;
                     $addressData['intl_city'] = $data['intl_city'] ?? null;
                     $addressData['intl_state'] = $data['intl_state'] ?? null;
                     $addressData['intl_postal_code'] = $data['intl_postal_code'] ?? null;
+                    // 국내 컬럼 초기화 (zipcode/address 는 NOT NULL → 빈 문자열)
+                    $addressData['zipcode'] = '';
+                    $addressData['address'] = '';
+                    $addressData['address_detail'] = null;
                 }
 
                 // 배송 메모 (항상 업데이트)

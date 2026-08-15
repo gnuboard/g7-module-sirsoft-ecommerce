@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductHasOrderHistoryException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductImageUploadLimitException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ProductPriceRelationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\ResourceScopeMismatchException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdatePriceRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateProductsRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkUpdateStatusRequest;
@@ -731,6 +732,7 @@ class ProductController extends AdminBaseController
                 'sirsoft-ecommerce'
             );
         } catch (Exception $e) {
+            // 개수 상한 초과는 위에서 typed 로 분기된다 — 여기 도달하면 서버 결함/인프라 장애다
             Log::error('상품 이미지 업로드 실패', [
                 'product_id' => $productId,
                 'error' => $e->getMessage(),
@@ -740,7 +742,7 @@ class ProductController extends AdminBaseController
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
-                400
+                500
             );
         }
     }
@@ -768,11 +770,19 @@ class ProductController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.product_images.deleted'
             );
-        } catch (Exception $e) {
+        } catch (ResourceScopeMismatchException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -793,11 +803,19 @@ class ProductController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.product_images.reordered'
             );
-        } catch (Exception $e) {
+        } catch (ResourceScopeMismatchException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -818,11 +836,19 @@ class ProductController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.product_images.thumbnail_set'
             );
-        } catch (Exception $e) {
+        } catch (ResourceScopeMismatchException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }

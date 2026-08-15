@@ -7,6 +7,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Enums\CouponIssueRecordStatus;
+use Modules\Sirsoft\Ecommerce\Exceptions\CouponOperationException;
 use Modules\Sirsoft\Ecommerce\Models\Coupon;
 use Modules\Sirsoft\Ecommerce\Models\CouponIssue;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterface;
@@ -142,7 +143,7 @@ class CouponService
         $coupon = $this->repository->findById($id);
 
         if (! $coupon) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.coupon_not_found'));
+            throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
         }
 
         // Before 훅
@@ -199,7 +200,7 @@ class CouponService
         $coupon = $this->repository->findById($id);
 
         if (! $coupon) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.coupon_not_found'));
+            throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
         }
 
         // Before 훅
@@ -235,7 +236,7 @@ class CouponService
         HookManager::doAction('sirsoft-ecommerce.coupon.before_bulk_status', $ids, $issueStatus);
 
         // 수정 전 스냅샷 캡처
-        $snapshots = Coupon::whereIn('id', $ids)->get()->keyBy('id')->map->toArray()->all();
+        $snapshots = $this->repository->findByIdsKeyed($ids)->map->toArray()->all();
 
         $count = DB::transaction(function () use ($ids, $issueStatus) {
             return $this->repository->bulkUpdateIssueStatus($ids, $issueStatus);
@@ -267,7 +268,7 @@ class CouponService
             $coupon = $this->repository->findByIdForUpdate($couponId);
 
             if (! $coupon) {
-                throw new \Exception(__('sirsoft-ecommerce::exceptions.coupon_not_found'));
+                throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
             }
 
             // 쿠폰 자체 발급 가능 여부는 일괄 검증(불가 시 전원 차단)
@@ -316,12 +317,12 @@ class CouponService
             $issue = $this->issueRepository->findById($issueId);
 
             if (! $issue || $issue->coupon_id !== $couponId) {
-                throw new \Exception(__('sirsoft-ecommerce::exceptions.coupon_issue_not_found'));
+                throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_issue_not_found');
             }
 
             // 미사용(available) 건만 취소 가능 — 사용/만료/취소된 건은 차단
             if ($issue->status !== CouponIssueRecordStatus::AVAILABLE) {
-                throw new \Exception(__('sirsoft-ecommerce::exceptions.coupon_issue_not_cancellable'));
+                throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_issue_not_cancellable');
             }
 
             HookManager::doAction('sirsoft-ecommerce.coupon.before_issue_cancel', $issue);
@@ -355,7 +356,7 @@ class CouponService
         $coupon = $this->repository->findById($couponId);
 
         if (! $coupon) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.coupon_not_found'));
+            throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
         }
 
         // Before 훅

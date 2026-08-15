@@ -6,6 +6,7 @@ use App\Extension\HookManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Sirsoft\Ecommerce\Exceptions\BrandOperationException;
 use Modules\Sirsoft\Ecommerce\Models\Brand;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\BrandRepositoryInterface;
 
@@ -21,7 +22,7 @@ class BrandService
     /**
      * 브랜드 목록 조회
      *
-     * @param array $filters 필터 조건
+     * @param  array  $filters  필터 조건
      * @return Collection
      */
     public function getAllBrands(array $filters = []): Collection
@@ -46,7 +47,7 @@ class BrandService
     /**
      * 브랜드 상세 조회
      *
-     * @param int $id 브랜드 ID
+     * @param  int  $id  브랜드 ID
      * @return Brand|null
      */
     public function getBrand(int $id): ?Brand
@@ -70,7 +71,7 @@ class BrandService
     /**
      * 브랜드 생성
      *
-     * @param array $data 브랜드 데이터
+     * @param  array  $data  브랜드 데이터
      * @return Brand
      */
     public function createBrand(array $data): Brand
@@ -101,16 +102,16 @@ class BrandService
     /**
      * 브랜드 수정
      *
-     * @param int $id 브랜드 ID
-     * @param array $data 수정할 데이터
+     * @param  int  $id  브랜드 ID
+     * @param  array  $data  수정할 데이터
      * @return Brand
      */
     public function updateBrand(int $id, array $data): Brand
     {
         $brand = $this->repository->findById($id);
 
-        if (!$brand) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.brand_not_found'));
+        if (! $brand) {
+            throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_not_found');
         }
 
         // Before 훅
@@ -141,16 +142,17 @@ class BrandService
     /**
      * 브랜드 상태 토글
      *
-     * @param int $id 브랜드 ID
+     * @param  int  $id  브랜드 ID
      * @return Brand
+     *
      * @throws \Exception
      */
     public function toggleStatus(int $id): Brand
     {
         $brand = $this->repository->findById($id);
 
-        if (!$brand) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.brand_not_found'));
+        if (! $brand) {
+            throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_not_found');
         }
 
         // Before 훅
@@ -158,7 +160,7 @@ class BrandService
 
         $brand = DB::transaction(function () use ($brand) {
             return $this->repository->update($brand->id, [
-                'is_active' => !$brand->is_active,
+                'is_active' => ! $brand->is_active,
             ]);
         });
 
@@ -171,16 +173,17 @@ class BrandService
     /**
      * 브랜드 삭제
      *
-     * @param int $id 브랜드 ID
+     * @param  int  $id  브랜드 ID
      * @return array 삭제 결과 정보
+     *
      * @throws \Exception
      */
     public function deleteBrand(int $id): array
     {
         $brand = $this->repository->findById($id);
 
-        if (!$brand) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.brand_not_found'));
+        if (! $brand) {
+            throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_not_found');
         }
 
         // 연결된 상품 수 확인
@@ -188,9 +191,9 @@ class BrandService
 
         // 연결된 상품이 있으면 삭제 차단
         if ($productsCount > 0) {
-            throw new \Exception(__('sirsoft-ecommerce::exceptions.brand_has_products', [
+            throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_has_products', [
                 'count' => $productsCount,
-            ]));
+            ]);
         }
 
         // Before 훅

@@ -85,6 +85,7 @@ return [
     'order_cancel_failed' => '주문 취소 처리에 실패했습니다.',
     'order_estimate_refund_failed' => '환불 예상금액 계산에 실패했습니다.',
     'order_create_failed' => '주문 생성에 실패했습니다.',
+    'order_shipping_address_update_failed' => '배송지 변경 처리 중 오류가 발생했습니다.',
 
     // 통화 관련
     'unknown_currency' => '지원하지 않는 통화입니다: :currency',

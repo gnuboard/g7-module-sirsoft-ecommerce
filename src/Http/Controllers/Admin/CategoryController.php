@@ -5,6 +5,7 @@ namespace Modules\Sirsoft\Ecommerce\Http\Controllers\Admin;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AdminBaseController;
 use Illuminate\Http\JsonResponse;
+use Modules\Sirsoft\Ecommerce\Exceptions\CategoryOperationException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\CategoryListRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\CreateCategoryRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ReorderCategoriesRequest;
@@ -125,11 +126,19 @@ class CategoryController extends AdminBaseController
                 'messages.categories.updated',
                 new CategoryResource($updatedCategory)
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -150,11 +159,19 @@ class CategoryController extends AdminBaseController
                 'messages.categories.deleted',
                 $result
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -199,11 +216,19 @@ class CategoryController extends AdminBaseController
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -231,11 +256,19 @@ class CategoryController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.category_images.deleted'
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -257,11 +290,19 @@ class CategoryController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.category_images.reordered'
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -313,11 +354,19 @@ class CategoryController extends AdminBaseController
                 'messages.categories.status_changed',
                 new CategoryResource($category)
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -390,11 +439,19 @@ class CategoryController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.categories.order_updated'
             );
-        } catch (\Exception $e) {
+        } catch (CategoryOperationException $e) {
+            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
                 'exceptions.operation_failed',
                 400
+            );
+        } catch (\Exception $e) {
+            // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.operation_failed',
+                500
             );
         }
     }

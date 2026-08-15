@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderAmountChangedException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderCancellationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
 use Modules\Sirsoft\Ecommerce\Exceptions\PaymentAmountMismatchException;
 use Modules\Sirsoft\Ecommerce\Exceptions\ResourceScopeMismatchException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\BulkChangeOrderOptionStatusRequest;
@@ -361,6 +364,13 @@ class OrderController extends AdminBaseController
                 'messages.orders.cancelled',
                 new OrderResource($updatedOrder)
             );
+        } catch (OrderCancellationException $e) {
+            // 취소 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 422
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'messages.orders.cancel_failed',
+                422
+            );
         } catch (Exception $e) {
             Log::error('주문 취소 실패 (관리자)', [
                 'order_id' => $order->id,
@@ -370,9 +380,8 @@ class OrderController extends AdminBaseController
 
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
-                'messages.orders.cancel_failed',
-                422,
-                ['detail' => $e->getMessage()]
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -412,6 +421,13 @@ class OrderController extends AdminBaseController
                 422,
                 ['detail' => $e->getMessage()]
             );
+        } catch (OrderProcessingException|OrderAmountChangedException $e) {
+            // 입금확인 도메인 규칙 위반(전이 불가 상태/결제예정금액 변동) — 422
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'messages.orders.deposit_confirm_failed',
+                422
+            );
         } catch (Exception $e) {
             Log::error('무통장 입금확인 실패 (관리자)', [
                 'order_id' => $order->id,
@@ -420,9 +436,8 @@ class OrderController extends AdminBaseController
 
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
-                'messages.orders.deposit_confirm_failed',
-                422,
-                ['detail' => $e->getMessage()]
+                'exceptions.operation_failed',
+                500
             );
         }
     }
