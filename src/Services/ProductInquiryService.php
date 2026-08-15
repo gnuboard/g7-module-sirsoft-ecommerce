@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Sirsoft\Ecommerce\Exceptions\ProductInquiryOperationException;
 use Modules\Sirsoft\Ecommerce\Models\ProductInquiry;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductInquiryRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
@@ -205,9 +206,7 @@ class ProductInquiryService
         $boardSlug = $this->getInquiryBoardSlug();
 
         if (! $boardSlug) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.board_not_configured')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_not_configured');
         }
 
         $product = $this->productRepository->find($productId);
@@ -233,9 +232,7 @@ class ProductInquiryService
             );
 
             if (! $postResult || empty($postResult['post_id'])) {
-                throw new \RuntimeException(
-                    __('sirsoft-ecommerce::messages.inquiries.board_unavailable')
-                );
+                throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_unavailable');
             }
 
             // 상품명 스냅샷 (다국어) — name은 array cast
@@ -376,17 +373,13 @@ class ProductInquiryService
         $inquiry = $this->repository->findById($inquiryId);
 
         if (! $inquiry) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.not_found')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.not_found');
         }
 
         $boardSlug = $this->getInquiryBoardSlug();
 
         if (! $boardSlug) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.board_not_configured')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_not_configured');
         }
 
         HookManager::applyFilters(
@@ -421,17 +414,13 @@ class ProductInquiryService
         $inquiry = $this->repository->findById($inquiryId);
 
         if (! $inquiry) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.not_found')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.not_found');
         }
 
         $boardSlug = $this->getInquiryBoardSlug();
 
         if (! $boardSlug) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.board_not_configured')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_not_configured');
         }
 
         // ① Post 삭제 — after_delete Action 훅 포함, 트랜잭션 외부에서 실행
@@ -467,17 +456,13 @@ class ProductInquiryService
         $inquiry = $this->repository->findById($inquiryId);
 
         if (! $inquiry) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.not_found')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.not_found');
         }
 
         $boardSlug = $this->getInquiryBoardSlug();
 
         if (! $boardSlug) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.board_not_configured')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_not_configured');
         }
 
         HookManager::applyFilters(
@@ -511,17 +496,13 @@ class ProductInquiryService
         $inquiry = $this->repository->findById($inquiryId);
 
         if (! $inquiry) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.not_found')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.not_found');
         }
 
         $boardSlug = $this->getInquiryBoardSlug();
 
         if (! $boardSlug) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.board_not_configured')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_not_configured');
         }
 
         // ① Reply Post 삭제 — after_delete Action 훅 포함, 트랜잭션 외부에서 실행
@@ -614,9 +595,7 @@ class ProductInquiryService
         $inquiry = $this->repository->findById($inquiryId);
 
         if (! $inquiry) {
-            throw new \RuntimeException(
-                __('sirsoft-ecommerce::messages.inquiries.not_found')
-            );
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.not_found');
         }
 
         $boardSlug = $this->getInquiryBoardSlug();
@@ -634,9 +613,7 @@ class ProductInquiryService
             );
 
             if (! $postResult || empty($postResult['post_id'])) {
-                throw new \RuntimeException(
-                    __('sirsoft-ecommerce::messages.inquiries.reply_failed')
-                );
+                throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.reply_failed');
             }
 
             // 피벗 is_answered 업데이트

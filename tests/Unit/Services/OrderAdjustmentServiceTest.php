@@ -4953,6 +4953,12 @@ class OrderAdjustmentServiceTest extends ModuleTestCase
      *
      * 50,000×1 + 주문쿠폰(FIXED 5000, minOrder=30000)
      * 전체취소 → 잔여 0 < 30000 → 쿠폰 복원
+     *
+     * 재계산 전 쿠폰을 일시적으로 미사용으로 되돌리던 왕복 UPDATE 를 제거한 뒤에도(#108)
+     * 이 복원 판정이 그대로여야 한다 — 판정은 스냅샷의 min_order_amount 로만 이뤄지고
+     * 쿠폰의 사용 상태(status/used_at)를 읽지 않기 때문이다.
+     *
+     * @effects coupon_restore_on_min_amount_shortfall_unchanged_after_reset_removal
      */
     public function test_coupon_restore_detected_when_min_order_not_met_after_partial(): void
     {

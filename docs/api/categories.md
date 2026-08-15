@@ -406,6 +406,7 @@ HTTP/1.1 201
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `file` 은 필수이며 `jpeg,png,jpg,gif,svg,webp` 이미지만 허용, 최대 10MB |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -469,6 +470,7 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `order` 는 1건 이상 필수이며 각 항목에 정수 `id` 와 0 이상의 정수 `order` 가 필요 |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -523,6 +525,7 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 의 이미지 `id` 에 해당하는 카테고리 이미지가 없는 경우 (`messages.category_images.not_found`) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -590,6 +593,7 @@ HTTP/1.1 200
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `parent_menus` / `child_menus` 중 최소 하나가 필요하며, 각 항목의 `id` 는 실제 존재하는 카테고리여야 하고 `order` 는 0 이상의 정수 |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -817,6 +821,7 @@ HTTP/1.1 201
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `file` 은 필수이며 `jpeg,png,jpg,gif,svg,webp` 이미지만 허용, 최대 10MB |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -846,11 +851,27 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: 삭제 결과 요약 (`data` 객체)._
+
+| 필드 | 타입 | 실측 예시값 | 용도/설명 |
+| --- | --- | --- | --- |
+| category_id | integer | `12` | 삭제된 카테고리의 기본 키 |
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리가 삭제되었습니다.",
+    "data": {
+        "category_id": 12
+    }
+}
+```
 
 **에러 응답**
 
@@ -859,6 +880,7 @@ Authorization: Bearer {YOUR_TOKEN}
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.delete`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -990,6 +1012,7 @@ HTTP/1.1 200
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -1019,11 +1042,49 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`CategoryResource`). 필드 구성은 이 문서의 **PUT /api/modules/sirsoft-ecommerce/admin/categories/{id} (카테고리 수정)** 응답 필드 표와 동일합니다._
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 정보를 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 카테고리",
+            "en": "API Doc Sample Category"
+        },
+        "description": null,
+        "localized_name": "API 문서 샘플 카테고리",
+        "parent_id": null,
+        "path": "1",
+        "depth": 0,
+        "sort_order": 0,
+        "is_active": true,
+        "slug": "apidoc-sample-category",
+        "url": "apidoc-sample-category",
+        "icon": "folder",
+        "meta_title": null,
+        "meta_description": null,
+        "created_at": "2026-07-08 01:44:49",
+        "updated_at": "2026-07-08 06:00:17",
+        "images": [],
+        "products_count": 0,
+        "children_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -1061,11 +1122,49 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`CategoryResource`). 필드 구성은 이 문서의 **PUT /api/modules/sirsoft-ecommerce/admin/categories/{id} (카테고리 수정)** 응답 필드 표와 동일합니다._ `is_active` 가 반전된 상태로 반환됩니다.
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 상태가 변경되었습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 카테고리",
+            "en": "API Doc Sample Category"
+        },
+        "description": null,
+        "localized_name": "API 문서 샘플 카테고리",
+        "parent_id": null,
+        "path": "1",
+        "depth": 0,
+        "sort_order": 0,
+        "is_active": true,
+        "slug": "apidoc-sample-category",
+        "url": "apidoc-sample-category",
+        "icon": "folder",
+        "meta_title": null,
+        "meta_description": null,
+        "created_at": "2026-07-08 01:44:49",
+        "updated_at": "2026-07-08 06:00:17",
+        "images": [],
+        "products_count": 0,
+        "children_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 
@@ -1074,6 +1173,7 @@ Authorization: Bearer {YOUR_TOKEN}
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
@@ -1215,11 +1315,49 @@ Accept: application/json
 
 **응답 필드** (`data` 내부)
 
-<!-- 실측 제외: unresolved-path-param — 응답 필드는 사람이 작성하세요. -->
+_단건 응답: `data` 객체의 필드 (`CategoryResource`). 필드 구성은 이 문서의 **PUT /api/modules/sirsoft-ecommerce/admin/categories/{id} (카테고리 수정)** 응답 필드 표와 동일합니다._ 공개 API 는 비활성 카테고리를 노출하지 않습니다.
 
 **응답 예시**
 
-<!-- 실측 제외: unresolved-path-param — 응답 예시는 사람이 작성하세요. -->
+```http
+HTTP/1.1 200
+```
+
+```json
+{
+    "success": true,
+    "message": "카테고리 목록을 조회했습니다.",
+    "data": {
+        "id": 1,
+        "name": {
+            "ko": "API 문서 샘플 카테고리",
+            "en": "API Doc Sample Category"
+        },
+        "description": null,
+        "localized_name": "API 문서 샘플 카테고리",
+        "parent_id": null,
+        "path": "1",
+        "depth": 0,
+        "sort_order": 0,
+        "is_active": true,
+        "slug": "apidoc-sample-category",
+        "url": "apidoc-sample-category",
+        "icon": "folder",
+        "meta_title": null,
+        "meta_description": null,
+        "created_at": "2026-07-08 01:44:49",
+        "updated_at": "2026-07-08 06:00:17",
+        "images": [],
+        "products_count": 0,
+        "children_count": 0,
+        "abilities": {
+            "can_create": true,
+            "can_update": true,
+            "can_delete": true
+        }
+    }
+}
+```
 
 **에러 응답**
 

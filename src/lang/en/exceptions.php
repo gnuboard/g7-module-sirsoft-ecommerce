@@ -85,6 +85,7 @@ return [
     'order_cancel_failed' => 'Failed to cancel the order.',
     'order_estimate_refund_failed' => 'Failed to calculate the estimated refund amount.',
     'order_create_failed' => 'Failed to create the order.',
+    'order_shipping_address_update_failed' => 'Failed to update the shipping address.',
 
     // Currency related
     'unknown_currency' => 'Unsupported currency: :currency',

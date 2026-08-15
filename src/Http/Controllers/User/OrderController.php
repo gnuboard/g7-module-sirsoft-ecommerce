@@ -8,6 +8,11 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Modules\Sirsoft\Ecommerce\Exceptions\CartOperationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\CartQuantityLimitException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderCancellationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderModificationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\CancelOrderRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\ConfirmOrderOptionRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\EstimateRefundRequest;
@@ -136,6 +141,12 @@ class OrderController extends AuthBaseController
                 'sirsoft-ecommerce::messages.order.cancelled',
                 new OrderResource($updatedOrder)
             );
+        } catch (OrderCancellationException $e) {
+            // 취소 도메인 규칙 위반 — 사용자에게 안내 가능한 상황이므로 422
+            return ResponseHelper::error(
+                'sirsoft-ecommerce::exceptions.order_cancel_failed',
+                422
+            );
         } catch (Exception $e) {
             Log::error('주문 취소 실패', [
                 'order_id' => $request->getOrder()->id,
@@ -143,8 +154,8 @@ class OrderController extends AuthBaseController
             ]);
 
             return ResponseHelper::error(
-                'sirsoft-ecommerce::exceptions.order_cancel_failed',
-                422
+                'sirsoft-ecommerce::exceptions.operation_failed',
+                500
             );
         }
     }
@@ -211,7 +222,15 @@ class OrderController extends AuthBaseController
             return ResponseHelper::success('sirsoft-ecommerce::messages.orders.shipping_address_updated', [
                 'order' => new OrderResource($order),
             ]);
+        } catch (OrderModificationException $e) {
+            // 도메인 규칙 위반(배송 전 상태 아님, 타인 주소 지정 등) — 422
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'messages.orders.cannot_modify_address',
+                422
+            );
         } catch (Exception $e) {
+            // 그 외 예외는 서버 결함/인프라 장애다. 422 로 뭉개면 장애가 입력 오류로 위장된다.
             Log::error('Order shipping address update failed', [
                 'message' => $e->getMessage(),
                 'order_id' => $id,
@@ -220,8 +239,8 @@ class OrderController extends AuthBaseController
 
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
-                'messages.orders.cannot_modify_address',
-                422
+                'exceptions.order_shipping_address_update_failed',
+                500
             );
         }
     }
@@ -250,6 +269,8 @@ class OrderController extends AuthBaseController
                 ['order' => new OrderResource($updatedOrder)]
             );
         } catch (Exception $e) {
+            // OrderService::confirmOption 은 도메인 예외를 던지지 않는다 —
+            // 여기에 걸리는 건 전부 서버 결함/인프라 장애다.
             Log::error('Order option confirm failed', [
                 'message' => $e->getMessage(),
                 'order_id' => $request->route('id'),
@@ -259,8 +280,8 @@ class OrderController extends AuthBaseController
 
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
-                'exceptions.order_option_cannot_confirm',
-                422
+                'exceptions.operation_failed',
+                500
             );
         }
     }
@@ -286,6 +307,13 @@ class OrderController extends AuthBaseController
                 'sirsoft-ecommerce::messages.cart.reorder_added',
                 $result
             );
+        } catch (OrderProcessingException|CartOperationException|CartQuantityLimitException $e) {
+            // 재주문 도메인 규칙 위반(장바구니 담기 불가/수량 한도 등) — 422
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'messages.cart.reorder_failed',
+                422
+            );
         } catch (Exception $e) {
             Log::error('Order reorder failed', [
                 'message' => $e->getMessage(),
@@ -295,8 +323,8 @@ class OrderController extends AuthBaseController
 
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
-                'messages.cart.reorder_failed',
-                422
+                'exceptions.operation_failed',
+                500
             );
         }
     }
