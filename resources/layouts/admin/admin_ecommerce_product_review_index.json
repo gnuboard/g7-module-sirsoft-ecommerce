@@ -2483,7 +2483,7 @@
                                                                                     "text": "$t:sirsoft-ecommerce.admin.product_review.detail.seller_reply.title"
                                                                                 },
                                                                                 {
-                                                                                    "type": "basic",
+                                                                                    "type": "composite",
                                                                                     "name": "Badge",
                                                                                     "props": {
                                                                                         "color": "{{row.has_reply_badge_color}}",

@@ -19,6 +19,7 @@ use Modules\Sirsoft\Ecommerce\Listeners\AssignDefaultCurrencyOnRegisterListener;
 use Modules\Sirsoft\Ecommerce\Listeners\AssignDefaultShippingCountryOnRegisterListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CategoryActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CategoryTreeCacheListener;
+use Modules\Sirsoft\Ecommerce\Listeners\Ckeditor5ReferenceSourcesListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CouponActivityLogListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CouponRestoreListener;
 use Modules\Sirsoft\Ecommerce\Listeners\CouponUseListener;
@@ -2143,6 +2144,7 @@ class Module extends AbstractModule
             InjectAppConfigDeviceListener::class,
             IssueCashReceiptOnDepositListener::class,
             PurgeCashReceiptIdentifierListener::class,
+            Ckeditor5ReferenceSourcesListener::class,
         ];
     }
 
@@ -2176,6 +2178,14 @@ class Module extends AbstractModule
                 'schedule' => 'daily',
                 'description' => '보관기간 만료 장바구니 자동 삭제',
                 // cart_expiry_days < 1 시 커맨드 내부 self-guard 로 비활성 (별도 토글 없음)
+                'enabled_config' => null,
+            ],
+            [
+                'command' => 'sirsoft-ecommerce:prune-temp-product-images',
+                'schedule' => 'daily',
+                'description' => '미연결 임시 상품 이미지 자동 삭제',
+                // temp_key 가 남아 있으면 끝내 연결되지 않은 폼 세션 부산물이라 오탐 여지가 없다.
+                // 운영 데이터가 아니므로 별도 토글 없이 상시 동작한다 (보존기간은 커맨드 옵션).
                 'enabled_config' => null,
             ],
             [

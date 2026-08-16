@@ -11,6 +11,7 @@ use Modules\Sirsoft\Ecommerce\Console\Commands\ExpireMileageCommand;
 use Modules\Sirsoft\Ecommerce\Console\Commands\NotifyExpiringMileageCommand;
 use Modules\Sirsoft\Ecommerce\Console\Commands\PruneExpiredCartsCommand;
 use Modules\Sirsoft\Ecommerce\Console\Commands\PruneExpiredTempOrdersCommand;
+use Modules\Sirsoft\Ecommerce\Console\Commands\PruneTempProductImagesCommand;
 use Modules\Sirsoft\Ecommerce\Console\Commands\ReconcileMileageBalanceCommand;
 use Modules\Sirsoft\Ecommerce\Http\Middleware\DetectDevice;
 use Modules\Sirsoft\Ecommerce\Repositories\BrandRepository;
@@ -199,6 +200,7 @@ class EcommerceServiceProvider extends BaseModuleServiceProvider
         NotifyExpiringMileageCommand::class,
         PruneExpiredCartsCommand::class,
         PruneExpiredTempOrdersCommand::class,
+        PruneTempProductImagesCommand::class,
         ReconcileMileageBalanceCommand::class,
     ];
 
