@@ -7,6 +7,7 @@ use App\Extension\HookManager;
 use App\Support\ImageResizer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -490,6 +491,92 @@ class ProductImageService
         }
 
         return ! in_array(false, $results, true);
+    }
+
+    /**
+     * 상품에 연결되지 않은 채 방치된 임시 이미지를 정리합니다.
+     *
+     * 상품 등록 폼에서 이미지를 올린 뒤 저장하지 않고 이탈하면 `temp_key` 만 남은 행과
+     * 그 파일이 남습니다. 연결 시점에 본경로로 옮겨지므로 `temp_key` 가 남아 있다는 것은
+     * "끝내 연결되지 않았다" 는 뜻이고, 그래서 오탐 여지가 없습니다.
+     *
+     * 파일은 행마다 기록된 disk 를 향해 지웁니다 (디스크 전환 이후 혼재 대응).
+     * 파일 → 행 순서를 지켜, 행이 먼저 사라져 파일을 못 찾는 상태를 만들지 않습니다.
+     *
+     * @param  int  $days  보존기간(일)
+     * @param  int  $limit  한 회차에 처리할 최대 건수
+     * @param  bool  $dryRun  true 면 대상만 세고 삭제하지 않음
+     * @return array{scanned: int, deleted: int, failed: int} 처리 결과
+     */
+    public function pruneTempUploads(int $days, int $limit, bool $dryRun = false): array
+    {
+        $threshold = Carbon::now()->subDays($days);
+        $images = $this->repository->findStaleTempImages($threshold, $limit);
+
+        $result = ['scanned' => $images->count(), 'deleted' => 0, 'failed' => 0];
+
+        if ($dryRun) {
+            return $result;
+        }
+
+        foreach ($images as $image) {
+            $rowStorage = $this->storageForRow($image->disk);
+
+            if ($rowStorage->exists('images', $image->path) && ! $rowStorage->delete('images', $image->path)) {
+                Log::warning('임시 상품 이미지 파일 삭제 실패 — 기록 보존', [
+                    'image_id' => $image->id,
+                    'disk' => $image->disk,
+                    'path' => $image->path,
+                ]);
+
+                $result['failed']++;
+
+                continue;
+            }
+
+            $this->repository->delete($image->id);
+            $result['deleted']++;
+        }
+
+        $this->removeEmptyTempDirectories($images);
+
+        return $result;
+    }
+
+    /**
+     * 파일을 모두 지운 temp_key 디렉토리를 정리합니다.
+     *
+     * 파일만 지우고 디렉토리를 남기면 폼 세션마다 빈 디렉토리가 쌓여, 정리를 돌려도
+     * 저장소에는 흔적이 계속 늘어납니다.
+     *
+     * 디렉토리에 파일이 남아 있으면(같은 temp_key 의 다른 이미지가 limit 에 걸려 이번 회차에서
+     * 빠졌거나 파일 삭제에 실패한 경우 등) 삭제하지 않습니다.
+     *
+     * @param  Collection  $images  이번 회차에 처리한 이미지 목록
+     */
+    private function removeEmptyTempDirectories(Collection $images): void
+    {
+        $directories = [];
+
+        foreach ($images as $image) {
+            $directory = dirname((string) $image->path);
+
+            if ($directory === '' || $directory === '.') {
+                continue;
+            }
+
+            $directories[$image->disk.'|'.$directory] = [$image->disk, $directory];
+        }
+
+        foreach ($directories as [$disk, $directory]) {
+            $storage = $this->storageForRow($disk);
+
+            if ($storage->files('images', $directory) !== []) {
+                continue;
+            }
+
+            $storage->deleteDirectory('images', $directory);
+        }
     }
 
     /**
