@@ -19,12 +19,15 @@ use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderOption;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\UserAddressRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
 
 /**
  * 주문 서비스
  */
 class OrderService
 {
+    use ReappliesPermissionScope;
+
     public function __construct(
         protected OrderRepositoryInterface $repository,
         protected UserAddressRepositoryInterface $userAddressRepository,
@@ -161,6 +164,8 @@ class OrderService
      */
     public function update(Order $order, array $data): Order
     {
+        $this->assertWithinScope($order, 'sirsoft-ecommerce.orders.update');
+
         $oldStatus = $order->order_status?->value;
 
         // 수정 전 훅
@@ -350,6 +355,8 @@ class OrderService
      */
     public function delete(Order $order): bool
     {
+        $this->assertWithinScope($order, 'sirsoft-ecommerce.orders.delete');
+
         // 삭제 전 훅
         HookManager::doAction('sirsoft-ecommerce.order.before_delete', $order);
 
@@ -390,6 +397,8 @@ class OrderService
      */
     public function bulkUpdate(array $data): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($data['ids'] ?? []), 'sirsoft-ecommerce.orders.update');
+
         $ids = $data['ids'] ?? [];
         $orderStatus = $data['order_status'] ?? null;
         $carrierId = $data['carrier_id'] ?? null;
@@ -506,6 +515,8 @@ class OrderService
      */
     public function bulkUpdateStatus(array $ids, string $status): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($ids), 'sirsoft-ecommerce.orders.update');
+
         // 스냅샷 캡처 (ChangeDetector용 + 전이 감지용 이전 order_status)
         $snapshots = $this->repository->getSnapshotsByIds($ids);
 
@@ -548,6 +559,8 @@ class OrderService
      */
     public function bulkUpdateShipping(array $ids, ?int $carrierId, ?string $trackingNumber): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($ids), 'sirsoft-ecommerce.orders.update');
+
         // 스냅샷 캡처 (ChangeDetector용)
         $snapshots = $this->repository->getSnapshotsByIds($ids);
 
@@ -628,6 +641,8 @@ class OrderService
      */
     public function updateShippingAddress(Order $order, array $data): Order
     {
+        $this->assertWithinScope($order, 'sirsoft-ecommerce.orders.update');
+
         $status = $order->order_status;
 
         if (! $status->isBeforeShipping()) {

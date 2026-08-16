@@ -3418,7 +3418,7 @@ HTTP/1.1 200
 | product | path | string | 예 | — | 대상 product의 식별자 |
 | page | query | integer | 아니오 | min 1 | 조회할 페이지 번호 (1부터 시작) |
 | per_page | query | integer | 아니오 | min 1, max 100 | 페이지당 항목 수 |
-| exclude_secret | query | boolean | 아니오 | — | 비밀글 제외 여부 (기본 `false` — 포함). `true` 면 비밀 문의를 목록에서 제외합니다. 쿼리 문자열 `"true"`/`"false"` 도 해석되며, 해석할 수 없는 값은 그대로 검증되어 422 가 됩니다 |
+| exclude_secret | query | boolean | 아니오 | — | 비밀글 제외 여부 (기본 `false` — 포함). `true` 면 비밀 문의를 목록에서 제외합니다. 쿼리 문자열 `"true"`/`"false"` 도 해석되며, 해석할 수 없는 값은 그대로 검증되어 422 가 됩니다. **보안 경계가 아니라 단순 표시 필터입니다** — 비밀 문의의 노출/마스킹은 이 값과 무관하게 서버가 요청자 신원으로 결정합니다 |
 
 **요청 예시**
 
@@ -3521,7 +3521,7 @@ HTTP/1.1 200
 
 <!-- @generated:end -->
 
-**설명** 상품의 1:1 문의 목록을 조회합니다. `optional.sanctum`(회원/비회원 모두 접근) + `sirsoft-ecommerce.user-products.read` 권한이 적용되며, `ProductInquiryService::getProductInquiries()`가 게시판 모듈과 연동된 문의 글을 페이지네이션해 `items`와 `board_settings`(비밀글 모드·카테고리 등) 메타를 반환합니다. `per_page`/`page`/`exclude_secret` 쿼리로 조회 범위를 조정하며, 비밀 문의는 설정과 열람 권한에 따라 마스킹됩니다. 상품 상세의 문의 탭에 사용됩니다.
+**설명** 상품의 1:1 문의 목록을 조회합니다. `optional.sanctum`(회원/비회원 모두 접근) + `sirsoft-ecommerce.user-products.read` 권한이 적용되며, `ProductInquiryService::getProductInquiries()`가 게시판 모듈과 연동된 문의 글을 페이지네이션해 `items`와 `board_settings`(비밀글 모드·카테고리 등) 메타를 반환합니다. `per_page`/`page`/`exclude_secret` 쿼리로 조회 범위를 조정합니다. 비밀 문의는 요청자 신원(작성자 본인·게시판 비밀글 열람 권한)에 따라 서버가 마스킹하며, 열람 권한이 없으면 `title`은 "비밀글" 플레이스홀더로 치환되고 `content`·`reply`는 `null`, `attachments`는 빈 배열로 내려갑니다(`is_secret`·작성자·답변 여부 등 메타는 유지). 이 마스킹은 게시판 모듈이 실어 보내는 권위 플래그(`can_view_secret`)를 신뢰하며, 플래그가 없으면 fail-closed 로 마스킹합니다. `exclude_secret` 쿼리는 표시 필터일 뿐 이 판정에 관여하지 않습니다. 상품 상세의 문의 탭에 사용됩니다.
 
 
 ### POST /api/modules/sirsoft-ecommerce/products/{product}/inquiries

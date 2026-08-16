@@ -164,7 +164,7 @@ class EcommerceSettingsServiceCurrencyTombstoneTest extends ModuleTestCase
 
         $this->assertArrayHasKey('removed_default_currencies', $saved, '삭제 기록이 저장되지 않았습니다.');
         $this->assertSame(['JPY', 'CNY', 'EUR'], $saved['removed_default_currencies']);
-        // 비연속 키가 JSON 객체로 직렬화되지 않도록 array_values 재정렬 (CLAUDE.md 규칙)
+        // 비연속 키가 JSON 객체로 직렬화되지 않도록 array_values 재정렬 (코딩 규약)
         $this->assertSame([0, 1, 2], array_keys($saved['removed_default_currencies']));
     }
 

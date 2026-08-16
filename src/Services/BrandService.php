@@ -9,12 +9,16 @@ use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Exceptions\BrandOperationException;
 use Modules\Sirsoft\Ecommerce\Models\Brand;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\BrandRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 브랜드 서비스
  */
 class BrandService
 {
+    use ReappliesPermissionScope;
+
     public function __construct(
         protected BrandRepositoryInterface $repository
     ) {}
@@ -108,6 +112,12 @@ class BrandService
      */
     public function updateBrand(int $id, array $data): Brand
     {
+        $brandForScope = $this->repository->findById($id);
+        if (! $brandForScope) {
+            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+        }
+        $this->assertWithinScope($brandForScope, 'sirsoft-ecommerce.brands.update');
+
         $brand = $this->repository->findById($id);
 
         if (! $brand) {
@@ -149,6 +159,12 @@ class BrandService
      */
     public function toggleStatus(int $id): Brand
     {
+        $brandForScope = $this->repository->findById($id);
+        if (! $brandForScope) {
+            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+        }
+        $this->assertWithinScope($brandForScope, 'sirsoft-ecommerce.brands.update');
+
         $brand = $this->repository->findById($id);
 
         if (! $brand) {
@@ -180,6 +196,12 @@ class BrandService
      */
     public function deleteBrand(int $id): array
     {
+        $brandForScope = $this->repository->findById($id);
+        if (! $brandForScope) {
+            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+        }
+        $this->assertWithinScope($brandForScope, 'sirsoft-ecommerce.brands.delete');
+
         $brand = $this->repository->findById($id);
 
         if (! $brand) {

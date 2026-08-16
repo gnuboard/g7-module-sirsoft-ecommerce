@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Modules\Sirsoft\Ecommerce\Enums\ReviewStatus;
 use Modules\Sirsoft\Ecommerce\Exceptions\ReviewImageUploadLimitException;
 use Modules\Sirsoft\Ecommerce\Models\ProductReview;
 use Modules\Sirsoft\Ecommerce\Models\ProductReviewImage;
@@ -162,6 +163,18 @@ class ProductReviewImageService
         $image = $this->findByHash($hash);
 
         if (! $image) {
+            return null;
+        }
+
+        // 숨김(HIDDEN) 리뷰의 이미지는 서빙하지 않는다(KVE-2026-1914 S-2).
+        // 관리자가 숨긴 리뷰의 이미지가 해시만으로 공개 서빙되던 불일치를 정합화한다.
+        //
+        // 부모 리뷰를 못 읽으면 **가린다**(fail-closed). ProductReview 는 소프트 삭제되므로
+        // 관계 조회가 null 을 돌려줄 수 있는데, 그때 게이트가 성립하지 않아 통과하면
+        // "부모가 사라진 이미지는 무조건 공개" 가 된다 — 첨부 게이트가 채택한 방향과 반대다.
+        // 현재는 리뷰 삭제 시 이미지도 함께 삭제돼 여기까지 오지 않지만, 그 두 서비스가
+        // 계속 동기화된다는 암묵 불변식에 보안을 걸지 않는다.
+        if (! $image->review || $image->review->status !== ReviewStatus::VISIBLE) {
             return null;
         }
 

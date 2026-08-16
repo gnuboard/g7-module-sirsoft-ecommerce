@@ -22,12 +22,15 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\OrderOptionRepositoryInterf
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductAdditionalOptionValueRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductLabelRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
 
 /**
  * 상품 서비스
  */
 class ProductService
 {
+    use ReappliesPermissionScope;
+
     /**
      * 검색 정렬 이름 → [실제 컬럼, 방향] 선언
      *
@@ -301,6 +304,8 @@ class ProductService
      */
     public function update(Product $product, array $data): Product
     {
+        $this->assertWithinScope($product, 'sirsoft-ecommerce.products.update');
+
         // 수정 전 훅
         HookManager::doAction('sirsoft-ecommerce.product.before_update', $product, $data);
 
@@ -405,6 +410,8 @@ class ProductService
      */
     public function delete(Product $product): bool
     {
+        $this->assertWithinScope($product, 'sirsoft-ecommerce.products.delete');
+
         // 도메인 가드: 주문 이력이 있는 상품은 삭제 불가 (컨트롤러 우회·bulk 경로 방어)
         // DB FK restrictOnDelete 가 거부하기 전에 사유가 명확한 예외로 차단한다.
         $ordersCount = $this->orderOptionRepository->countByProductId($product->id);
@@ -489,6 +496,8 @@ class ProductService
      */
     public function bulkUpdateStatus(array $ids, string $field, string $value): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($ids), 'sirsoft-ecommerce.products.update');
+
         // 스냅샷 캡처 (활동 로그 변경 감지용)
         $snapshots = $this->repository->getSnapshotsByIds($ids);
 
@@ -522,6 +531,8 @@ class ProductService
      */
     public function bulkUpdatePrice(array $ids, string $method, float $value, string $unit): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($ids), 'sirsoft-ecommerce.products.update');
+
         // 스냅샷 캡처 (활동 로그 변경 감지용)
         $snapshots = $this->repository->getSnapshotsByIds($ids);
 
@@ -554,6 +565,8 @@ class ProductService
      */
     public function bulkUpdateStock(array $ids, string $method, int $value): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($ids), 'sirsoft-ecommerce.products.update');
+
         // 스냅샷 캡처 (활동 로그 변경 감지용)
         $snapshots = $this->repository->getSnapshotsByIds($ids);
 
@@ -584,6 +597,8 @@ class ProductService
      */
     public function bulkUpdate(array $data): array
     {
+        $this->assertAllWithinScope($this->repository->findByIdsKeyed($data['ids'] ?? []), 'sirsoft-ecommerce.products.update');
+
         // 스냅샷 캡처 (활동 로그 변경 감지용)
         $ids = $data['ids'] ?? [];
         $snapshots = $this->repository->getSnapshotsByIds($ids);
