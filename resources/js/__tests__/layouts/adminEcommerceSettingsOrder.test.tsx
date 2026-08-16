@@ -9,8 +9,12 @@
  * - 폼 바인딩 및 핸들러 검증
  * - 다국어 키 검증
  *
- * @scenario extension_payment_method method_kind=extension × capability_declared=declared × capability=pg_locked
- * @effects admin_shows_pg_locked_badge, admin_hides_pg_select_for_locked, admin_shows_pg_select_for_unlocked
+ * 축 요약(마커 아님 — 평문): extension_payment_method 의 method_kind=extension,
+ * capability_declared=declared, capability=pg_locked. 요약을 시나리오 축 마커로 적을 때
+ * 구분자를 `×` 로 쓰면 파서가 쉼표로만 축을 분리하므로 세 축이 한 문자열로 뭉쳐
+ * 실재하지 않는 조합 1건이 되어 어떤 칸도 커버하지 못한다 — 요약은 평문으로 둔다.
+ *
+ * 효과 요약(마커 아님 — 평문): admin_shows_pg_locked_badge, admin_hides_pg_select_for_locked, admin_shows_pg_select_for_unlocked.
  *
  * @vitest-environment node
  */
@@ -580,6 +584,8 @@ describe('결제수단 Sortable 리스트 구조 검증 (_payment_methods_list.j
                     && n.props['data-testid'].includes(needle),
             );
 
+        /** @effects admin_shows_pg_locked_badge */
+        /** @effects admin_shows_pg_locked_badge */
         it('PG 고정 배지가 $method.pg_locked 조건으로 렌더된다', () => {
             const badge = findByTestidExpr('pg-locked-badge-');
             expect(badge).not.toBeNull();
@@ -590,6 +596,7 @@ describe('결제수단 Sortable 리스트 구조 검증 (_payment_methods_list.j
             expect(badge.text).toContain('pg_provider');
         });
 
+        /** @effects admin_hides_pg_select_for_locked, admin_shows_pg_select_for_unlocked */
         it('PG 선택 셀렉트가 !pg_locked && needs_pg && 제공자>0 조건으로만 렌더된다', () => {
             const select = findByTestidExpr('pg-select-');
             expect(select).not.toBeNull();
@@ -664,6 +671,7 @@ describe('결제수단 모바일 카드 구조 검증 (_payment_methods_cards.js
             expect(badge.if).toBe('{{$method.pg_locked}}');
         });
 
+        /** @effects admin_hides_pg_select_for_locked, admin_shows_pg_select_for_unlocked */
         it('PG 선택 셀렉트가 !pg_locked && needs_pg 조건으로만 렌더된다', () => {
             const select = findByTestidExpr('pg-select-');
             expect(select).not.toBeNull();

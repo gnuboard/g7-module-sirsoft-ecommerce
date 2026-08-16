@@ -259,11 +259,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
+_단건 응답: 삭제 성공 플래그만 반환한다 (Resource 로 감싸지 않는다)._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| deleted | boolean | `true` | 삭제 완료 여부 (컨트롤러가 고정값 `true` 로 내려준다) |
+| deleted | boolean | `true` | 삭제 성공 여부. 성공 응답에서는 항상 `true` 이며, 실패는 `500` 으로 갈린다 |
 
 **응답 예시**
 
@@ -281,13 +281,16 @@ HTTP/1.1 200
 }
 ```
 
+> 삭제 전 컨트롤러가 `images` 관계를 로드한다 — 첨부 이미지 파일까지 함께 정리하기 위해서다. DB CASCADE 에 맡기지 않고 Service 가 명시적으로 삭제하므로 훅 발화와 파일 정리가 보장된다.
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.reviews.delete`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 404 | Not Found | 해당 `review` 의 리뷰가 없는 경우 (라우트 모델 바인딩이 해석에 실패) |
+| 500 | Internal Server Error | 삭제 처리 중 예외 발생 (`messages.reviews.delete_failed`) |
 
 <!-- @generated:end -->
 
@@ -362,55 +365,48 @@ HTTP/1.1 200
     "success": true,
     "message": "리뷰를 조회했습니다.",
     "data": {
-        "id": 12,
-        "product_id": 3,
-        "order_option_id": 45,
-        "user_id": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
+        "id": 99,
+        "product_id": 320,
+        "order_option_id": 859,
+        "user_id": "a231747f-e82e-4cf2-9ae1-a261849dce40",
         "user": {
-            "uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
-            "name": "실측 예시값",
-            "email": "실측 예시값"
+            "uuid": "a231747f-e82e-4cf2-9ae1-a261849dce40",
+            "name": "API 문서 샘플 사용자",
+            "email": "apidoc-sample-user@example.com"
         },
         "product": {
-            "id": 3,
-            "product_code": "실측 예시값",
-            "name": "실측 예시값",
-            "thumbnail_url": "실측 예시값"
+            "id": 320,
+            "name": "API 문서 샘플 상품",
+            "thumbnail_url": null
         },
-        "option_snapshot": {
-            "option_name": "실측 예시값"
-        },
-        "option_snapshot_label": "실측 예시값",
+        "option_snapshot": "{\"id\":104,\"option_code\":\"FWACBAVCBKCD\"}",
+        "option_snapshot_label": "",
         "rating": 5,
-        "content": "실측 예시값",
+        "content": "Molestiae repellendus accusantium omnis.",
         "content_mode": "text",
         "status": "visible",
-        "status_label": "노출",
-        "status_badge_color": "green",
+        "status_label": "전시중",
+        "status_badge_color": "blue",
         "images": [],
         "image_count": 0,
         "orderOption": {
-            "id": 45,
-            "order_id": 4,
-            "order_number": "20260728-0111050215",
+            "id": 859,
+            "order_id": 455,
+            "order_number": "ORD-20260707-000123",
             "quantity": 1,
-            "created_at": "2026-08-05 09:46:56"
+            "ordered_at": "2026-07-07 14:40:00"
         },
-        "has_reply": true,
-        "has_reply_label": "답변완료",
-        "has_reply_badge_color": "green",
-        "reply_content": "실측 예시값",
+        "has_reply": false,
+        "has_reply_label": "미답변",
+        "has_reply_badge_color": "gray",
+        "reply_content": null,
         "reply_content_mode": "text",
-        "reply_admin_uuid": "6d1f0d0e-2a1b-4c3d-8e9f-0a1b2c3d4e5f",
-        "reply_admin": {
-            "uuid": "6d1f0d0e-2a1b-4c3d-8e9f-0a1b2c3d4e5f",
-            "name": "실측 예시값",
-            "email": "실측 예시값"
-        },
-        "replied_at": "2026-08-05 09:46:56",
-        "reply_updated_at": "2026-08-05 09:46:56",
-        "created_at": "2026-08-05 09:46:56",
-        "updated_at": "2026-08-05 09:46:56",
+        "reply_admin_uuid": null,
+        "reply_admin": null,
+        "replied_at": null,
+        "reply_updated_at": null,
+        "created_at": "2026-07-07 14:47:31",
+        "updated_at": "2026-07-07 14:47:31",
         "abilities": {
             "can_update": true,
             "can_delete": true
@@ -425,7 +421,8 @@ HTTP/1.1 200
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.reviews.read`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 404 | Not Found | 해당 `review` 의 리뷰가 없는 경우 (라우트 모델 바인딩이 해석에 실패) |
+| 500 | Internal Server Error | 조회 중 예외 발생 (`messages.reviews.fetch_failed`) |
 
 <!-- @generated:end -->
 
@@ -492,57 +489,34 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "답변이 삭제되었습니다.",
+    "message": "판매자 답변이 삭제되었습니다.",
     "data": {
-        "id": 12,
-        "product_id": 3,
-        "order_option_id": 45,
-        "user_id": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
+        "id": 1,
+        "product_id": 1,
+        "order_option_id": 1,
+        "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
         "user": {
-            "uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
-            "name": "실측 예시값",
-            "email": "실측 예시값"
+            "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+            "name": "API 문서 샘플 사용자",
+            "email": "apidoc-sample-user@example.com"
         },
-        "product": {
-            "id": 3,
-            "product_code": "실측 예시값",
-            "name": "실측 예시값",
-            "thumbnail_url": "실측 예시값"
-        },
-        "option_snapshot": {
-            "option_name": "실측 예시값"
-        },
-        "option_snapshot_label": "실측 예시값",
+        "option_snapshot": "{\"id\":104,\"option_code\":\"FWACBAVCBKCD\"}",
+        "option_snapshot_label": "",
         "rating": 5,
-        "content": "실측 예시값",
+        "content": "Alias quas iusto dolorem eum eveniet.",
         "content_mode": "text",
         "status": "visible",
-        "status_label": "노출",
-        "status_badge_color": "green",
-        "images": [],
-        "image_count": 0,
-        "orderOption": {
-            "id": 45,
-            "order_id": 4,
-            "order_number": "20260728-0111050215",
-            "quantity": 1,
-            "created_at": "2026-08-05 09:46:56"
-        },
-        "has_reply": true,
-        "has_reply_label": "답변완료",
-        "has_reply_badge_color": "green",
-        "reply_content": "실측 예시값",
+        "status_label": "전시중",
+        "status_badge_color": "blue",
+        "has_reply": false,
+        "has_reply_label": "미답변",
+        "has_reply_badge_color": "gray",
+        "reply_content": null,
         "reply_content_mode": "text",
-        "reply_admin_uuid": "6d1f0d0e-2a1b-4c3d-8e9f-0a1b2c3d4e5f",
-        "reply_admin": {
-            "uuid": "6d1f0d0e-2a1b-4c3d-8e9f-0a1b2c3d4e5f",
-            "name": "실측 예시값",
-            "email": "실측 예시값"
-        },
-        "replied_at": "2026-08-05 09:46:56",
-        "reply_updated_at": "2026-08-05 09:46:56",
-        "created_at": "2026-08-05 09:46:56",
-        "updated_at": "2026-08-05 09:46:56",
+        "replied_at": null,
+        "reply_updated_at": null,
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-08-16 01:30:00",
         "abilities": {
             "can_update": true,
             "can_delete": true
@@ -551,13 +525,16 @@ HTTP/1.1 200
 }
 ```
 
+> 답변이 지워진 결과가 응답에 그대로 반영된다 — `has_reply` 는 `false`, `reply_content`·`replied_at`·`reply_updated_at` 은 `null` 로 비워진다. 리뷰 본문(`content`·`rating`·`status`)은 그대로 유지된다.
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.reviews.update`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 404 | Not Found | 해당 `review` 의 리뷰가 없는 경우 (라우트 모델 바인딩이 해석에 실패) |
+| 500 | Internal Server Error | 답변 삭제 처리 중 예외 발생 (`messages.reviews.reply_delete_failed`) |
 
 <!-- @generated:end -->
 
@@ -634,57 +611,34 @@ HTTP/1.1 200
 ```json
 {
     "success": true,
-    "message": "답변이 저장되었습니다.",
+    "message": "판매자 답변이 저장되었습니다.",
     "data": {
-        "id": 12,
-        "product_id": 3,
-        "order_option_id": 45,
-        "user_id": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
+        "id": 1,
+        "product_id": 1,
+        "order_option_id": 1,
+        "user_id": "a234c2b1-cde8-437f-b28b-23323be2b98d",
         "user": {
-            "uuid": "a26219fc-94a0-4f63-9404-04c2a6ac99e4",
-            "name": "실측 예시값",
-            "email": "실측 예시값"
+            "uuid": "a234c2b1-cde8-437f-b28b-23323be2b98d",
+            "name": "API 문서 샘플 사용자",
+            "email": "apidoc-sample-user@example.com"
         },
-        "product": {
-            "id": 3,
-            "product_code": "실측 예시값",
-            "name": "실측 예시값",
-            "thumbnail_url": "실측 예시값"
-        },
-        "option_snapshot": {
-            "option_name": "실측 예시값"
-        },
-        "option_snapshot_label": "실측 예시값",
+        "option_snapshot": "{\"id\":104,\"option_code\":\"FWACBAVCBKCD\"}",
+        "option_snapshot_label": "",
         "rating": 5,
-        "content": "실측 예시값",
+        "content": "Alias quas iusto dolorem eum eveniet.",
         "content_mode": "text",
         "status": "visible",
-        "status_label": "노출",
-        "status_badge_color": "green",
-        "images": [],
-        "image_count": 0,
-        "orderOption": {
-            "id": 45,
-            "order_id": 4,
-            "order_number": "20260728-0111050215",
-            "quantity": 1,
-            "created_at": "2026-08-05 09:46:56"
-        },
+        "status_label": "전시중",
+        "status_badge_color": "blue",
         "has_reply": true,
         "has_reply_label": "답변완료",
         "has_reply_badge_color": "green",
-        "reply_content": "실측 예시값",
+        "reply_content": "소중한 후기 감사합니다. 앞으로도 좋은 상품으로 보답하겠습니다.",
         "reply_content_mode": "text",
-        "reply_admin_uuid": "6d1f0d0e-2a1b-4c3d-8e9f-0a1b2c3d4e5f",
-        "reply_admin": {
-            "uuid": "6d1f0d0e-2a1b-4c3d-8e9f-0a1b2c3d4e5f",
-            "name": "실측 예시값",
-            "email": "실측 예시값"
-        },
-        "replied_at": "2026-08-05 09:46:56",
-        "reply_updated_at": "2026-08-05 09:46:56",
-        "created_at": "2026-08-05 09:46:56",
-        "updated_at": "2026-08-05 09:46:56",
+        "replied_at": "2026-08-16 01:30:00",
+        "reply_updated_at": "2026-08-16 01:30:00",
+        "created_at": "2026-07-08 10:44:49",
+        "updated_at": "2026-08-16 01:30:00",
         "abilities": {
             "can_update": true,
             "can_delete": true
@@ -693,14 +647,17 @@ HTTP/1.1 200
 }
 ```
 
+> 답변 저장 결과가 응답에 반영된다 — `has_reply` 는 `true`, `has_reply_badge_color` 는 `green` 으로 바뀌고 `replied_at`·`reply_updated_at` 이 채워진다. 이미 답변이 있던 리뷰를 다시 호출하면 내용이 **갱신**되며(중복 답변이 생기지 않는다) `reply_updated_at` 만 새로 갱신된다. 답변 작성자는 요청한 관리자(`Auth::id()`)로 기록된다.
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.reviews.update`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
+| 404 | Not Found | 해당 `review` 의 리뷰가 없는 경우 (라우트 모델 바인딩이 해석에 실패) |
+| 422 | Unprocessable Entity | `reply_content` 가 비었거나 1~2000자 범위를 벗어난 경우, `reply_content_mode` 가 `text`/`html` 이 아닌 경우 |
+| 500 | Internal Server Error | 답변 저장 중 예외 발생 (`messages.reviews.reply_save_failed`) |
 
 <!-- @generated:end -->
 
@@ -937,12 +894,12 @@ HTTP/1.1 201
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-reviews.write`)이 없는 경우 |
-| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 작성 자격 미충족 시 `ReviewNotWritableException` 이 발생하고, 그 사유 식별자(`order_option_not_found` / `not_own_order` / `not_confirmed` / `deadline_passed` / `already_written`)에 대응하는 다국어 키로 해석된 문구가 `message` 에 담긴다 |
+| 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) 또는 작성 자격 미충족 시 `ReviewNotWritableException`(RuntimeException) 이 발생해 사유 코드가 담긴 메시지로 응답 (`order_option_not_found` / `not_own_order` / `not_confirmed` / `deadline_passed` / `already_written`) |
 | 500 | Internal Server Error | 리뷰 생성 중 예외 발생 (`messages.reviews.create_failed` — "리뷰 작성에 실패했습니다.") |
 
 <!-- @generated:end -->
 
-**설명** 로그인 회원이 구매한 상품에 리뷰를 작성합니다. `sirsoft-ecommerce.user-reviews.write` 권한이 필요하며, `ProductReviewService::createReview()` 가 로그인 사용자(`Auth::id()`)를 작성자로 하여 `product_id`·`order_option_id`·별점(1~5)·내용(10~2000자)으로 리뷰를 생성하고 201 로 반환합니다. 본인 주문이 아니거나 이미 작성했거나 작성 조건을 만족하지 못하면 서비스가 `ReviewNotWritableException` 을 던지고, 컨트롤러가 그 사유에 대응하는 다국어 키로 422 응답을 만듭니다. 마이페이지 리뷰 작성 폼에서 사용합니다.
+**설명** 로그인 회원이 구매한 상품에 리뷰를 작성합니다. `sirsoft-ecommerce.user-reviews.write` 권한이 필요하며, `ProductReviewService::createReview()` 가 로그인 사용자(`Auth::id()`)를 작성자로 하여 `product_id`·`order_option_id`·별점(1~5)·내용(10~2000자)으로 리뷰를 생성하고 201 로 반환합니다. 본인 주문이 아니거나 이미 작성했거나 작성 조건을 만족하지 못하면 서비스가 `RuntimeException` 을 던져 422 로 응답합니다. 마이페이지 리뷰 작성 폼에서 사용합니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/user/reviews/can-write/{orderOptionId}
@@ -968,18 +925,43 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
+_단건 응답: 작성 자격 판정 결과 (`ProductReviewService::canWrite()` 가 반환한 배열 — Resource 로 감싸지 않는다)._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| can_write | boolean | `false` | 이 주문 옵션에 리뷰를 작성할 수 있는지 |
-| reason | string\|null | `"already_written"` | 작성 불가 사유 식별자. `order_option_not_found` / `not_own_order` / `not_confirmed` / `deadline_passed` / `already_written` 중 하나이며, 작성 가능하면 `null` |
+| can_write | boolean | `true` | 이 주문 옵션에 리뷰를 쓸 수 있는지. 화면은 이 값으로 작성 버튼 노출을 결정한다 |
+| reason | string \| null | `null` | 쓸 수 없는 사유 키. `can_write` 가 `true` 면 `null` |
+
+`reason` 이 가질 수 있는 값:
+
+| 값 | 의미 |
+| --- | --- |
+| `order_option_not_found` | 해당 주문 옵션이 존재하지 않음 |
+| `not_own_order` | 본인 주문이 아님 |
+| `not_confirmed` | 구매확정(`CONFIRMED`) 상태가 아님 |
+| `deadline_passed` | 작성 가능 기간이 지남 (판정 규칙은 `ReviewWritePolicy` 단일 SSoT) |
+| `already_written` | 이 주문 옵션으로 이미 리뷰를 작성함 |
 
 **응답 예시**
+
+작성 가능한 경우:
 
 ```http
 HTTP/1.1 200
 ```
+
+```json
+{
+    "success": true,
+    "message": "리뷰 작성 가능 여부를 확인했습니다.",
+    "data": {
+        "can_write": true,
+        "reason": null
+    }
+}
+```
+
+작성 불가한 경우 (이미 작성함):
 
 ```json
 {
@@ -992,12 +974,14 @@ HTTP/1.1 200
 }
 ```
 
+> 작성 불가는 **에러가 아니라 정상 응답**이다. 존재하지 않는 주문 옵션이나 남의 주문도 `404`/`403` 이 아니라 `200` + `can_write: false` 로 응답하므로, 이 엔드포인트로 주문 존재 여부를 탐색할 수 없다.
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 500 | Internal Server Error | 판정 중 예외 발생 (`messages.reviews.can_write_check_failed`) |
 
 <!-- @generated:end -->
 
@@ -1027,11 +1011,11 @@ Authorization: Bearer {YOUR_TOKEN}
 
 **응답 필드** (`data` 내부)
 
-_단건 응답: `data` 객체의 필드._
+_단건 응답: 삭제 성공 플래그만 반환한다 (관리자 삭제 엔드포인트와 같은 형태)._
 
 | 필드 | 타입 | 실측 예시값 | 용도/설명 |
 | --- | --- | --- | --- |
-| deleted | boolean | `true` | 삭제 완료 여부 (컨트롤러가 고정값 `true` 로 내려준다) |
+| deleted | boolean | `true` | 삭제 성공 여부. 성공 응답에서는 항상 `true` |
 
 **응답 예시**
 
@@ -1049,13 +1033,16 @@ HTTP/1.1 200
 }
 ```
 
+> 삭제 전 `images` 관계를 로드해 첨부 이미지 파일까지 함께 정리한다.
+
 **에러 응답**
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-reviews.write`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-reviews.write`)이 없는 경우, 또는 **본인이 작성한 리뷰가 아닌 경우** (`messages.reviews.forbidden`) |
+| 404 | Not Found | 해당 `review` 의 리뷰가 없는 경우 (라우트 모델 바인딩이 해석에 실패) |
+| 500 | Internal Server Error | 삭제 처리 중 예외 발생 (`messages.reviews.delete_failed`) |
 
 <!-- @generated:end -->
 
@@ -1151,12 +1138,12 @@ HTTP/1.1 201
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.user-reviews.write`)이 없거나, 대상 리뷰가 로그인 사용자의 리뷰가 아닌 경우 (`messages.reviews.forbidden` — "권한이 없습니다.") |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
-| 422 | Unprocessable Entity | `image` 파일 누락·허용 형식/용량 위반 (`error.errors` 에 필드별 메시지) 또는 리뷰당 최대 첨부 개수 초과 시 `ReviewImageUploadLimitException` — 최대 개수는 리뷰 설정 `review_settings.max_images`(기본 5) 기준이며, 응답 문구는 그 상한을 파라미터로 받는 다국어 키로 만들어진다 |
+| 422 | Unprocessable Entity | `image` 파일 누락·허용 형식/용량 위반 (`error.errors` 에 필드별 메시지) 또는 리뷰당 최대 첨부 개수 초과 시 `ReviewImageUploadLimitException`(RuntimeException) — 최대 개수는 리뷰 설정 `review_settings.max_images`(기본 5) 기준 |
 | 500 | Internal Server Error | 업로드 처리 중 예외 발생 (`messages.reviews.image_upload_failed` — "리뷰 이미지 업로드에 실패했습니다.") |
 
 <!-- @generated:end -->
 
-**설명** 로그인 회원이 자신의 리뷰에 이미지를 첨부합니다. `sirsoft-ecommerce.user-reviews.write` 권한이 필요하며, 컨트롤러가 `review->user_id` 로 본인 소유를 확인(불일치 시 403)한 뒤 `ProductReviewImageService::upload()` 가 업로드된 이미지(최대 10MB)를 저장하고 201 로 이미지 리소스를 반환합니다. 리뷰당 첨부 개수 상한을 넘기면 서비스가 `ReviewImageUploadLimitException` 을 던지고, 컨트롤러가 상한값을 파라미터로 실은 다국어 키로 422 응답을 만듭니다. 포토 리뷰 작성 시 이미지를 추가할 때 사용합니다.
+**설명** 로그인 회원이 자신의 리뷰에 이미지를 첨부합니다. `sirsoft-ecommerce.user-reviews.write` 권한이 필요하며, 컨트롤러가 `review->user_id` 로 본인 소유를 확인(불일치 시 403)한 뒤 `ProductReviewImageService::upload()` 가 업로드된 이미지(최대 10MB)를 저장하고 201 로 이미지 리소스를 반환합니다. 파일 형식/크기 등 제약 위반 시 서비스가 `RuntimeException` 을 던져 422 로 응답합니다. 포토 리뷰 작성 시 이미지를 추가할 때 사용합니다.
 
 
 ### DELETE /api/modules/sirsoft-ecommerce/user/reviews/{review}/images/{image}

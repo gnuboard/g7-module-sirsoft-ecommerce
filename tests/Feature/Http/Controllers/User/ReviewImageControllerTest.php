@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Mockery;
+use Mockery\MockInterface;
 use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\ReviewStatus;
 use Modules\Sirsoft\Ecommerce\Models\Order;
@@ -19,6 +20,7 @@ use Modules\Sirsoft\Ecommerce\Models\ProductReviewImage;
 use Modules\Sirsoft\Ecommerce\Services\ProductReviewImageService;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * 사용자 리뷰 이미지 API Feature 테스트
@@ -36,7 +38,7 @@ class ReviewImageControllerTest extends ModuleTestCase
 
     private ProductReview $review;
 
-    /** @var \Mockery\MockInterface&StorageInterface */
+    /** @var MockInterface&StorageInterface */
     private $storageMock;
 
     protected function setUp(): void
@@ -350,5 +352,62 @@ class ReviewImageControllerTest extends ModuleTestCase
 
         // Then
         $response->assertUnauthorized();
+    }
+
+    // ========================================
+    // download() — 해시 기반 공개 서빙 (KVE-2026-1914 S-2)
+    // ========================================
+
+    /**
+     * @scenario resource=review_image, parent_state=restricted
+     *
+     * @effects hidden_review_image_download_blocked
+     */
+    #[Test]
+    public function test_download_blocks_hidden_review_image(): void
+    {
+        // Given: 관리자가 숨긴(HIDDEN) 리뷰의 이미지
+        $hiddenReview = ProductReview::factory()->create([
+            'product_id' => $this->product->id,
+            'order_option_id' => $this->orderOption->id,
+            'user_id' => $this->user->id,
+            'status' => ReviewStatus::HIDDEN->value,
+        ]);
+        $image = ProductReviewImage::factory()->create([
+            'review_id' => $hiddenReview->id,
+        ]);
+
+        // When: 해시로 이미지 다운로드 시도
+        $response = $this->get(
+            "/api/modules/sirsoft-ecommerce/review-image/{$image->hash}"
+        );
+
+        // Then: 숨김 리뷰 이미지는 서빙 차단(404)
+        $response->assertNotFound();
+    }
+
+    /**
+     * @scenario resource=review_image, parent_state=public
+     *
+     * @effects visible_review_image_download_still_served
+     */
+    #[Test]
+    public function test_download_serves_visible_review_image(): void
+    {
+        // Given: 전시중(VISIBLE) 리뷰의 이미지 + storage response mock
+        $image = ProductReviewImage::factory()->create([
+            'review_id' => $this->review->id,
+        ]);
+        $this->storageMock->allows('response')->andReturn(
+            new StreamedResponse(fn () => null, 200)
+        );
+
+        // When
+        $response = $this->get(
+            "/api/modules/sirsoft-ecommerce/review-image/{$image->hash}"
+        );
+
+        // Then: VISIBLE 리뷰 이미지는 상태 게이트를 통과(404 아님)
+        $this->assertNotSame(404, $response->getStatusCode(), 'VISIBLE 리뷰 이미지는 서빙되어야 합니다');
     }
 }

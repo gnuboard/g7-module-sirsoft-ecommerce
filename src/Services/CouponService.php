@@ -12,12 +12,16 @@ use Modules\Sirsoft\Ecommerce\Models\Coupon;
 use Modules\Sirsoft\Ecommerce\Models\CouponIssue;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponRepositoryInterface;
+use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 쿠폰 서비스
  */
 class CouponService
 {
+    use ReappliesPermissionScope;
+
     public function __construct(
         protected CouponRepositoryInterface $repository,
         protected UserCouponService $userCouponService,
@@ -141,6 +145,12 @@ class CouponService
     public function updateCoupon(int $id, array $data): Coupon
     {
         $coupon = $this->repository->findById($id);
+        if (! $coupon) {
+            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+        }
+        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.update');
+
+        $coupon = $this->repository->findById($id);
 
         if (! $coupon) {
             throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
@@ -198,6 +208,12 @@ class CouponService
     public function deleteCoupon(int $id): array
     {
         $coupon = $this->repository->findById($id);
+        if (! $coupon) {
+            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+        }
+        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.delete');
+
+        $coupon = $this->repository->findById($id);
 
         if (! $coupon) {
             throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
@@ -232,11 +248,16 @@ class CouponService
      */
     public function bulkUpdateIssueStatus(array $ids, string $issueStatus): int
     {
+        // 스코프 검사와 스냅샷이 같은 조회를 공유한다 (Model 직접 호출 제거 겸용).
+        $targets = $this->repository->findByIdsKeyed($ids);
+
+        $this->assertAllWithinScope($targets, 'sirsoft-ecommerce.promotion-coupon.update');
+
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.coupon.before_bulk_status', $ids, $issueStatus);
 
         // 수정 전 스냅샷 캡처
-        $snapshots = $this->repository->findByIdsKeyed($ids)->map->toArray()->all();
+        $snapshots = $targets->keyBy('id')->map->toArray()->all();
 
         $count = DB::transaction(function () use ($ids, $issueStatus) {
             return $this->repository->bulkUpdateIssueStatus($ids, $issueStatus);
@@ -262,6 +283,12 @@ class CouponService
      */
     public function issueDirectly(int $couponId, array $userIds): array
     {
+        $coupon = $this->repository->findById($couponId);
+        if (! $coupon) {
+            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+        }
+        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.update');
+
         HookManager::doAction('sirsoft-ecommerce.coupon.before_direct_issue', $couponId, $userIds);
 
         $result = DB::transaction(function () use ($couponId, $userIds) {

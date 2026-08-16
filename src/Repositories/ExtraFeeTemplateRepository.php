@@ -41,6 +41,21 @@ class ExtraFeeTemplateRepository implements ExtraFeeTemplateRepositoryInterface
     }
 
     /**
+     * 여러 우편번호로 템플릿을 한 번에 조회
+     *
+     * @param  array  $zipcodes  우편번호 목록
+     * @return Collection
+     */
+    public function findByZipcodes(array $zipcodes): Collection
+    {
+        if (empty($zipcodes)) {
+            return $this->model->newCollection();
+        }
+
+        return $this->model->whereIn('zipcode', $zipcodes)->get();
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getListWithFilters(array $filters, int $perPage = 20): LengthAwarePaginator

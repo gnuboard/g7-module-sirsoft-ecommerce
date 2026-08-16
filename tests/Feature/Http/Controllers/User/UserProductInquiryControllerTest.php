@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Http\Controllers\User;
 
 use App\Extension\HookManager;
+use App\Models\User;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Models\ProductInquiry;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
@@ -20,7 +21,7 @@ use PHPUnit\Framework\Attributes\Test;
  */
 class UserProductInquiryControllerTest extends ModuleTestCase
 {
-    private \App\Models\User $user;
+    private User $user;
 
     private Product $product;
 
@@ -69,7 +70,7 @@ class UserProductInquiryControllerTest extends ModuleTestCase
         );
 
         $this->inquiry = ProductInquiry::factory()->create([
-            'user_id'    => $this->user->id,
+            'user_id' => $this->user->id,
             'product_id' => $this->product->id,
             'is_answered' => false,
         ]);
@@ -237,9 +238,56 @@ class UserProductInquiryControllerTest extends ModuleTestCase
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('ecommerce_product_inquiries', [
-            'id'          => $this->inquiry->id,
+            'id' => $this->inquiry->id,
             'is_answered' => true,
         ]);
+    }
+
+    /**
+     * 서비스가 클라이언트 IP 를 게시판 훅 payload 에 주입한다 (답변 경로).
+     *
+     * 게시판 Listener 는 `request()->ip()` 를 참조하지 않고 payload 의 ip_address 만 쓴다.
+     * 그 경계는 **요청 경계인 서비스가 IP 를 실어 보낼 때만** 성립하는데, 생성 경로
+     * (`createInquiry`)와 답변 경로(`createReply`)는 서로 다른 메서드라 주입 코드도 각각
+     * 있다. 생성 경로만 단언하면 답변 경로의 주입을 지워도 스위트가 green 이고 답변 IP 가
+     * 조용히 0.0.0.0 으로 기록된다.
+     *
+     * @effects service_injects_client_ip_into_reply_hook_payload
+     */
+    #[Test]
+    public function 서비스가_답변_훅_payload_에_클라이언트_ip_를_주입한다(): void
+    {
+        $manager = $this->createAdminUser(['sirsoft-ecommerce.inquiries.update']);
+
+        // setUp 의 기본 모킹을 걷어내고 payload 를 캡처하는 훅으로 교체한다.
+        HookManager::clearFilter('sirsoft-ecommerce.inquiry.create');
+
+        $capturedIp = null;
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.create',
+            function ($result, $slug, $data) use (&$capturedIp) {
+                $capturedIp = $data['ip_address'] ?? null;
+
+                return ['post_id' => 999, 'inquirable_type' => 'Modules\\Sirsoft\\Board\\Models\\Post'];
+            },
+            priority: 1
+        );
+
+        // 요청 IP 를 비-0.0.0.0 으로 세팅한다 — 기본 request 로는 폴백값과 구분되지 않아
+        // 주입 코드를 지워도 단언이 통과한다(무증상 green).
+        $this->actingAs($manager)
+            ->withServerVariables(['REMOTE_ADDR' => '203.0.113.77'])
+            ->postJson(
+                "/api/modules/sirsoft-ecommerce/user/inquiries/{$this->inquiry->id}/reply",
+                ['content' => '답변 내용입니다 친절하게 작성']
+            )
+            ->assertStatus(201);
+
+        $this->assertSame(
+            '203.0.113.77',
+            $capturedIp,
+            '서비스가 답변 작성 시에도 요청 IP 를 게시판 훅 payload 로 주입해야 합니다'
+        );
     }
 
     // ========================================
@@ -250,8 +298,8 @@ class UserProductInquiryControllerTest extends ModuleTestCase
     public function 권한_없는_사용자는_답변을_수정할_수_없다(): void
     {
         $answeredInquiry = ProductInquiry::factory()->create([
-            'user_id'     => $this->user->id,
-            'product_id'  => $this->product->id,
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
             'is_answered' => true,
         ]);
 
@@ -269,8 +317,8 @@ class UserProductInquiryControllerTest extends ModuleTestCase
     {
         $manager = $this->createAdminUser(['sirsoft-ecommerce.inquiries.update']);
         $answeredInquiry = ProductInquiry::factory()->create([
-            'user_id'     => $this->user->id,
-            'product_id'  => $this->product->id,
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
             'is_answered' => true,
         ]);
 
@@ -291,8 +339,8 @@ class UserProductInquiryControllerTest extends ModuleTestCase
     public function 권한_없는_사용자는_답변을_삭제할_수_없다(): void
     {
         $answeredInquiry = ProductInquiry::factory()->create([
-            'user_id'     => $this->user->id,
-            'product_id'  => $this->product->id,
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
             'is_answered' => true,
         ]);
 
@@ -309,8 +357,8 @@ class UserProductInquiryControllerTest extends ModuleTestCase
     {
         $manager = $this->createAdminUser(['sirsoft-ecommerce.inquiries.update']);
         $answeredInquiry = ProductInquiry::factory()->create([
-            'user_id'     => $this->user->id,
-            'product_id'  => $this->product->id,
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
             'is_answered' => true,
         ]);
 
@@ -321,7 +369,7 @@ class UserProductInquiryControllerTest extends ModuleTestCase
 
         $response->assertOk();
         $this->assertDatabaseHas('ecommerce_product_inquiries', [
-            'id'          => $answeredInquiry->id,
+            'id' => $answeredInquiry->id,
             'is_answered' => false,
         ]);
     }

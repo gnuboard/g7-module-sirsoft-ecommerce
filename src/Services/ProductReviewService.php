@@ -17,6 +17,7 @@ use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewImageRepositor
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\ProductReviewRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Services\Concerns\ResolvesRowStorage;
 use Modules\Sirsoft\Ecommerce\Support\ReviewWritePolicy;
+use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
 
 /**
  * 상품 리뷰 서비스
@@ -25,6 +26,7 @@ use Modules\Sirsoft\Ecommerce\Support\ReviewWritePolicy;
  */
 class ProductReviewService
 {
+    use ReappliesPermissionScope;
     use ResolvesRowStorage;
 
     /**
@@ -168,6 +170,8 @@ class ProductReviewService
      */
     public function updateStatus(ProductReview $review, string $status): ProductReview
     {
+        $this->assertWithinScope($review, 'sirsoft-ecommerce.reviews.update');
+
         return $this->repository->update($review, ['status' => $status]);
     }
 
@@ -200,6 +204,8 @@ class ProductReviewService
      */
     public function deleteReply(ProductReview $review): ProductReview
     {
+        $this->assertWithinScope($review, 'sirsoft-ecommerce.reviews.update');
+
         return $this->repository->update($review, [
             'reply_content' => null,
             'reply_content_mode' => 'text',
@@ -217,6 +223,8 @@ class ProductReviewService
      */
     public function deleteReview(ProductReview $review): bool
     {
+        $this->assertWithinScope($review, 'sirsoft-ecommerce.reviews.delete');
+
         HookManager::doAction('sirsoft-ecommerce.product-review.before_delete', $review);
 
         return DB::transaction(function () use ($review) {
@@ -251,6 +259,8 @@ class ProductReviewService
      */
     public function bulkUpdateStatus(array $ids, string $status): int
     {
+        $this->assertAllWithinScope($this->repository->getByIdsWithImages($ids), 'sirsoft-ecommerce.reviews.update');
+
         return $this->repository->bulkUpdateStatus($ids, $status);
     }
 
@@ -263,6 +273,8 @@ class ProductReviewService
     public function bulkDelete(array $ids): int
     {
         $reviews = $this->repository->getByIdsWithImages($ids);
+
+        $this->assertAllWithinScope($reviews, 'sirsoft-ecommerce.reviews.delete');
 
         // 삭제 전 스냅샷 캡처 (after_bulk_delete 훅에 전달)
         $snapshots = $reviews->keyBy('id')->map->toArray()->all();

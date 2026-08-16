@@ -108,7 +108,10 @@ class ProductInquiryService
             }
         }
 
-        // 비밀글 제외 필터 적용 (Post의 is_secret 기준)
+        // 비밀글 원문 마스킹은 게시판 훅(getByIds)이 요청자 신원 기준으로 서버측에서
+        // 이미 수행한다(KVE-2026-1914, SecretContentGate SSoT). 아래 exclude_secret 은
+        // 보안 판정이 아니라 단순 "비밀글 행 숨김" 표시 필터일 뿐이며, 노출 여부는
+        // 클라이언트 파라미터와 무관하게 서버가 결정한다.
         if ($excludeSecret) {
             $pivots = $pivots->filter(function ($pivot) use ($posts) {
                 $post = $posts[$pivot->inquirable_id] ?? null;
@@ -132,21 +135,37 @@ class ProductInquiryService
             $userId = $post['user_id'] ?? null;
             $name = $userId ? ($userMap[$userId] ?? $post['author_name'] ?? null) : ($post['author_name'] ?? null);
 
+            // 비밀글 이중 방어(KVE-2026-1914): 게시판 훅(getByIds)이 이미 요청자 신원으로
+            // 원문을 마스킹하지만, 훅이 신원 판정만 하고 특정 필드 null 처리를 누락하는 회귀에
+            // 대비해 훅이 실어 보낸 권위 플래그(can_view_secret)로 payload 를 재확정한다.
+            // 자기 권한을 재계산하지 않으므로(플래그만 신뢰) 게이트 강도가 훅과 갈리지 않는다.
+            //
+            // fail-closed: 비밀글인데 권위 플래그가 없으면(훅 미치환·타 확장 치환으로 누락)
+            // 열람 가능으로 가정하지 않고 마스킹한다. 플래그 부재 = 권위 미상 = 안전 측(감춤).
+            // 비밀글이 아니면($isSecret=false) 어느 경우에도 마스킹되지 않으므로 영향 없다.
+            $isSecret = $post['is_secret'] ?? false;
+            $secretMasked = $isSecret && $post !== null && ($post['can_view_secret'] ?? false) === false;
+
             return [
                 'id' => $pivot->id,
                 'post_id' => $pivot->inquirable_id,
                 'user_id' => $userId,
                 'author_name' => $this->maskAuthorName($name),
-                'title' => $post['title'] ?? null,
+                // 비밀글이면 title 도 fail-closed 로 재마스킹한다(KVE-2026-1914 A2b).
+                // 훅이 신원 판정만 하고 title 치환을 누락하는 회귀에 대비 — 플레이스홀더 텍스트
+                // 자체는 게시판 lang 키(post.secret_post_title)가 SSoT 로, 훅의 마스킹 값과 동일하다.
+                'title' => $secretMasked
+                    ? __('sirsoft-board::messages.post.secret_post_title')
+                    : ($post['title'] ?? null),
                 'category' => $post['category'] ?? null,
-                'content' => $post['content'] ?? null,
-                'is_secret' => $post['is_secret'] ?? false,
+                'content' => $secretMasked ? null : ($post['content'] ?? null),
+                'is_secret' => $isSecret,
                 'is_owner' => $isOwner,
                 'is_answered' => $pivot->is_answered ?? false,
                 'answered_at' => $pivot->answered_at?->toIso8601String(),
                 'created_at' => $pivot->created_at?->toIso8601String(),
-                'reply' => $post['reply'] ?? null,
-                'attachments' => $post['attachments'] ?? [],
+                'reply' => $secretMasked ? null : ($post['reply'] ?? null),
+                'attachments' => $secretMasked ? [] : ($post['attachments'] ?? []),
             ];
         })->values()->all();
 
@@ -220,6 +239,12 @@ class ProductInquiryService
         // 로그인 사용자의 user_id 주입 (board_posts.user_id)
         if (Auth::check() && empty($data['user_id'])) {
             $data['user_id'] = Auth::id();
+        }
+
+        // 클라이언트 IP 를 요청 경계(Service)에서 캡처해 게시판 훅 payload 로 전달한다.
+        // 게시판 Listener 가 request() 를 직접 참조하지 않도록 소유 서비스가 주입한다.
+        if (empty($data['ip_address'])) {
+            $data['ip_address'] = request()->ip() ?? '0.0.0.0';
         }
 
         $inquiry = DB::transaction(function () use ($productId, $product, $boardSlug, $data) {
@@ -599,6 +624,11 @@ class ProductInquiryService
         }
 
         $boardSlug = $this->getInquiryBoardSlug();
+
+        // 클라이언트 IP 를 요청 경계(Service)에서 캡처해 게시판 훅 payload 로 전달한다.
+        if (empty($data['ip_address'])) {
+            $data['ip_address'] = request()->ip() ?? '0.0.0.0';
+        }
 
         $updated = DB::transaction(function () use ($inquiry, $boardSlug, $data) {
             // 게시판 훅으로 Reply Post 생성 (title은 리스너에서 Re: 부모글제목 형식으로 설정)
