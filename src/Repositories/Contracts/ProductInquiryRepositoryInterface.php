@@ -32,9 +32,10 @@ interface ProductInquiryRepositoryInterface
      *
      * @param  int  $productId  상품 ID
      * @param  int  $perPage  페이지당 개수
+     * @param  int|null  $page  페이지 번호 (null 이면 요청 파라미터에서 해석)
      * @return LengthAwarePaginator
      */
-    public function paginateByProductId(int $productId, int $perPage = 10): LengthAwarePaginator;
+    public function paginateByProductId(int $productId, int $perPage = 10, ?int $page = null): LengthAwarePaginator;
 
     /**
      * inquirable_id로 문의 조회 (단일)

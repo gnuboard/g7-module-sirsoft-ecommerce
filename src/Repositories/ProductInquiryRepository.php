@@ -48,7 +48,7 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function paginateByProductId(int $productId, int $perPage = 10): LengthAwarePaginator
+    public function paginateByProductId(int $productId, int $perPage = 10, ?int $page = null): LengthAwarePaginator
     {
         return $this->model->newQuery()
             ->where('product_id', $productId)
@@ -57,7 +57,8 @@ class ProductInquiryRepository implements ProductInquiryRepositoryInterface
             ->orderBy('id', 'desc')
             // audit:allow repository-paginate-column-pruning reason: 상품 1건에 종속된 문의 목록 —
             // where(product_id) 로 이미 좁혀져 OFFSET 이 깊어질 수 없고, 목록이 본문을 그대로 쓴다
-            ->paginate($perPage);
+            // page 명시 하달 — HTTP `page` 파라미터 암묵 해석에 기대지 않는다 (#102 동형 예방)
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 
     /**

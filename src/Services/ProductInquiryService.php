@@ -86,42 +86,39 @@ class ProductInquiryService
             $boardSlug
         );
 
-        // 피벗 기준 전체 목록 조회 (페이지네이션 전 — 비밀글 필터 적용 위해)
-        $pivots = $this->repository->findByProductId($productId);
-
         $currentUserId = Auth::id();
-
-        // inquirable_id 목록으로 Post 데이터 일괄 조회
-        $ids = $pivots->pluck('inquirable_id')->all();
-        $posts = [];
-        if (! empty($ids)) {
-            $rawPosts = HookManager::applyFilters(
-                'sirsoft-ecommerce.inquiry.get_by_ids',
-                [],
-                ['ids' => $ids, 'slug' => $boardSlug]
-            );
-            foreach ($rawPosts as $post) {
-                $postId = $post['id'] ?? null;
-                if ($postId) {
-                    $posts[$postId] = $post;
-                }
-            }
-        }
 
         // 비밀글 원문 마스킹은 게시판 훅(getByIds)이 요청자 신원 기준으로 서버측에서
         // 이미 수행한다(KVE-2026-1914, SecretContentGate SSoT). 아래 exclude_secret 은
         // 보안 판정이 아니라 단순 "비밀글 행 숨김" 표시 필터일 뿐이며, 노출 여부는
         // 클라이언트 파라미터와 무관하게 서버가 결정한다.
         if ($excludeSecret) {
+            // 비밀글 판정(is_secret)은 게시판 모듈의 게시글 데이터에만 있어 SQL 로 거를 수
+            // 없다 — 이 경로만 전량 조회 후 PHP 필터가 구조적으로 필요하다. 기본 화면
+            // 경로(exclude_secret=false)는 아래 else 의 쿼리 레벨 페이지네이션을 쓴다.
+            $pivots = $this->repository->findByProductId($productId);
+            $posts = $this->fetchPostsByIds($pivots->pluck('inquirable_id')->all(), $boardSlug);
+
+            // 비밀글 제외 필터 적용 (Post의 is_secret 기준)
             $pivots = $pivots->filter(function ($pivot) use ($posts) {
                 $post = $posts[$pivot->inquirable_id] ?? null;
 
                 return empty($post['is_secret']);
             })->values();
-        }
 
-        $total = $pivots->count();
-        $pagePivots = $pivots->forPage($page, $perPage);
+            $total = $pivots->count();
+            $pagePivots = $pivots->forPage($page, $perPage);
+            $lastPage = (int) ceil($total / $perPage);
+        } else {
+            // 화면 목록은 쿼리 레벨 페이지네이션 — 전량 적재 후 PHP 잘라내기(#102 동형)를
+            // 하지 않는다. 게시글 데이터도 이 페이지 분량만 일괄 조회한다.
+            $paginator = $this->repository->paginateByProductId($productId, $perPage, $page);
+            $pagePivots = collect($paginator->items());
+            $posts = $this->fetchPostsByIds($pagePivots->pluck('inquirable_id')->all(), $boardSlug);
+
+            $total = $paginator->total();
+            $lastPage = $paginator->lastPage();
+        }
 
         // user_id 일괄 조회 (N+1 방지)
         $userIds = $pagePivots->map(fn ($pivot) => $posts[$pivot->inquirable_id]['user_id'] ?? null)
@@ -169,8 +166,6 @@ class ProductInquiryService
             ];
         })->values()->all();
 
-        $lastPage = (int) ceil($total / $perPage);
-
         return [
             'items' => $items,
             'meta' => [
@@ -186,6 +181,36 @@ class ProductInquiryService
                 ],
             ],
         ];
+    }
+
+    /**
+     * inquirable_id 목록으로 게시글 데이터를 일괄 조회합니다 (N+1 방지).
+     *
+     * @param  array<int, int>  $ids  게시글 ID 목록
+     * @param  string  $boardSlug  문의 게시판 슬러그
+     * @return array<int, array<string, mixed>> 게시글 ID => 게시글 데이터
+     */
+    private function fetchPostsByIds(array $ids, string $boardSlug): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $rawPosts = HookManager::applyFilters(
+            'sirsoft-ecommerce.inquiry.get_by_ids',
+            [],
+            ['ids' => $ids, 'slug' => $boardSlug]
+        );
+
+        $posts = [];
+        foreach ($rawPosts as $post) {
+            $postId = $post['id'] ?? null;
+            if ($postId) {
+                $posts[$postId] = $post;
+            }
+        }
+
+        return $posts;
     }
 
     /**

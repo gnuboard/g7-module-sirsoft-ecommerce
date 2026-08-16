@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\GuestRoleResolver;
 use App\Support\Query\BoundedCount;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Listeners\SearchProductsListener;
 use Modules\Sirsoft\Ecommerce\Services\ProductService;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
@@ -57,6 +58,42 @@ class SearchProductsListenerTest extends ModuleTestCase
         }
 
         GuestRoleResolver::flush();
+    }
+
+    /**
+     * 검색 실패가 "결과 0건" 으로 위장되지 않고 failed 페이로드로 표면화되는지 확인 (#103)
+     *
+     * @effects failed_flag_in_response, exception_stack_logged
+     */
+    public function test_search_failure_surfaces_failed_payload_and_logs_exception(): void
+    {
+        Log::spy();
+
+        $exception = new \RuntimeException('DB 오류 재현');
+        $this->productService
+            ->method('searchByKeywordWithCursor')
+            ->willThrowException($exception);
+
+        $context = [
+            'type' => 'products',
+            'q' => '문의',
+            'sort' => 'relevance',
+            'page' => 1,
+            'per_page' => 10,
+            'user' => null,
+            'request' => null,
+        ];
+
+        $result = $this->listener->searchProducts([], $context);
+
+        $this->assertArrayHasKey('products', $result);
+        $this->assertTrue($result['products']['failed'] ?? false, '실패 카테고리에는 failed 플래그가 실려야 합니다.');
+        $this->assertFalse($result['products']['total_is_exact'], '실패한 0건을 "정확한 0건" 으로 말하면 안 됩니다.');
+        $this->assertSame([], $result['products']['items']);
+
+        Log::shouldHaveReceived('error')
+            ->withArgs(fn (string $message, array $ctx = []) => ($ctx['exception'] ?? null) === $exception)
+            ->once();
     }
 
     /**
