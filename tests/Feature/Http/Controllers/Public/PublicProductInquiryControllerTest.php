@@ -3,6 +3,7 @@
 namespace Modules\Sirsoft\Ecommerce\Tests\Feature\Http\Controllers\Public;
 
 use App\Extension\HookManager;
+use Illuminate\Support\Facades\DB;
 use Modules\Sirsoft\Ecommerce\Models\Product;
 use Modules\Sirsoft\Ecommerce\Models\ProductInquiry;
 use Modules\Sirsoft\Ecommerce\Services\EcommerceSettingsService;
@@ -315,6 +316,73 @@ class PublicProductInquiryControllerTest extends ModuleTestCase
         $this->assertCount(1, $items[0]['attachments']);
         // 과잉 차단 회귀 방지: 열람 권한이 있으면 title 도 원문 그대로여야 한다(A2b 재마스킹이 과하지 않음).
         $this->assertSame('비밀 문의 제목', $items[0]['title']);
+    }
+
+    /**
+     * 화면 목록은 저장소 쿼리 레벨 페이지네이션을 써야 한다 (#102 동형 결함 해소).
+     *
+     * 종전에는 전량 get() 후 PHP forPage() 잘라내기라, 문의가 늘수록 한 페이지를 여는
+     * 것만으로 전 행이 적재됐다. 페이지 경계 정확성과 LIMIT 사용을 함께 고정한다.
+     */
+    #[Test]
+    public function 문의_목록은_쿼리_레벨_페이지네이션을_사용하고_페이지_경계가_정확하다(): void
+    {
+        app(EcommerceSettingsService::class)->setSetting('inquiry.board_slug', 'test-board');
+
+        for ($i = 1; $i <= 15; $i++) {
+            ProductInquiry::create([
+                'product_id' => $this->product->id,
+                'inquirable_type' => 'board_post',
+                'inquirable_id' => 1000 + $i,
+                'user_id' => null,
+            ]);
+        }
+
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.get_settings',
+            fn ($defaults) => $defaults,
+            priority: 1
+        );
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.get_by_ids',
+            fn ($_, $context) => array_map(
+                fn ($id) => ['id' => $id, 'title' => '문의 '.$id, 'is_secret' => false],
+                $context['ids'] ?? []
+            ),
+            priority: 1
+        );
+
+        $queries = [];
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        $response = $this->getJson(
+            "/api/modules/sirsoft-ecommerce/products/{$this->product->id}/inquiries?page=2&per_page=10"
+        );
+
+        $response->assertOk();
+
+        // 페이지 경계: 15건 중 두 번째 묶음(5건)
+        $items = $response->json('data.items');
+        $this->assertCount(5, $items);
+        $this->assertSame(15, $response->json('data.meta.total'));
+        $this->assertSame(2, $response->json('data.meta.current_page'));
+        $this->assertSame(2, $response->json('data.meta.last_page'));
+        // id 내림차순 전순서 — 2페이지 첫 항목은 1005 (1015..1006 이 1페이지)
+        $this->assertSame(1005, $items[0]['post_id']);
+
+        // 쿼리 레벨 페이지네이션 — 피벗 조회 SELECT 에 LIMIT 이 있어야 한다
+        $limitedPivotSelects = array_filter(
+            $queries,
+            fn (string $sql): bool => str_contains($sql, 'product_inquiries')
+                && stripos(ltrim($sql), 'select') === 0
+                && stripos($sql, 'limit') !== false
+        );
+        $this->assertNotEmpty(
+            $limitedPivotSelects,
+            '문의 피벗 조회에 LIMIT 이 없습니다 — 전량 적재 후 PHP 잘라내기(#102 동형)입니다.'
+        );
     }
 
     #[Test]
