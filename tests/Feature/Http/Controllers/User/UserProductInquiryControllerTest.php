@@ -325,7 +325,7 @@ class UserProductInquiryControllerTest extends ModuleTestCase
     }
 
     /**
-     * 경합 경로의 중복도 사유가 보존된다 (회귀 — PO 실측 제보).
+     * 경합 경로의 중복도 사유가 보존된다 (회귀 — 운영 실측 제보).
      *
      * 동시 등록 경합에서는 피벗 is_answered 가 아직 false 라 1차 방어를 통과하고,
      * 게시판 리스너의 2차 방어(실데이터 기준)가 중복을 감지한다. 종전에는 리스너가

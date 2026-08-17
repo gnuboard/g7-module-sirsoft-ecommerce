@@ -740,7 +740,7 @@ class ProductInquiryService
 
             // 2차 방어(리스너, 게시판 실데이터)가 중복을 감지하면 중복 마커를 돌려준다.
             // 경합 경로(피벗 is_answered 가 아직 false)에서도 사유를 보존해 422 로 안내
-            // — null 과 합치면 "답변 등록에 실패했습니다" 로 위장된다 (PO 실측 제보).
+            // — null 과 합치면 "답변 등록에 실패했습니다" 로 위장된다 (운영 실측 제보).
             if (is_array($postResult) && ! empty($postResult['duplicate'])) {
                 throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.reply_already_exists');
             }
