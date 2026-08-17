@@ -17,6 +17,7 @@ use Modules\Sirsoft\Ecommerce\Http\Resources\CouponIssueCollection;
 use Modules\Sirsoft\Ecommerce\Http\Resources\CouponIssueResource;
 use Modules\Sirsoft\Ecommerce\Http\Resources\CouponResource;
 use Modules\Sirsoft\Ecommerce\Services\CouponService;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 쿠폰 관리 컨트롤러
@@ -114,6 +115,8 @@ class CouponController extends AdminBaseController
                 'exceptions.operation_failed',
                 400
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -147,6 +150,8 @@ class CouponController extends AdminBaseController
                 'exceptions.operation_failed',
                 400
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -212,6 +217,8 @@ class CouponController extends AdminBaseController
                 'exceptions.operation_failed',
                 400
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -250,6 +257,8 @@ class CouponController extends AdminBaseController
                 null,
                 $e->getMessageParams()
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -294,6 +303,8 @@ class CouponController extends AdminBaseController
                 null,
                 $e->getMessageParams()
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(

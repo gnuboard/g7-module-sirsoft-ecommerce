@@ -73,11 +73,12 @@ class ProductReviewController extends AuthBaseController
         } catch (ReviewNotWritableException $e) {
             // 작성 자격 미충족은 도메인 검증 실패 → 422 + 전용 메시지 (메시지 키 + 사유 파라미터).
             // 예외 메시지 원문을 키 자리에 넘기면 키 해석에 실패해 원문이 그대로 노출된다.
+            // 사유는 원시 식별자(already_written)가 아니라 번역 라벨로 싣는다.
             return ResponseHelper::error(
                 'messages.reviews.cannot_write',
                 422,
                 null,
-                ['reason' => $e->getReason()],
+                ['reason' => $e->getReasonLabel()],
                 'sirsoft-ecommerce'
             );
         } catch (Exception $e) {

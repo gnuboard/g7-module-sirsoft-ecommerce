@@ -30,6 +30,9 @@ effects:
   # static_bulk — 일괄 경로
   - static_bulk_route_reapplies_scope_gate
   - static_bulk_route_allows_global_scoped_actor
+  # HTTP 표면 — 컨트롤러 typed catch (거부가 500 으로 위장되지 않는다)
+  - scope_denial_surfaces_as_403_over_http
+  - missing_target_keeps_not_found_contract
 
 test_files:
   - modules/_bundled/sirsoft-ecommerce/tests/Feature/Security/ServiceScopeReapplyTest.php

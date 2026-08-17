@@ -312,13 +312,13 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.delete`)이 없거나, 대상 브랜드가 요청자의 **스코프 밖**인 경우 (`auth.scope_denied`). 존재하지 않는 ID 도 스코프 판정에서 먼저 걸려 403 이 된다 |
-| 400 | Bad Request | 연결된 상품이 있어 삭제가 차단된 경우(`exceptions.brand_has_products` — 상품 수 포함), 또는 삭제 처리 중 예외 발생 (`exceptions.operation_failed`) |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.delete`)이 없거나, 대상 브랜드가 요청자의 **스코프 밖**인 경우 (`auth.scope_denied`) |
+| 400 | Bad Request | 해당 `id` 의 브랜드가 없는 경우(`exceptions.brand_not_found`), 연결된 상품이 있어 삭제가 차단된 경우(`exceptions.brand_has_products` — 상품 수 포함), 또는 삭제 처리 중 도메인 규칙 위반 |
 | 404 | Not Found | path 파라미터 형식이 라우트에 매칭되지 않는 경우 |
 
 <!-- @generated:end -->
 
-**설명** 브랜드 1건을 삭제합니다. `auth:sanctum` + `sirsoft-ecommerce.brands.delete` 권한이 필요하며, `BrandService::deleteBrand()`가 삭제 전 연결된 상품 수를 확인합니다. 연결된 상품이 1개 이상이면 예외가 발생해 삭제가 차단되고 400 오류가 반환되므로, 해당 브랜드의 상품을 먼저 정리하거나 다른 브랜드로 이전해야 삭제할 수 있습니다. 대상이 없으면 404를 반환합니다.
+**설명** 브랜드 1건을 삭제합니다. `auth:sanctum` + `sirsoft-ecommerce.brands.delete` 권한이 필요하며, `BrandService::deleteBrand()`가 삭제 전 연결된 상품 수를 확인합니다. 연결된 상품이 1개 이상이면 예외가 발생해 삭제가 차단되고 400 오류가 반환되므로, 해당 브랜드의 상품을 먼저 정리하거나 다른 브랜드로 이전해야 삭제할 수 있습니다. 존재하지 않는 ID 는 400(`brand_not_found`)을 반환하고, 존재하지만 요청자의 스코프 밖인 대상은 403(`auth.scope_denied`)을 반환합니다.
 
 
 ### PUT /api/modules/sirsoft-ecommerce/admin/brands/{brand}
@@ -422,13 +422,13 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.update`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.update`)이 없거나, 대상 브랜드가 요청자의 **스코프 밖**인 경우 (`auth.scope_denied`) |
+| 400 | Bad Request | 해당 `brand` 의 브랜드가 없는 경우(`exceptions.brand_not_found`) 또는 수정 처리 중 도메인 규칙 위반 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지) |
 
 <!-- @generated:end -->
 
-**설명** 기존 브랜드(path의 `brand`)를 수정합니다. `auth:sanctum` + `sirsoft-ecommerce.brands.update` 권한이 필요하며, `BrandService::updateBrand()`가 검증된 데이터로 갱신한 뒤 `BrandResource`를 반환합니다. `name`은 필수이고 `slug`·`website`·`sort_order`·`is_active`는 선택입니다. 대상이 없거나 처리 중 예외가 발생하면 404 또는 400을 반환하며, `sirsoft-ecommerce.brand.update_validation_rules` 필터로 확장이 검증 규칙을 추가할 수 있습니다.
+**설명** 기존 브랜드(path의 `brand`)를 수정합니다. `auth:sanctum` + `sirsoft-ecommerce.brands.update` 권한이 필요하며, `BrandService::updateBrand()`가 검증된 데이터로 갱신한 뒤 `BrandResource`를 반환합니다. `name`은 필수이고 `slug`·`website`·`sort_order`·`is_active`는 선택입니다. 존재하지 않는 ID 는 400(`brand_not_found`), 스코프 밖 대상은 403(`auth.scope_denied`)을 반환하며, `sirsoft-ecommerce.brand.update_validation_rules` 필터로 확장이 검증 규칙을 추가할 수 있습니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/admin/brands/{id}
@@ -602,8 +602,8 @@ HTTP/1.1 200
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
-| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.update`)이 없는 경우 |
-| 400 | Bad Request | 해당 `id` 의 브랜드가 없거나 토글 처리 중 예외 발생 (`exceptions.operation_failed`) |
+| 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.brands.update`)이 없거나, 대상 브랜드가 요청자의 **스코프 밖**인 경우 (`auth.scope_denied`) |
+| 400 | Bad Request | 해당 `id` 의 브랜드가 없는 경우(`exceptions.brand_not_found`) 또는 토글 처리 중 도메인 규칙 위반 |
 | 404 | Not Found | path 파라미터 형식이 라우트에 매칭되지 않는 경우 |
 
 <!-- @generated:end -->

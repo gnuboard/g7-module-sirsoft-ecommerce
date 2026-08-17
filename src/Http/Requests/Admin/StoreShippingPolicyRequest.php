@@ -50,6 +50,7 @@ class StoreShippingPolicyRequest extends FormRequest
             'country_settings.*.shipping_method' => [
                 'required',
                 'string',
+                // audit:allow query-unbounded-get reason: 배송유형은 운영자 등록 설정성 테이블 — 허용 어휘 구성용 전량 조회이며 행 수가 데이터 증가에 비례하지 않는다
                 Rule::in(app(ShippingTypeRepositoryInterface::class)->getAll()->pluck('code')->toArray()),
             ],
             'country_settings.*.custom_shipping_name' => ['nullable', 'array'],

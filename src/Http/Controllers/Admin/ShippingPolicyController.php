@@ -15,6 +15,7 @@ use Modules\Sirsoft\Ecommerce\Http\Resources\ShippingPolicyCollection;
 use Modules\Sirsoft\Ecommerce\Http\Resources\ShippingPolicyResource;
 use Modules\Sirsoft\Ecommerce\Services\OrderCalculationService;
 use Modules\Sirsoft\Ecommerce\Services\ShippingPolicyService;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 배송정책 관리 컨트롤러
@@ -63,6 +64,8 @@ class ShippingPolicyController extends AdminBaseController
                 new ShippingPolicyResource($shippingPolicy),
                 201
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
@@ -126,6 +129,8 @@ class ShippingPolicyController extends AdminBaseController
                 'messages.shipping_policy.updated',
                 new ShippingPolicyResource($updated)
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             return ResponseHelper::moduleError(
                 'sirsoft-ecommerce',
@@ -185,6 +190,8 @@ class ShippingPolicyController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.shipping_policy.deleted'
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -221,6 +228,8 @@ class ShippingPolicyController extends AdminBaseController
                 'messages.shipping_policy.toggled',
                 new ShippingPolicyResource($updatedPolicy)
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -247,6 +256,8 @@ class ShippingPolicyController extends AdminBaseController
                 'messages.shipping_policy.bulk_deleted',
                 ['deleted_count' => $count]
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -277,6 +288,8 @@ class ShippingPolicyController extends AdminBaseController
                 'messages.shipping_policy.bulk_toggled',
                 ['updated_count' => $count]
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -337,6 +350,8 @@ class ShippingPolicyController extends AdminBaseController
                 'messages.shipping_policy.set_default_success',
                 new ShippingPolicyResource($updatedPolicy)
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(

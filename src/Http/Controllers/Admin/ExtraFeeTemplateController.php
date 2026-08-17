@@ -14,6 +14,7 @@ use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\ExtraFeeTemplateUpdateRequest;
 use Modules\Sirsoft\Ecommerce\Http\Resources\ExtraFeeTemplateCollection;
 use Modules\Sirsoft\Ecommerce\Http\Resources\ExtraFeeTemplateResource;
 use Modules\Sirsoft\Ecommerce\Services\ExtraFeeTemplateService;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 추가배송비 템플릿 관리 컨트롤러
@@ -86,6 +87,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 new ExtraFeeTemplateResource($template),
                 201
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -123,6 +126,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 'messages.extra_fee_template.updated',
                 new ExtraFeeTemplateResource($updatedTemplate)
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -158,6 +163,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 'sirsoft-ecommerce',
                 'messages.extra_fee_template.deleted'
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -194,6 +201,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 'messages.extra_fee_template.toggled',
                 new ExtraFeeTemplateResource($updatedTemplate)
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -220,6 +229,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 'messages.extra_fee_template.bulk_deleted',
                 ['deleted_count' => $count]
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -250,6 +261,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 'messages.extra_fee_template.bulk_toggled',
                 ['updated_count' => $count]
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -277,6 +290,8 @@ class ExtraFeeTemplateController extends AdminBaseController
                 ['created_count' => $count],
                 201
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(

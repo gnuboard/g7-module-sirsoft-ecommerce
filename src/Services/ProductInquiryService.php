@@ -566,13 +566,15 @@ class ProductInquiryService
         // ② 잔여 답변이 없을 때만 피벗 is_answered=false 업데이트.
         // 기설치본에는 과거 결함(#106)으로 답변이 여러 건 쌓인 문의가 있을 수 있다 —
         // 첫 답변만 지웠는데 무조건 해제하면 "답변이 남았는데 미답변" 표기가 된다.
-        $remaining = (int) HookManager::applyFilters(
+        // 기본값 null = 판정 불가: 공급자(board 리스너) 부재 시 0 으로 접혀
+        // 답변완료가 오해제되는 fail-open 을 막는다.
+        $remaining = HookManager::applyFilters(
             'sirsoft-ecommerce.inquiry.count_replies',
-            0,
+            null,
             $inquiry->inquirable_id
         );
 
-        if ($remaining === 0) {
+        if (is_numeric($remaining) && (int) $remaining === 0) {
             $this->repository->unmarkAnswered($inquiry);
         }
 

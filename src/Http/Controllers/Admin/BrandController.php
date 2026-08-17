@@ -12,6 +12,7 @@ use Modules\Sirsoft\Ecommerce\Http\Requests\Admin\UpdateBrandRequest;
 use Modules\Sirsoft\Ecommerce\Http\Resources\BrandCollection;
 use Modules\Sirsoft\Ecommerce\Http\Resources\BrandResource;
 use Modules\Sirsoft\Ecommerce\Services\BrandService;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 브랜드 관리 컨트롤러
@@ -100,12 +101,19 @@ class BrandController extends AdminBaseController
                 new BrandResource($updatedBrand)
             );
         } catch (BrandOperationException $e) {
-            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
-            return ResponseHelper::moduleError(
-                'sirsoft-ecommerce',
-                'exceptions.operation_failed',
-                400
+            // 도메인 규칙 위반 — 기존 400 유지. 구체 사유(미존재/상품 연결)를 전용
+            // 키로 안내한다 — generic 키로 접으면 운영자가 원인을 알 수 없다
+            // (형제 ClaimReason/ShippingCarrier/ProductLabel destroy 와 동형).
+            $messageKey = $e->getMessageKey();
+
+            return ResponseHelper::error(
+                $messageKey,
+                400,
+                null,
+                $e->getMessageParams()
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -133,12 +141,19 @@ class BrandController extends AdminBaseController
                 new BrandResource($updatedBrand)
             );
         } catch (BrandOperationException $e) {
-            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
-            return ResponseHelper::moduleError(
-                'sirsoft-ecommerce',
-                'exceptions.operation_failed',
-                400
+            // 도메인 규칙 위반 — 기존 400 유지. 구체 사유(미존재/상품 연결)를 전용
+            // 키로 안내한다 — generic 키로 접으면 운영자가 원인을 알 수 없다
+            // (형제 ClaimReason/ShippingCarrier/ProductLabel destroy 와 동형).
+            $messageKey = $e->getMessageKey();
+
+            return ResponseHelper::error(
+                $messageKey,
+                400,
+                null,
+                $e->getMessageParams()
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(
@@ -166,12 +181,19 @@ class BrandController extends AdminBaseController
                 $result
             );
         } catch (BrandOperationException $e) {
-            // 도메인 규칙 위반 — 운영자에게 안내 가능한 상황이므로 기존 400 유지
-            return ResponseHelper::moduleError(
-                'sirsoft-ecommerce',
-                'exceptions.operation_failed',
-                400
+            // 도메인 규칙 위반 — 기존 400 유지. 구체 사유(미존재/상품 연결)를 전용
+            // 키로 안내한다 — generic 키로 접으면 운영자가 원인을 알 수 없다
+            // (형제 ClaimReason/ShippingCarrier/ProductLabel destroy 와 동형).
+            $messageKey = $e->getMessageKey();
+
+            return ResponseHelper::error(
+                $messageKey,
+                400,
+                null,
+                $e->getMessageParams()
             );
+        } catch (AccessDeniedHttpException $e) {
+            return ResponseHelper::forbidden('auth.scope_denied');
         } catch (\Exception $e) {
             // 서버 결함/인프라 장애 — 4xx 로 뭉개면 장애가 입력 오류로 위장된다
             return ResponseHelper::moduleError(

@@ -160,6 +160,57 @@ class ServiceScopeReapplyTest extends ModuleTestCase
     }
 
     /**
+     * (계약 표면) 스코프 거부는 HTTP 403 으로 표면화되어야 한다.
+     *
+     * 서비스가 던지는 AccessDeniedHttpException 이 컨트롤러 generic catch 에 삼켜지면
+     * 권한 거부가 500 서버 장애로 위장된다 — 서비스 층 단언만으로는 이 회귀를 못 본다.
+     *
+     * @scenario route_shape=static_bulk
+     *
+     * @effects scope_denial_surfaces_as_403_over_http
+     */
+    public function test_scope_denied_bulk_toggle_surfaces_as_403_over_http(): void
+    {
+        $actor = $this->adminWithScope('sirsoft-ecommerce.shipping-policies.update', 'self');
+        $owner = User::factory()->create();
+
+        $mine = $this->makeTemplate($actor->id, '63004');
+        $theirs = $this->makeTemplate($owner->id, '63005');
+
+        $response = $this->actingAs($actor)->patchJson(
+            '/api/modules/sirsoft-ecommerce/admin/extra-fee-templates/bulk-toggle-active',
+            ['ids' => [$mine->id, $theirs->id], 'is_active' => false]
+        );
+
+        $response->assertStatus(403);
+
+        // 전량 거부 — 상태 불변까지 단언한다.
+        $this->assertTrue((bool) $mine->fresh()->is_active);
+        $this->assertTrue((bool) $theirs->fresh()->is_active);
+    }
+
+    /**
+     * (계약 복원) 존재하지 않는 대상은 스코프 거부가 아니라 not_found 400 으로 응답한다.
+     *
+     * 스코프 게이트 도입이 "리소스 부재 = 스코프 거부(→ 500 위장)" 로 기존 400 계약을
+     * 바꾸면 안 된다.
+     *
+     * @scenario route_shape=param_name_mismatch
+     *
+     * @effects missing_target_keeps_not_found_contract
+     */
+    public function test_missing_brand_returns_not_found_not_scope_denied(): void
+    {
+        $actor = $this->adminWithScope('sirsoft-ecommerce.brands.delete', null);
+
+        $response = $this->actingAs($actor)->deleteJson(
+            '/api/modules/sirsoft-ecommerce/admin/brands/999999'
+        );
+
+        $response->assertStatus(400);
+    }
+
+    /**
      * 소유자를 지정해 배송정책을 만듭니다 (팩토리 부재 — 기존 테스트와 같은 직접 생성).
      *
      * @param  int  $ownerId  소유자 ID

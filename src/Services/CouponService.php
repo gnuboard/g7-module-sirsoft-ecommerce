@@ -13,7 +13,6 @@ use Modules\Sirsoft\Ecommerce\Models\CouponIssue;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponIssueRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\CouponRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 쿠폰 서비스
@@ -145,16 +144,12 @@ class CouponService
     public function updateCoupon(int $id, array $data): Coupon
     {
         $coupon = $this->repository->findById($id);
-        if (! $coupon) {
-            throw new AccessDeniedHttpException(__('auth.scope_denied'));
-        }
-        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.update');
-
-        $coupon = $this->repository->findById($id);
 
         if (! $coupon) {
             throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
         }
+
+        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.update');
 
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.coupon.before_update', $id, $data);
@@ -208,16 +203,12 @@ class CouponService
     public function deleteCoupon(int $id): array
     {
         $coupon = $this->repository->findById($id);
-        if (! $coupon) {
-            throw new AccessDeniedHttpException(__('auth.scope_denied'));
-        }
-        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.delete');
-
-        $coupon = $this->repository->findById($id);
 
         if (! $coupon) {
             throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
         }
+
+        $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.delete');
 
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.coupon.before_delete', $coupon);
@@ -284,9 +275,11 @@ class CouponService
     public function issueDirectly(int $couponId, array $userIds): array
     {
         $coupon = $this->repository->findById($couponId);
+
         if (! $coupon) {
-            throw new AccessDeniedHttpException(__('auth.scope_denied'));
+            throw new CouponOperationException('sirsoft-ecommerce::exceptions.coupon_not_found');
         }
+
         $this->assertWithinScope($coupon, 'sirsoft-ecommerce.promotion-coupon.update');
 
         HookManager::doAction('sirsoft-ecommerce.coupon.before_direct_issue', $couponId, $userIds);

@@ -402,7 +402,7 @@ HTTP/1.1 201
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 400 | Bad Request | 파일 저장 중 예외 발생 (`exceptions.operation_failed`) |
+| 400 | Bad Request | 파일 저장 중 도메인 규칙 위반 (대상 카테고리 부재 등 — `exceptions.category_not_found` 같은 예외별 구체 키로 응답) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `file` 은 필수이며 `jpeg,png,jpg,gif,svg,webp` 이미지만 허용, 최대 10MB |
@@ -466,7 +466,7 @@ HTTP/1.1 200
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 400 | Bad Request | 순서 갱신 처리 중 예외 발생 (`exceptions.operation_failed`) |
+| 400 | Bad Request | 순서 갱신 처리 중 도메인 규칙 위반 (`exceptions.category_not_found` 같은 예외별 구체 키로 응답) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `order` 는 1건 이상 필수이며 각 항목에 정수 `id` 와 0 이상의 정수 `order` 가 필요 |
@@ -521,7 +521,7 @@ HTTP/1.1 200
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 400 | Bad Request | 이미지 삭제 처리 중 예외 발생 (`exceptions.operation_failed`) |
+| 400 | Bad Request | 이미지 삭제 처리 중 도메인 규칙 위반 (`exceptions.category_not_found` 같은 예외별 구체 키로 응답) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 의 이미지 `id` 에 해당하는 카테고리 이미지가 없는 경우 (`messages.category_images.not_found`) |
@@ -589,7 +589,7 @@ HTTP/1.1 200
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 400 | Bad Request | 순서 갱신 트랜잭션 중 예외 발생 (`exceptions.operation_failed`) |
+| 400 | Bad Request | 순서 갱신 트랜잭션 중 도메인 규칙 위반 (순환 참조·대상 부재 등 — 예외별 구체 키로 응답) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 422 | Unprocessable Entity | 요청 파라미터가 검증 규칙을 위반한 경우 (`error.errors` 에 필드별 메시지). `parent_menus` / `child_menus` 중 최소 하나가 필요하며, 각 항목의 `id` 는 실제 존재하는 카테고리여야 하고 `order` 는 0 이상의 정수 |
@@ -816,7 +816,7 @@ HTTP/1.1 201
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 400 | Bad Request | 파일 저장 중 예외 발생 (`exceptions.operation_failed`) |
+| 400 | Bad Request | 파일 저장 중 도메인 규칙 위반 (대상 카테고리 부재 등 — `exceptions.category_not_found` 같은 예외별 구체 키로 응답) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
@@ -879,12 +879,13 @@ HTTP/1.1 200
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.delete`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 400 | Bad Request | 해당 카테고리가 없거나(`exceptions.category_not_found`), 하위 카테고리(`exceptions.category_has_children`)·연결 상품(`exceptions.category_has_products`)이 있어 삭제가 차단된 경우 |
+| 404 | Not Found | path 파라미터 형식이 라우트에 매칭되지 않는 경우 |
 | 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
-**설명** 카테고리 1건을 삭제합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.delete` 권한이 필요하며, `CategoryService::deleteCategory()`가 삭제 전 안전 검사를 수행합니다. 하위 카테고리가 있거나 연결된 상품이 존재하면 예외가 발생해 삭제가 차단되고 400 오류가 반환되므로, 자식과 상품을 먼저 정리해야 삭제할 수 있습니다. 대상이 없으면 404를 반환합니다.
+**설명** 카테고리 1건을 삭제합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.delete` 권한이 필요하며, `CategoryService::deleteCategory()`가 삭제 전 안전 검사를 수행합니다. 하위 카테고리가 있거나 연결된 상품이 존재하면 예외가 발생해 삭제가 차단되고 400 오류(사유별 구체 키)가 반환되므로, 자식과 상품을 먼저 정리해야 삭제할 수 있습니다. 대상이 없으면 400(`category_not_found`)을 반환합니다.
 
 
 ### PUT /api/modules/sirsoft-ecommerce/admin/categories/{category}
@@ -1007,7 +1008,7 @@ HTTP/1.1 200
 
 | 상태코드 | 의미 | 발생 조건 |
 | --- | --- | --- |
-| 400 | Bad Request | 대상 카테고리가 없거나 수정 트랜잭션 중 예외 발생 (컨트롤러가 예외를 잡아 `exceptions.operation_failed` 로 응답) |
+| 400 | Bad Request | 대상 카테고리가 없거나(`exceptions.category_not_found`) 수정 트랜잭션 중 도메인 규칙 위반 (예외별 구체 키로 응답) |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
 | 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
@@ -1172,12 +1173,13 @@ HTTP/1.1 200
 | --- | --- | --- |
 | 401 | Unauthenticated | 유효한 Bearer 토큰이 없거나 만료된 경우 |
 | 403 | Forbidden | 요구 권한(`sirsoft-ecommerce.categories.update`)이 없는 경우 |
-| 404 | Not Found | path 파라미터에 해당하는 리소스가 없는 경우 |
+| 400 | Bad Request | 해당 카테고리가 없는 경우(`exceptions.category_not_found`) 또는 토글 처리 중 도메인 규칙 위반 |
+| 404 | Not Found | path 파라미터 형식이 라우트에 매칭되지 않는 경우 |
 | 500 | Internal Server Error | 서버 내부 오류 — 도메인 규칙 위반이 아닌 예외(인프라 장애·코드 결함)는 4xx 로 뭉개지 않고 500 으로 구분한다 |
 
 <!-- @generated:end -->
 
-**설명** 카테고리의 활성 상태를 토글합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.update` 권한이 필요하며, path의 `id`로 `CategoryService::toggleStatus()`를 호출해 현재 `is_active` 값을 반전시킨 뒤 갱신된 `CategoryResource`를 반환합니다. 관리자 목록에서 노출/비노출을 빠르게 전환할 때 사용하며, 대상이 없거나 처리 중 예외가 발생하면 404 또는 400을 반환합니다.
+**설명** 카테고리의 활성 상태를 토글합니다. `auth:sanctum` + `sirsoft-ecommerce.categories.update` 권한이 필요하며, path의 `id`로 `CategoryService::toggleStatus()`를 호출해 현재 `is_active` 값을 반전시킨 뒤 갱신된 `CategoryResource`를 반환합니다. 관리자 목록에서 노출/비노출을 빠르게 전환할 때 사용하며, 대상이 없으면 400(`category_not_found`), 도메인 규칙 위반 시 사유별 구체 키의 400 을 반환합니다.
 
 
 ### GET /api/modules/sirsoft-ecommerce/categories

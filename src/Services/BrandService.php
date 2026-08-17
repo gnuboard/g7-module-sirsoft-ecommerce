@@ -10,7 +10,6 @@ use Modules\Sirsoft\Ecommerce\Exceptions\BrandOperationException;
 use Modules\Sirsoft\Ecommerce\Models\Brand;
 use Modules\Sirsoft\Ecommerce\Repositories\Contracts\BrandRepositoryInterface;
 use Modules\Sirsoft\Ecommerce\Traits\ReappliesPermissionScope;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * 브랜드 서비스
@@ -112,17 +111,13 @@ class BrandService
      */
     public function updateBrand(int $id, array $data): Brand
     {
-        $brandForScope = $this->repository->findById($id);
-        if (! $brandForScope) {
-            throw new AccessDeniedHttpException(__('auth.scope_denied'));
-        }
-        $this->assertWithinScope($brandForScope, 'sirsoft-ecommerce.brands.update');
-
         $brand = $this->repository->findById($id);
 
         if (! $brand) {
             throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_not_found');
         }
+
+        $this->assertWithinScope($brand, 'sirsoft-ecommerce.brands.update');
 
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.brand.before_update', $id, $data);
@@ -159,17 +154,13 @@ class BrandService
      */
     public function toggleStatus(int $id): Brand
     {
-        $brandForScope = $this->repository->findById($id);
-        if (! $brandForScope) {
-            throw new AccessDeniedHttpException(__('auth.scope_denied'));
-        }
-        $this->assertWithinScope($brandForScope, 'sirsoft-ecommerce.brands.update');
-
         $brand = $this->repository->findById($id);
 
         if (! $brand) {
             throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_not_found');
         }
+
+        $this->assertWithinScope($brand, 'sirsoft-ecommerce.brands.update');
 
         // Before 훅
         HookManager::doAction('sirsoft-ecommerce.brand.before_toggle_status', $brand);
@@ -196,17 +187,13 @@ class BrandService
      */
     public function deleteBrand(int $id): array
     {
-        $brandForScope = $this->repository->findById($id);
-        if (! $brandForScope) {
-            throw new AccessDeniedHttpException(__('auth.scope_denied'));
-        }
-        $this->assertWithinScope($brandForScope, 'sirsoft-ecommerce.brands.delete');
-
         $brand = $this->repository->findById($id);
 
         if (! $brand) {
             throw new BrandOperationException('sirsoft-ecommerce::exceptions.brand_not_found');
         }
+
+        $this->assertWithinScope($brand, 'sirsoft-ecommerce.brands.delete');
 
         // 연결된 상품 수 확인
         $productsCount = $this->repository->getProductCount($id);

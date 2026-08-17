@@ -1157,6 +1157,14 @@ return [
         'can_write_checked' => 'Review eligibility checked.',
         'can_write_check_failed' => 'Failed to check review eligibility.',
         'cannot_write' => 'Cannot write a review. (Reason: :reason)',
+        // 작성 불가 사유 라벨 — :reason 치환자에 원시 식별자 대신 번역문을 싣는다
+        'reasons' => [
+            'order_option_not_found' => 'order item not found',
+            'not_own_order' => 'not your order',
+            'not_confirmed' => 'purchase not confirmed yet',
+            'deadline_passed' => 'review period has ended',
+            'already_written' => 'review already written',
+        ],
         'forbidden' => 'You do not have permission.',
         'deleted' => 'Review has been deleted.',
         'delete_failed' => 'Failed to delete review.',

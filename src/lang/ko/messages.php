@@ -1146,6 +1146,14 @@ return [
         'can_write_checked' => '리뷰 작성 가능 여부를 확인했습니다.',
         'can_write_check_failed' => '리뷰 작성 가능 여부 확인에 실패했습니다.',
         'cannot_write' => '리뷰를 작성할 수 없습니다. (사유: :reason)',
+        // 작성 불가 사유 라벨 — :reason 치환자에 원시 식별자 대신 번역문을 싣는다
+        'reasons' => [
+            'order_option_not_found' => '주문 내역을 찾을 수 없음',
+            'not_own_order' => '본인 주문이 아님',
+            'not_confirmed' => '구매확정 전',
+            'deadline_passed' => '작성 기한 경과',
+            'already_written' => '이미 작성한 리뷰',
+        ],
         'forbidden' => '권한이 없습니다.',
         'deleted' => '리뷰가 삭제되었습니다.',
         'delete_failed' => '리뷰 삭제에 실패했습니다.',

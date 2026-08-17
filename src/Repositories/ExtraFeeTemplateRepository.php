@@ -160,6 +160,7 @@ class ExtraFeeTemplateRepository implements ExtraFeeTemplateRepositoryInterface
      */
     public function getActiveList(): Collection
     {
+        // audit:allow query-unbounded-get reason: 추가배송비 템플릿은 운영자 등록 설정성 테이블 — 행 수가 운영자 행위(도서산간 우편번호 등록)에 묶여 데이터 증가에 비례하지 않는다
         return $this->model
             ->active()
             ->orderBy('zipcode')
@@ -171,6 +172,7 @@ class ExtraFeeTemplateRepository implements ExtraFeeTemplateRepositoryInterface
      */
     public function getAllAsExtraFeeSettings(): array
     {
+        // audit:allow query-unbounded-get reason: 추가배송비 템플릿은 운영자 등록 설정성 테이블 — 행 수가 운영자 행위(도서산간 우편번호 등록)에 묶여 데이터 증가에 비례하지 않는다
         return $this->model
             ->active()
             ->orderBy('zipcode')

@@ -114,13 +114,20 @@ class ProductInquiryBoardListener implements HookListenerInterface
                 $pivot = $this->repository->findByInquirable(get_class($post), (int) $post->parent_id);
 
                 if ($pivot && $pivot->is_answered) {
-                    $remaining = (int) HookManager::applyFilters(
+                    // 기본값을 null(판정 불가)로 두고, 공급자(board 모듈 리스너)가 실제
+                    // 집계값을 실어야만 해제를 진행한다. 기본값 0 이면 공급자 부재
+                    // (board 비활성/구버전)가 "답변 없음" 으로 읽혀 답변완료가 오해제된다.
+                    $remaining = HookManager::applyFilters(
                         'sirsoft-ecommerce.inquiry.count_replies',
-                        0,
+                        null,
                         (int) $post->parent_id
                     );
 
-                    if ($remaining === 0) {
+                    if ($remaining === null || ! is_numeric($remaining)) {
+                        return; // 공급자 부재 — 판정 불가 시 상태를 건드리지 않는다
+                    }
+
+                    if ((int) $remaining === 0) {
                         $this->repository->unmarkAnswered($pivot);
 
                         Log::debug('ProductInquiryBoardListener: 답변 글 삭제 → 답변완료 해제', [
