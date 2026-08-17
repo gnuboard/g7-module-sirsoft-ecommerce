@@ -93,6 +93,20 @@ describe('환경설정 탭별 개별 저장 패턴 검증', () => {
             expect(body).toContain("'basic_info'");
         });
 
+        it('저장 실패 토스트가 서버 오류 메시지를 노출해야 한다 (회귀 — PO 실측 제보)', () => {
+            // 고정 문구만 쓰면 검증 실패 사유(예: 필드별 422 메시지)가 사용자에게
+            // 도달하지 못하고 "설정 저장에 실패했습니다" 로 뭉개진다.
+            const apiCallAction = findActionByHandler(saveButton.actions, 'apiCall');
+            const errorToast = (apiCallAction.onError ?? []).find(
+                (a: any) => a.handler === 'toast',
+            );
+
+            expect(errorToast).toBeDefined();
+            expect(errorToast.params.message).toContain('error.message');
+            // 서버 메시지 부재 시 기존 고정 문구로 폴백
+            expect(errorToast.params.message).toContain('save_error');
+        });
+
         it('body 에 _tab 메타 필드가 포함되어야 한다', () => {
             const apiCallAction = findActionByHandler(saveButton.actions, 'apiCall');
             const body = apiCallAction.params.body;

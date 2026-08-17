@@ -2284,7 +2284,7 @@
                                 "handler": "toast",
                                 "params": {
                                   "type": "error",
-                                  "message": "$t:sirsoft-ecommerce.admin.order.detail.order_info.save_error"
+                                  "message": "{{error.message ?? '$t:sirsoft-ecommerce.admin.order.detail.order_info.save_error'}}"
                                 }
                               }
                             ]

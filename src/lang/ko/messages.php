@@ -1206,6 +1206,7 @@ return [
         'board_changed' => '게시판 설정이 변경되어 해당 게시글을 찾을 수 없습니다. 관리자에게 문의하세요.',
         'reply_created' => '답변이 등록되었습니다.',
         'reply_failed' => '답변 등록에 실패했습니다.',
+        'reply_already_exists' => '이미 등록된 답변이 있습니다. 기존 답변을 수정하거나 삭제한 후 다시 등록해주세요.',
         'reply_updated' => '답변이 수정되었습니다.',
         'reply_update_failed' => '답변 수정에 실패했습니다.',
         'reply_deleted' => '답변이 삭제되었습니다.',

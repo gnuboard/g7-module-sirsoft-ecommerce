@@ -1217,6 +1217,7 @@ return [
         'board_changed' => 'The board configuration has changed and the post could not be found. Please contact the administrator.',
         'reply_created' => 'Reply has been submitted.',
         'reply_failed' => 'Failed to submit reply.',
+        'reply_already_exists' => 'A reply has already been registered. Please edit or delete the existing reply before submitting a new one.',
         'reply_updated' => 'Reply has been updated.',
         'reply_update_failed' => 'Failed to update reply.',
         'reply_deleted' => 'Reply has been deleted.',

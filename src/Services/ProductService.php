@@ -70,7 +70,8 @@ class ProductService
         protected SequenceService $sequenceService,
         protected OrderOptionRepositoryInterface $orderOptionRepository,
         protected ProductLabelRepositoryInterface $productLabelRepository,
-        protected ProductAdditionalOptionValueRepositoryInterface $additionalOptionValueRepository
+        protected ProductAdditionalOptionValueRepositoryInterface $additionalOptionValueRepository,
+        protected ProductInquiryService $inquiryService
     ) {}
 
     /**
@@ -422,6 +423,11 @@ class ProductService
         // 삭제 전 훅
         HookManager::doAction('sirsoft-ecommerce.product.before_delete', $product);
 
+        // 상품 문의 스레드 정리 — 트랜잭션 진입 전 실행 (게시판 훅이 자체 트랜잭션과
+        // after_delete Action 훅을 내부에서 발행하므로 바깥 트랜잭션에 묶지 않는다).
+        // 종전에는 피벗이 FK 캐스케이드로만 소멸해 질문·답변 Post 가 공개 상태로 잔존했다.
+        $this->inquiryService->deleteInquiriesForProduct($product->id);
+
         return DB::transaction(function () use ($product) {
             // 1. 이미지 파일 물리적 삭제 (Storage)
             $this->deleteProductImageFiles($product);
@@ -457,9 +463,6 @@ class ProductService
 
             // TODO: 리뷰 삭제 (테이블: ecommerce_reviews)
             // Review::where('product_id', $product->id)->delete();
-
-            // TODO: 상품문의 삭제 (테이블: ecommerce_product_inquiries)
-            // ProductInquiry::where('product_id', $product->id)->delete();
 
             // 8. 상품 레코드 완전 삭제 (SoftDeletes 무시)
             // 모든 연관 데이터가 완전 삭제되었으므로 상품도 완전 삭제합니다.

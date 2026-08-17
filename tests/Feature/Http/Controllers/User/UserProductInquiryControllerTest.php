@@ -45,6 +45,7 @@ class UserProductInquiryControllerTest extends ModuleTestCase
             'sirsoft-ecommerce.inquiry.update_reply',
             'sirsoft-ecommerce.inquiry.delete_reply',
             'sirsoft-ecommerce.inquiry.create',
+            'sirsoft-ecommerce.inquiry.count_replies',
             'sirsoft-ecommerce.inquiry.update',
             'sirsoft-ecommerce.inquiry.get_settings',
             'sirsoft-ecommerce.inquiry.get_by_ids',
@@ -66,6 +67,13 @@ class UserProductInquiryControllerTest extends ModuleTestCase
         HookManager::addFilter(
             'sirsoft-ecommerce.inquiry.create',
             fn () => ['post_id' => 999, 'inquirable_type' => 'Modules\\Sirsoft\\Board\\Models\\Post'],
+            priority: 1
+        );
+
+        // 잔여 답변 수 훅 모킹 — 기본값 0 (답변 삭제 시 답변완료 해제 경로)
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.count_replies',
+            fn () => 0,
             priority: 1
         );
 
@@ -192,7 +200,34 @@ class UserProductInquiryControllerTest extends ModuleTestCase
             );
 
         $response->assertOk();
-        $this->assertDatabaseMissing('ecommerce_product_inquiries', ['id' => $this->inquiry->id]);
+        // SoftDeletes 도입(#107 후속) — 게시판 복원 경로와의 대칭을 위해 피벗은 소프트 삭제된다
+        $this->assertSoftDeleted('ecommerce_product_inquiries', ['id' => $this->inquiry->id]);
+    }
+
+    /**
+     * SoftDeletes 계약 명시 — 삭제된 피벗 행은 DB 에 남되(deleted_at 세팅)
+     * 기본 스코프 조회에서는 제외되어야 한다. 게시판에서 질문 글을 복원하는
+     * 경로가 피벗을 되살릴 수 있어야 하므로 하드 삭제가 아니다.
+     */
+    #[Test]
+    public function 문의_삭제_시_피벗이_소프트_삭제된다(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->deleteJson(
+                "/api/modules/sirsoft-ecommerce/user/inquiries/{$this->inquiry->id}"
+            );
+
+        $response->assertOk();
+
+        // 행 자체는 잔존 + deleted_at 세팅
+        $this->assertDatabaseHas('ecommerce_product_inquiries', ['id' => $this->inquiry->id]);
+        $this->assertSoftDeleted('ecommerce_product_inquiries', ['id' => $this->inquiry->id]);
+
+        // 기본 스코프에서는 보이지 않고, withTrashed 로만 조회된다
+        $this->assertNull(ProductInquiry::find($this->inquiry->id));
+        $trashed = ProductInquiry::withTrashed()->find($this->inquiry->id);
+        $this->assertNotNull($trashed);
+        $this->assertNotNull($trashed->deleted_at);
     }
 
     #[Test]
@@ -241,6 +276,88 @@ class UserProductInquiryControllerTest extends ModuleTestCase
             'id' => $this->inquiry->id,
             'is_answered' => true,
         ]);
+    }
+
+    /**
+     * 단일 답변 정책 (user 경로) — 이미 답변완료인 문의에는 재등록이 422 로
+     * 거부되고, 거부 시 게시판 create 훅은 호출 자체가 없어야 한다.
+     * admin 경로와 동일 가드가 user 경로에도 대칭 적용되는지 고정한다.
+     */
+    #[Test]
+    public function 이미_답변된_문의에_답변_재등록_시_422를_반환한다(): void
+    {
+        $manager = $this->createAdminUser(['sirsoft-ecommerce.inquiries.update']);
+        $answeredInquiry = ProductInquiry::factory()->answered()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+        ]);
+
+        // setUp 의 기본 모킹을 걷어내고 호출 횟수를 계수하는 훅으로 교체
+        HookManager::clearFilter('sirsoft-ecommerce.inquiry.create');
+        $createCalls = 0;
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.create',
+            function () use (&$createCalls) {
+                $createCalls++;
+
+                return ['post_id' => 999, 'inquirable_type' => 'Modules\\Sirsoft\\Board\\Models\\Post'];
+            },
+            priority: 1
+        );
+
+        $response = $this->actingAs($manager)
+            ->postJson(
+                "/api/modules/sirsoft-ecommerce/user/inquiries/{$answeredInquiry->id}/reply",
+                ['content' => '중복 답변 재등록 시도 내용입니다.']
+            );
+
+        // user 컨트롤러는 operation_failed_reason(':reason') 래핑으로 사유 원문을 그대로 노출한다
+        $response->assertStatus(422);
+        $this->assertSame(
+            __('sirsoft-ecommerce::messages.inquiries.reply_already_exists'),
+            $response->json('message')
+        );
+        $this->assertSame(0, $createCalls, '재등록 거부 시 게시판 create 훅은 호출되지 않아야 합니다.');
+        $this->assertDatabaseHas('ecommerce_product_inquiries', [
+            'id' => $answeredInquiry->id,
+            'is_answered' => true,
+        ]);
+    }
+
+    /**
+     * 경합 경로의 중복도 사유가 보존된다 (회귀 — PO 실측 제보).
+     *
+     * 동시 등록 경합에서는 피벗 is_answered 가 아직 false 라 1차 방어를 통과하고,
+     * 게시판 리스너의 2차 방어(실데이터 기준)가 중복을 감지한다. 종전에는 리스너가
+     * null 을 돌려줘 서비스가 훅 무응답과 구분하지 못했고, "답변 등록에 실패했습니다"
+     * (reply_failed, 500) 로 위장됐다. 리스너는 중복 마커(['duplicate' => true])를
+     * 돌려주고 서비스는 이를 reply_already_exists(422) 로 변환해야 한다.
+     */
+    #[Test]
+    public function 경합_중복_감지_시에도_이미_답변됨_사유가_노출된다(): void
+    {
+        $manager = $this->createAdminUser(['sirsoft-ecommerce.inquiries.update']);
+
+        // 피벗은 미답변(1차 방어 통과) — 게시판 실데이터에만 답변이 존재하는 경합 상태 재현
+        HookManager::clearFilter('sirsoft-ecommerce.inquiry.create');
+        HookManager::addFilter(
+            'sirsoft-ecommerce.inquiry.create',
+            fn () => ['duplicate' => true],
+            priority: 1
+        );
+
+        $response = $this->actingAs($manager)
+            ->postJson(
+                "/api/modules/sirsoft-ecommerce/user/inquiries/{$this->inquiry->id}/reply",
+                ['content' => '경합 중복 답변 등록 시도 내용입니다.']
+            );
+
+        $response->assertStatus(422);
+        $this->assertSame(
+            __('sirsoft-ecommerce::messages.inquiries.reply_already_exists'),
+            $response->json('message'),
+            '경합 중복도 일반 실패가 아니라 "이미 등록된 답변" 사유로 안내되어야 합니다.'
+        );
     }
 
     /**
