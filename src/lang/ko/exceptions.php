@@ -65,6 +65,7 @@ return [
     'order_option_already_cancelled' => '이미 취소된 주문 옵션입니다.',
     'order_option_already_confirmed' => '이미 구매확정된 주문 옵션입니다.',
     'order_option_cannot_confirm' => '현재 상태에서는 구매확정할 수 없습니다.',
+    'order_option_not_confirmable' => '현재 상태에서는 구매확정할 수 없는 주문 옵션입니다.',
     'cancel_quantity_exceeds' => '취소 수량이 현재 수량(:max개)을 초과합니다.',
 
     // 주문 결제 관련

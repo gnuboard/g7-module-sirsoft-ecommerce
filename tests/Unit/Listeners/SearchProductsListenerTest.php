@@ -362,4 +362,41 @@ class SearchProductsListenerTest extends ModuleTestCase
         $this->assertEquals(0.0, $result['products'][1]['rating_avg']);
         $this->assertEquals(0, $result['products'][1]['review_count']);
     }
+
+    /**
+     * 하이라이트 필드가 원문 태그를 이스케이프하는지 확인 (⑧)
+     *
+     * @scenario case=search_highlight_escape
+     *
+     * @effects highlighted_fields_escaped
+     */
+    public function test_highlight_keyword_escapes_markup(): void
+    {
+        $method = new \ReflectionMethod($this->listener, 'highlightKeyword');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->listener, '<img src=x onerror=alert(1)> 상품', '상품');
+
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringContainsString('&lt;img', $result);
+        $this->assertStringContainsString('<mark>상품</mark>', $result);
+    }
+
+    /**
+     * 본문 프리뷰가 엔티티 인코딩된 태그를 부활시키지 않는지 확인 (N-8)
+     *
+     * @scenario case=preview_entity_no_resurrect
+     *
+     * @effects preview_does_not_resurrect_entities
+     */
+    public function test_extract_content_preview_does_not_resurrect_entity_encoded_tags(): void
+    {
+        $method = new \ReflectionMethod($this->listener, 'extractContentPreview');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->listener, '&lt;script&gt;alert(1)&lt;/script&gt; 상품 설명입니다.', '상품', 150);
+
+        $this->assertStringNotContainsString('<script>', $result);
+        $this->assertStringContainsString('상품', $result);
+    }
 }

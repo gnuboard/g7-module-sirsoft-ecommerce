@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderCancellationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderModificationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderOptionNotConfirmableException;
 use Modules\Sirsoft\Ecommerce\Http\Controllers\Traits\HandlesOrderCreation;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Public\CreateOrderRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\Public\GuestCancelOrderRequest;
@@ -436,9 +437,15 @@ class OrderController extends PublicBaseController
                 'sirsoft-ecommerce::messages.order.confirmed',
                 new GuestOrderResource($updatedOrder)
             );
+        } catch (OrderOptionNotConfirmableException $e) {
+            // 상태 게이트 위반(이미 확정 / 확정 불가 상태) — 도메인 사유이므로 422.
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.'.$e->getReason(),
+                422
+            );
         } catch (Exception $e) {
-            // OrderService::confirmOption 은 도메인 예외를 던지지 않는다 —
-            // 여기에 걸리는 건 전부 서버 결함/인프라 장애다.
+            // 위 typed 예외를 제외한 나머지는 전부 서버 결함/인프라 장애다.
             Log::error('비회원 구매확정 실패', [
                 'order_number' => $order->order_number,
                 'option_id' => $optionId,

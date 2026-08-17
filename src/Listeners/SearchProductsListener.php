@@ -6,6 +6,7 @@ use App\Contracts\Extension\HookListenerInterface;
 use App\Enums\TotalRelation;
 use App\Helpers\PermissionHelper;
 use App\Search\SearchCategoryPayload;
+use App\Search\SearchHighlighter;
 use App\Support\Query\BoundedCount;
 use Illuminate\Support\Facades\Log;
 use Modules\Sirsoft\Ecommerce\Http\Resources\Traits\HasMultiCurrencyPrices;
@@ -291,13 +292,7 @@ class SearchProductsListener implements HookListenerInterface
      */
     private function highlightKeyword(?string $text, string $keyword): string
     {
-        if (empty($text) || empty($keyword)) {
-            return $text ?? '';
-        }
-
-        $escapedKeyword = preg_quote($keyword, '/');
-
-        return preg_replace('/('.$escapedKeyword.')/iu', '<mark>$1</mark>', $text);
+        return SearchHighlighter::highlight($text, $keyword);
     }
 
     /**
@@ -314,7 +309,7 @@ class SearchProductsListener implements HookListenerInterface
             return '';
         }
 
-        $plainText = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($content))));
+        $plainText = SearchHighlighter::toPlainText($content);
         $position = mb_stripos($plainText, $keyword);
 
         if ($position !== false) {
