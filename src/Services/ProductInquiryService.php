@@ -563,11 +563,22 @@ class ProductInquiryService
             $inquiry->inquirable_id
         );
 
-        // ② 피벗 is_answered=false 업데이트
-        $this->repository->unmarkAnswered($inquiry);
+        // ② 잔여 답변이 없을 때만 피벗 is_answered=false 업데이트.
+        // 기설치본에는 과거 결함(#106)으로 답변이 여러 건 쌓인 문의가 있을 수 있다 —
+        // 첫 답변만 지웠는데 무조건 해제하면 "답변이 남았는데 미답변" 표기가 된다.
+        $remaining = (int) HookManager::applyFilters(
+            'sirsoft-ecommerce.inquiry.count_replies',
+            0,
+            $inquiry->inquirable_id
+        );
+
+        if ($remaining === 0) {
+            $this->repository->unmarkAnswered($inquiry);
+        }
 
         Log::info('상품 문의 답변 삭제 완료', [
             'inquiry_id' => $inquiryId,
+            'remaining_replies' => $remaining,
         ]);
     }
 
@@ -580,6 +591,54 @@ class ProductInquiryService
     public function findById(int $inquiryId): ?ProductInquiry
     {
         return $this->repository->findById($inquiryId);
+    }
+
+    /**
+     * 상품 삭제 시 그 상품의 문의 스레드(질문+답변 Post)와 피벗을 정리합니다.
+     *
+     * 상품이 forceDelete 되면 피벗은 FK 캐스케이드로 하드 소멸하지만, 게시판의
+     * 질문·답변 Post 는 published 로 잔존했다(#107 확대판). 애플리케이션이 먼저
+     * 훅으로 Post 를 소프트 삭제(cascade_replies 로 답변 포함)한 뒤 피벗을
+     * forceDelete 한다 — FK 캐스케이드는 백스톱으로만 유지.
+     *
+     * 문의 게시판이 미설정이면 Post 정리는 건너뛰고 피벗만 정리한다(안전 열화).
+     * 개별 훅 실패는 warning 후 계속 진행한다 — 한 건의 실패가 상품 삭제 전체를
+     * 막으면 안 되고, 남은 고아는 업그레이드 스텝 백필이 재정리한다.
+     *
+     * @param  int  $productId  상품 ID
+     * @return int 정리된 피벗 수
+     */
+    public function deleteInquiriesForProduct(int $productId): int
+    {
+        $boardSlug = $this->getInquiryBoardSlug();
+
+        if ($boardSlug) {
+            // withTrashed 포함 — 소프트 삭제된 문의의 Post 잔존물도 함께 정리
+            $inquiries = $this->repository->findByProductIdWithTrashed($productId);
+
+            foreach ($inquiries as $inquiry) {
+                try {
+                    HookManager::applyFilters(
+                        'sirsoft-ecommerce.inquiry.delete',
+                        null,
+                        $boardSlug,
+                        $inquiry->inquirable_id
+                    );
+                } catch (\Exception $e) {
+                    Log::warning('상품 삭제 시 문의 Post 정리 실패 — 계속 진행', [
+                        'product_id' => $productId,
+                        'inquiry_id' => $inquiry->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        } else {
+            Log::info('문의 게시판 미설정 — 상품 삭제 시 문의 Post 정리 생략', [
+                'product_id' => $productId,
+            ]);
+        }
+
+        return $this->repository->forceDeleteByProductId($productId);
     }
 
     /**
@@ -650,6 +709,18 @@ class ProductInquiryService
 
         $boardSlug = $this->getInquiryBoardSlug();
 
+        // update/delete 경로와 동일한 미설정 가드 — 없으면 훅 무응답이 reply_failed 로 위장된다
+        if (! $boardSlug) {
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.board_not_configured');
+        }
+
+        // 1차 방어(피벗 플래그): 이미 답변된 문의에는 재등록 거부 — 단일 답변 정책.
+        // UI 는 `!item.reply` 게이팅으로 이미 차단하므로, 이 가드는 API 직접 호출/동시
+        // 클릭 경로를 막는다. 게시판 실데이터 기준 2차 방어는 리스너(createAndReturn)가 담당.
+        if ($inquiry->is_answered) {
+            throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.reply_already_exists');
+        }
+
         // 클라이언트 IP 를 요청 경계(Service)에서 캡처해 게시판 훅 payload 로 전달한다.
         if (empty($data['ip_address'])) {
             $data['ip_address'] = request()->ip() ?? '0.0.0.0';
@@ -666,6 +737,13 @@ class ProductInquiryService
                 $boardSlug,
                 $replyData
             );
+
+            // 2차 방어(리스너, 게시판 실데이터)가 중복을 감지하면 중복 마커를 돌려준다.
+            // 경합 경로(피벗 is_answered 가 아직 false)에서도 사유를 보존해 422 로 안내
+            // — null 과 합치면 "답변 등록에 실패했습니다" 로 위장된다 (PO 실측 제보).
+            if (is_array($postResult) && ! empty($postResult['duplicate'])) {
+                throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.reply_already_exists');
+            }
 
             if (! $postResult || empty($postResult['post_id'])) {
                 throw new ProductInquiryOperationException('sirsoft-ecommerce::messages.inquiries.reply_failed');
