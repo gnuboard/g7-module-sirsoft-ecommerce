@@ -14,6 +14,7 @@ use Modules\Sirsoft\Ecommerce\Enums\OrderStatusEnum;
 use Modules\Sirsoft\Ecommerce\Enums\PaymentMethodEnum;
 use Modules\Sirsoft\Ecommerce\Exceptions\InsufficientStockException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderModificationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderOptionNotConfirmableException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
 use Modules\Sirsoft\Ecommerce\Models\Order;
 use Modules\Sirsoft\Ecommerce\Models\OrderOption;
@@ -761,6 +762,23 @@ class OrderService
      */
     public function confirmOption(Order $order, OrderOption $option): OrderOption
     {
+        // 상태 게이트를 서비스 자체에 내장한다 — 호출자(회원 FormRequest / 비회원 컨트롤러 / 훅)와
+        // 무관하게 동일 강도로 강제한다. FormRequest 검사는 UI 조기 피드백용으로 유지되지만,
+        // 그 경로를 우회하는 호출이 이미 확정된/확정 불가 상태의 옵션을 재확정하는 것을 막는다.
+        if ($option->option_status === OrderStatusEnum::CONFIRMED) {
+            throw new OrderOptionNotConfirmableException('order_option_already_confirmed');
+        }
+
+        $confirmableStatuses = module_setting(
+            'sirsoft-ecommerce',
+            'order_settings.confirmable_statuses',
+            ['shipping', 'delivered']
+        );
+
+        if (! in_array($option->option_status->value, $confirmableStatuses, true)) {
+            throw new OrderOptionNotConfirmableException('order_option_not_confirmable');
+        }
+
         $previousStatus = $order->order_status?->value;
         $purchaseConfirmed = false;
 

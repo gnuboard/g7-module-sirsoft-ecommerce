@@ -12,6 +12,7 @@ use Modules\Sirsoft\Ecommerce\Exceptions\CartOperationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\CartQuantityLimitException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderCancellationException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderModificationException;
+use Modules\Sirsoft\Ecommerce\Exceptions\OrderOptionNotConfirmableException;
 use Modules\Sirsoft\Ecommerce\Exceptions\OrderProcessingException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\CancelOrderRequest;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\ConfirmOrderOptionRequest;
@@ -268,9 +269,15 @@ class OrderController extends AuthBaseController
                 'sirsoft-ecommerce::messages.order.confirmed',
                 ['order' => new OrderResource($updatedOrder)]
             );
+        } catch (OrderOptionNotConfirmableException $e) {
+            // 상태 게이트 위반(이미 확정 / 확정 불가 상태) — 도메인 사유이므로 422.
+            return ResponseHelper::moduleError(
+                'sirsoft-ecommerce',
+                'exceptions.'.$e->getReason(),
+                422
+            );
         } catch (Exception $e) {
-            // OrderService::confirmOption 은 도메인 예외를 던지지 않는다 —
-            // 여기에 걸리는 건 전부 서버 결함/인프라 장애다.
+            // 위 typed 예외를 제외한 나머지는 전부 서버 결함/인프라 장애다.
             Log::error('Order option confirm failed', [
                 'message' => $e->getMessage(),
                 'order_id' => $request->route('id'),

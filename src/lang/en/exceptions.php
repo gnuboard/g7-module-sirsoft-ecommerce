@@ -65,6 +65,7 @@ return [
     'order_option_already_cancelled' => 'This order option has already been cancelled.',
     'order_option_already_confirmed' => 'This order option has already been confirmed.',
     'order_option_cannot_confirm' => 'Cannot confirm purchase in current status.',
+    'order_option_not_confirmable' => 'This order option cannot be confirmed in its current status.',
     'cancel_quantity_exceeds' => 'Cancel quantity exceeds current quantity (:max).',
 
     // Order payment related
