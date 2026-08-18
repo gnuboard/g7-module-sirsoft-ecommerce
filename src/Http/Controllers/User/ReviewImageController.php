@@ -6,6 +6,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Api\Base\AuthBaseController;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Sirsoft\Ecommerce\Exceptions\ReviewImageUploadLimitException;
 use Modules\Sirsoft\Ecommerce\Http\Requests\User\UploadReviewImageRequest;
@@ -122,12 +123,21 @@ class ReviewImageController extends AuthBaseController
     /**
      * 리뷰 이미지 다운로드 (해시 기반 공개 서빙)
      *
+     * 숨김(HIDDEN) 리뷰의 이미지는 서비스의 상태 게이트가 차단하되, 게이트를 통과한
+     * 응답 직렬화(ProductReviewResource)가 발급한 한시 서명 URL 은 동등한 자격으로
+     * 허용한다 — <img> 는 Authorization 헤더를 실을 수 없는 렌더 경로이기 때문이다.
+     *
+     * @param  Request  $request  HTTP 요청 객체 (한시 서명 검증용)
      * @param  string  $hash  이미지 해시 (12자)
      * @return StreamedResponse|JsonResponse 이미지 스트림 또는 404 응답
      */
-    public function download(string $hash): StreamedResponse|JsonResponse
+    // audit:allow controller-base-request-injection reason: GET 이미지 서빙. 요청 URL 의 한시 서명 검증(hasValidSignature)만 수행. 검증할 body 없음(hash 는 라우트 파라미터)
+    public function download(Request $request, string $hash): StreamedResponse|JsonResponse
     {
-        $response = $this->imageService->download($hash);
+        $response = $this->imageService->download(
+            $hash,
+            signatureVerified: $request->hasValidSignature(absolute: false)
+        );
 
         if (! $response) {
             return ResponseHelper::moduleError(

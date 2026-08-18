@@ -155,10 +155,17 @@ class ProductReviewImageService
     /**
      * 이미지 다운로드 응답 생성
      *
+     * $signatureVerified 는 요청 URL 의 한시 서명이 검증된 경우다 — 서명은
+     * 숨김 리뷰 게이트(관리자 권한 미들웨어)를 통과한 응답 직렬화
+     * (ProductReviewResource)만 발급하므로, 검증된 서명은 그 게이트 통과 자격의
+     * 위임으로 보고 상태 게이트를 재적용하지 않는다 (<img> 는 인증 헤더를 실을 수
+     * 없는 렌더 경로).
+     *
      * @param  string  $hash  이미지 해시 (12자)
+     * @param  bool  $signatureVerified  한시 서명 검증 통과 여부
      * @return StreamedResponse|null 다운로드 응답 (없으면 null)
      */
-    public function download(string $hash): ?StreamedResponse
+    public function download(string $hash, bool $signatureVerified = false): ?StreamedResponse
     {
         $image = $this->findByHash($hash);
 
@@ -174,7 +181,7 @@ class ProductReviewImageService
         // "부모가 사라진 이미지는 무조건 공개" 가 된다 — 첨부 게이트가 채택한 방향과 반대다.
         // 현재는 리뷰 삭제 시 이미지도 함께 삭제돼 여기까지 오지 않지만, 그 두 서비스가
         // 계속 동기화된다는 암묵 불변식에 보안을 걸지 않는다.
-        if (! $image->review || $image->review->status !== ReviewStatus::VISIBLE) {
+        if (! $signatureVerified && (! $image->review || $image->review->status !== ReviewStatus::VISIBLE)) {
             return null;
         }
 
