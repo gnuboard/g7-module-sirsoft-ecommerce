@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_2_0\Migrations;
+namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_3_0\Migrations;
 
 use App\Extension\Upgrade\DataMigration;
 use App\Extension\UpgradeContext;
@@ -75,7 +75,7 @@ class BackfillShippingSnapshotAddress implements DataMigration
         if (! Schema::hasTable(self::ORDERS_TABLE)
             || ! Schema::hasColumn(self::ORDERS_TABLE, self::COLUMN)
             || ! Schema::hasTable(self::ADDRESSES_TABLE)) {
-            $context->logger->warning('[ecommerce:1.2.0] 배송지 스냅샷 백필 — 대상 스키마 부재로 스킵');
+            $context->logger->warning('[ecommerce:1.3.0] 배송지 스냅샷 백필 — 대상 스키마 부재로 스킵');
 
             return;
         }
@@ -150,7 +150,7 @@ class BackfillShippingSnapshotAddress implements DataMigration
         }
 
         $context->logger->info(
-            '[ecommerce:1.2.0] 배송지 스냅샷 백필 — 채움 '.$filled.'건, 유지 '.$skipped.'건, '
+            '[ecommerce:1.3.0] 배송지 스냅샷 백필 — 채움 '.$filled.'건, 유지 '.$skipped.'건, '
             .'주소 행 부재 '.$noAddressRow.'건(양 경로 모두 도서산간 0원 — 갈리지 않음), '
             .'주소 행에 국가 코드 없음 '.$noCountryCode.'건(클레임 산정만 도서산간을 붙일 수 있어 두 경로가 갈릴 수 있음)'
         );

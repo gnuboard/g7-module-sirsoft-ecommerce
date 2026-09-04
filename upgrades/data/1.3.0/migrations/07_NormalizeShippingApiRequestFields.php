@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_2_0\Migrations;
+namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_3_0\Migrations;
 
 use App\Extension\Upgrade\DataMigration;
 use App\Extension\UpgradeContext;
@@ -63,7 +63,7 @@ class NormalizeShippingApiRequestFields implements DataMigration
     public function run(UpgradeContext $context): void
     {
         if (! Schema::hasTable(self::TABLE) || ! Schema::hasColumn(self::TABLE, 'api_request_fields')) {
-            $context->logger->warning('[ecommerce:1.2.0] '.self::TABLE.' 테이블/컬럼 미존재 — 스킵');
+            $context->logger->warning('[ecommerce:1.3.0] '.self::TABLE.' 테이블/컬럼 미존재 — 스킵');
 
             return;
         }
@@ -98,6 +98,6 @@ class NormalizeShippingApiRequestFields implements DataMigration
                 }
             });
 
-        $context->logger->info('[ecommerce:1.2.0] 계산 API 요청 필드 정리 완료 — '.$updated.'건');
+        $context->logger->info('[ecommerce:1.3.0] 계산 API 요청 필드 정리 완료 — '.$updated.'건');
     }
 }

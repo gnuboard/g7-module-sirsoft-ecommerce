@@ -4,6 +4,7 @@ namespace Modules\Sirsoft\Ecommerce\Tests\Unit\Upgrades;
 
 use App\Extension\AbstractUpgradeStep;
 use App\Extension\UpgradeContext;
+use App\Support\ExtensionStoragePath;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Modules\Sirsoft\Ecommerce\Database\Factories\OrderFactory;
@@ -11,29 +12,29 @@ use Modules\Sirsoft\Ecommerce\Enums\RefundSourceTypeEnum;
 use Modules\Sirsoft\Ecommerce\Models\OrderCancel;
 use Modules\Sirsoft\Ecommerce\Models\OrderRefund;
 use Modules\Sirsoft\Ecommerce\Tests\ModuleTestCase;
-use Modules\Sirsoft\Ecommerce\Upgrades\Upgrade_1_2_0;
+use Modules\Sirsoft\Ecommerce\Upgrades\Upgrade_1_3_0;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
- * Upgrade_1_2_0 — 클레임 신설 데이터 전환 테스트
+ * Upgrade_1_3_0 — 클레임 신설 데이터 전환 테스트
  *
  * 1) 기존 환불 이력의 발생 출처 polymorphic 백필
  * 2) 교환/반품 사유 카탈로그 시드
  * 3) claim 설정 카테고리 병합 (즉시취소 상태 승계)
  */
-class Upgrade_1_2_0_Test extends ModuleTestCase
+class Upgrade_1_3_0_Test extends ModuleTestCase
 {
     /**
      * 업그레이드 스텝을 실행합니다.
      */
     private function runUpgrade(): void
     {
-        $step = new Upgrade_1_2_0;
+        $step = new Upgrade_1_3_0;
         $context = (new UpgradeContext(
             fromVersion: '1.1.1',
-            toVersion: '1.2.0',
+            toVersion: '1.3.0',
             logChannel: 'extension-upgrade',
-        ))->withCurrentStep('1.2.0');
+        ))->withCurrentStep('1.3.0');
 
         $step->run($context);
     }
@@ -64,7 +65,7 @@ class Upgrade_1_2_0_Test extends ModuleTestCase
             'refund_amount' => 10000,
         ]);
 
-        // 1.2.0 이전 상태 재현 — 출처 축이 비어 있다.
+        // 1.3.0 이전 상태 재현 — 출처 축이 비어 있다.
         DB::table('ecommerce_order_refunds')
             ->where('id', $refund->id)
             ->update(['refund_source_type' => null, 'refund_source_id' => null]);
@@ -88,7 +89,7 @@ class Upgrade_1_2_0_Test extends ModuleTestCase
     public function 업그레이드_스텝은_abstract_upgrade_step_을_상속한다(): void
     {
         // g7_version(">=7.0.7") 이 7.0.0-beta.5 이상이므로 상속 의무가 발동한다.
-        $this->assertInstanceOf(AbstractUpgradeStep::class, new Upgrade_1_2_0);
+        $this->assertInstanceOf(AbstractUpgradeStep::class, new Upgrade_1_3_0);
     }
 
     // ========================================
@@ -262,7 +263,7 @@ class Upgrade_1_2_0_Test extends ModuleTestCase
     #[Test]
     public function claim_설정_기본값을_생성한다(): void
     {
-        $path = storage_path('app/modules/sirsoft-ecommerce/settings/claim.json');
+        $path = ExtensionStoragePath::module('sirsoft-ecommerce', 'settings').'/claim.json';
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -283,8 +284,8 @@ class Upgrade_1_2_0_Test extends ModuleTestCase
     {
         // 운영자가 좁혀 둔 취소 가능 상태가 기본값으로 덮여 넓어지면
         // 그동안 막아 온 상태에서 취소가 조용히 열린다.
-        $orderSettingsPath = storage_path('app/modules/sirsoft-ecommerce/settings/order_settings.json');
-        $claimPath = storage_path('app/modules/sirsoft-ecommerce/settings/claim.json');
+        $orderSettingsPath = ExtensionStoragePath::module('sirsoft-ecommerce', 'settings').'/order_settings.json';
+        $claimPath = ExtensionStoragePath::module('sirsoft-ecommerce', 'settings').'/claim.json';
 
         $originalOrderSettings = File::exists($orderSettingsPath) ? File::get($orderSettingsPath) : null;
         if (File::exists($claimPath)) {
@@ -314,7 +315,7 @@ class Upgrade_1_2_0_Test extends ModuleTestCase
     #[Test]
     public function 이미_저장된_claim_설정은_덮어쓰지_않는다(): void
     {
-        $claimPath = storage_path('app/modules/sirsoft-ecommerce/settings/claim.json');
+        $claimPath = ExtensionStoragePath::module('sirsoft-ecommerce', 'settings').'/claim.json';
         File::ensureDirectoryExists(dirname($claimPath));
         File::put($claimPath, json_encode(
             ['max_images' => 2, 'instant_cancel_statuses' => ['preparing']],

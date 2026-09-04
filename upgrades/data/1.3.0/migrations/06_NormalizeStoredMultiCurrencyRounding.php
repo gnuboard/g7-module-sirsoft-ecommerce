@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_2_0\Migrations;
+namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_3_0\Migrations;
 
 use App\Extension\Upgrade\DataMigration;
 use App\Extension\UpgradeContext;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * `applyRounding()` 은 단위로 나눠 반올림한 뒤 그 단위를 도로 곱한다. 그 마지막 곱셈에서
  * 이진 부동소수 표현이 한 칸 어긋나 `4505 × 0.01` 이 `45.050000000000004` 가 되고, 그 값이
- * 그대로 `mc_*` JSON 컬럼에 기록됐다. 1.2.0 부터는 생산 지점이 잔차를 지우지만 그것은
+ * 그대로 `mc_*` JSON 컬럼에 기록됐다. 1.3.0 부터는 생산 지점이 잔차를 지우지만 그것은
  * **이후 기록분에만** 적용되므로, 기존 설치본의 과거 행은 어긋난 표기를 그대로 들고 있다.
  * 화면 표시(`*_formatted`)와 PG 청구액(최소 화폐단위 정수)은 종전에도 정상이었고, 어긋나는
  * 것은 연동 시스템이 원본으로 내려받는 숫자다.
@@ -64,7 +64,7 @@ class NormalizeStoredMultiCurrencyRounding implements DataMigration
         $targets = $this->targets();
 
         if ($targets === []) {
-            $context->logger->info('[ecommerce:1.2.0] mc_* 컬럼을 가진 테이블 없음 — 저장 금액 표기 정규화 스킵');
+            $context->logger->info('[ecommerce:1.3.0] mc_* 컬럼을 가진 테이블 없음 — 저장 금액 표기 정규화 스킵');
 
             return;
         }
@@ -76,7 +76,7 @@ class NormalizeStoredMultiCurrencyRounding implements DataMigration
         }
 
         $context->logger->info(sprintf(
-            '[ecommerce:1.2.0] 저장 금액 표기 정규화 완료 — 테이블 %d개 / 갱신 %d행',
+            '[ecommerce:1.3.0] 저장 금액 표기 정규화 완료 — 테이블 %d개 / 갱신 %d행',
             count($targets),
             $totalRows
         ));

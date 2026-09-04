@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_2_0\Migrations;
+namespace App\Upgrades\Data\Ext\Modules\SirsoftEcommerce\V1_3_0\Migrations;
 
 use App\Extension\Upgrade\DataMigration;
 use App\Extension\UpgradeContext;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
  * 교환/반품 사유 카탈로그를 시드합니다.
  *
  * 사유 목록은 그 버전에 동결한다 — 이후 버전에서 기본 사유가 바뀌더라도
- * 1.2.0 업그레이드를 밟는 사이트는 1.2.0 시점의 목록을 받는다(스텝별 동작 동일 보장).
+ * 1.3.0 업그레이드를 밟는 사이트는 1.3.0 시점의 목록을 받는다(스텝별 동작 동일 보장).
  *
  * 이미 존재하는 (type, code) 는 건드리지 않는다. 운영자가 이름·정렬·활성 여부를
  * 고쳤을 수 있고, 업그레이드가 그것을 되돌리면 안 된다. 신규 코드만 추가한다.
@@ -26,7 +26,7 @@ class SeedClaimReasons implements DataMigration
     private const TABLE = 'ecommerce_claim_reasons';
 
     /**
-     * 1.2.0 시점에 동결한 교환 사유 목록.
+     * 1.3.0 시점에 동결한 교환 사유 목록.
      *
      * @var array<int, array{code: string, ko: string, en: string, fault_type: string}>
      */
@@ -42,7 +42,7 @@ class SeedClaimReasons implements DataMigration
     ];
 
     /**
-     * 1.2.0 시점에 동결한 반품 사유 목록.
+     * 1.3.0 시점에 동결한 반품 사유 목록.
      *
      * @var array<int, array{code: string, ko: string, en: string, fault_type: string}>
      */
@@ -66,7 +66,7 @@ class SeedClaimReasons implements DataMigration
     public function run(UpgradeContext $context): void
     {
         if (! Schema::hasTable(self::TABLE)) {
-            $context->logger->warning('[ecommerce:1.2.0] '.self::TABLE.' 테이블 미존재 — 스킵');
+            $context->logger->warning('[ecommerce:1.3.0] '.self::TABLE.' 테이블 미존재 — 스킵');
 
             return;
         }
@@ -77,7 +77,7 @@ class SeedClaimReasons implements DataMigration
         $created += $this->seedType('exchange', self::EXCHANGE_REASONS, $translations, $context);
         $created += $this->seedType('return', self::RETURN_REASONS, $translations, $context);
 
-        $context->logger->info('[ecommerce:1.2.0] 교환/반품 사유 시드 완료 — 신규 '.$created.'건');
+        $context->logger->info('[ecommerce:1.3.0] 교환/반품 사유 시드 완료 — 신규 '.$created.'건');
     }
 
     /**
@@ -131,7 +131,7 @@ class SeedClaimReasons implements DataMigration
                 }
             }
 
-            $context->logger->info('[ecommerce:1.2.0] 언어팩 사유 번역 병합 — '.$name.' ('.$manifest['locale'].')');
+            $context->logger->info('[ecommerce:1.3.0] 언어팩 사유 번역 병합 — '.$name.' ('.$manifest['locale'].')');
         }
 
         return $translations;
@@ -178,7 +178,7 @@ class SeedClaimReasons implements DataMigration
 
             $created++;
             $context->logger->info(
-                '[ecommerce:1.2.0] 사유 추가 — '.$type.'/'.$reason['code'].' ('.$reason['ko'].')'
+                '[ecommerce:1.3.0] 사유 추가 — '.$type.'/'.$reason['code'].' ('.$reason['ko'].')'
             );
         }
 
